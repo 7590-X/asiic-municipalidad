@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: asiic_db
+    hostname: asiic_db
+
+    # restart: unless-stopped
+    environment:
+      # Credenciales y base principal de PostgreSQL
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123$}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      # Credenciales para bases de datos de servicios
+      KC_DB: ${KC_DB:-db_keycloak}
+      KC_USERNAME: ${KC_USERNAME:-usr_keycloak}
+      KC_PASSWORD: ${KC_PASSWORD:-keycloak123$}
+      ASIIC_USER: ${ASIIC_USER:-usr_asiic}
+      ASIIC_DB: ${ASIIC_DB:-db_asiic}
+      ASIIC_PASSWORD: ${ASIIC_PASSWORD:-asiic123$}
+
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Scripts de inicialización (.sql o .sh) que se ejecutan al crear la base por primera vez:
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 10s
+
+    networks:
+      - backend_network
+
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+volumes:
+  postgres_data:
+    driver: local
+    name: postgres_data
+
+networks:
+  backend_network:
+    driver: bridge
+    name: backend_network
