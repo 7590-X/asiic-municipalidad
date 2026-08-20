@@ -1,0 +1,16 @@
+keycloak:
+  client: ${KEYCLOAK_CLIENT}
+  realm: ${KEYCLOAK_REALM}
+  server: ${KEYCLOAK_SERVER}
+  principalClaimName: preferred_name
+
+application:
+  name: assic-muni
+  security:
+    oath2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${keycloak.server}/realms/${keycloak.realm}
+
+server:
+  port: 8888
