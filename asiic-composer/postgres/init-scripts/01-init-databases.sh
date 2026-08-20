@@ -22,6 +22,7 @@ KC_PASSWORD="${KC_PASSWORD}"
 
 ASIIC_USER="${ASIIC_USER:-usr_asiic}"
 ASIIC_DB="${ASIIC_DB:-db_asiic}"
+ASIIC_DB_DEV="db_asiic_dev"
 ASIIC_PASSWORD="${ASIIC_PASSWORD}"
 
 # Función auxiliar para crear base de datos si no existe
@@ -77,16 +78,19 @@ create_user_if_not_exists "$ASIIC_USER" "$ASIIC_PASSWORD"
 echo "[Info] Creating databases"
 create_database_if_not_exists "$KC_DB" "$KC_USER"
 create_database_if_not_exists "$ASIIC_DB" "$ASIIC_USER"
+create_database_if_not_exists "$ASIIC_DB_DEV" "$ASIIC_USER"
 
 echo "[Info] Set grants to users over databases"
 psql -v ON_ERROR_STOP=1 --username "$MAIN_USER" --dbname "$MAIN_DB" <<-EOSQL
     GRANT ALL PRIVILEGES ON DATABASE "$KC_DB" TO "$KC_USER";
     GRANT ALL PRIVILEGES ON DATABASE "$ASIIC_DB" TO "$ASIIC_USER";
+    GRANT ALL PRIVILEGES ON DATABASE "$ASIIC_DB_DEV" TO "$ASIIC_USER"
 EOSQL
 
 echo "[Info] Setting default grants"
 set_grant_to_user "$KC_USER" "$KC_DB"
 set_grant_to_user "$ASIIC_USER" "$ASIIC_DB"
+set_grant_to_user "$ASIIC_USER" "$ASIIC_DB_DEV"
 
 echo "======================================================"
 echo "Inicialización de bases de datos completada exitosamente!"
