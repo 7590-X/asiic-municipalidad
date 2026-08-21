@@ -1,0 +1,70 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.1
+    container_name: asiic_keycloak
+    restart: unless-stopped
+    command:
+      - "start-dev"
+    environment:
+      # ==========================================
+      # Conexión a Base de Datos (PostgreSQL)
+      # ==========================================
+      KC_DB: postgres
+      KC_DB_URL_HOST: asiic_db
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: ${KC_DB:-db_keycloak}
+      KC_DB_USERNAME: ${KC_USERNAME:-usr_keycloak}
+      KC_DB_PASSWORD: ${KC_PASSWORD:-keycloak123$}
+
+      # ==========================================
+      # Credenciales de Administrador Inicial (Keycloak 26+)
+      # ==========================================
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin123$}
+
+      # ==========================================
+      # Configuración de Red, HTTP y Proxy Inverso
+      # ==========================================
+      KC_HTTP_ENABLED: ${KC_HTTP_ENABLED:-false}
+      KC_PROXY_HEADERS: ${KC_PROXY_HEADERS:-xforwarded}
+      KC_HOSTNAME_STRICT: ${KC_HOSTNAME_STRICT:-false}
+      KC_HOSTNAME: ${KC_HOSTNAME:-}
+
+      # ==========================================
+      # Métricas y Monitoreo de Salud
+      # ==========================================
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+
+      # ==========================================
+      # Configuración JVM (Heap size y GC optimizado para contenedores)
+      # ==========================================
+      JAVA_OPTS_APPEND: "-XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:MinRAMPercentage=50.0 -Djgroups.bind_addr=GLOBAL"
+    ports:
+      - "${KC_PORT:-5555}:8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 3<>/dev/tcp/127.0.0.1/8080; echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; cat <&3 | grep -q '200 OK'",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    networks:
+      - backend_network
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 1G
+
+networks:
+  backend_network:
+    external: true
