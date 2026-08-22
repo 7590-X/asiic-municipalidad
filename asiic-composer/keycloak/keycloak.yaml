@@ -43,8 +43,8 @@ services:
       JAVA_OPTS_APPEND: "-XX:+UseG1GC -XX:MaxRAMPercentage=75.0 -XX:MinRAMPercentage=50.0 -Djgroups.bind_addr=GLOBAL"
 
     volumes:
-      - /opt/keycloak/conf/keycloak.crt:/opt/keycloak/conf/keycloak.crt:ro
-      - /opt/keycloak/conf/keycloak.key:/opt/keycloak/conf/keycloak.key:ro
+      - ${KC_HTTPS_CERTIFICATE_FILE}:/opt/keycloak/conf/keycloak.crt:ro
+      - ${KC_HTTPS_CERTIFICATE_KEY_FILE}:/opt/keycloak/conf/keycloak.key:ro
 
     ports:
       - "${KC_PORT:-5555}:8443"
