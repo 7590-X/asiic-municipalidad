@@ -47,7 +47,7 @@ services:
       - ${KC_HTTPS_CERTIFICATE_KEY_FILE}:/opt/keycloak/conf/keycloak.key:ro
 
     ports:
-      - "${KC_PORT:-5555}:8443"
+      - "${KC_PORT:-8443}:8443"
     healthcheck:
       test: [
           "CMD",
