@@ -25,7 +25,7 @@ services:
       # ==========================================
       # Configuración de Red, HTTP y Proxy Inverso
       # ==========================================
-      KC_HTTP_ENABLED: ${KC_HTTP_ENABLED:-false}
+      KC_HTTP_ENABLED: ${KC_HTTP_ENABLED:-true}
       KC_PROXY_HEADERS: ${KC_PROXY_HEADERS:-xforwarded}
       KC_HOSTNAME_STRICT: ${KC_HOSTNAME_STRICT:-false}
       KC_HOSTNAME: ${KC_HOSTNAME:-}
