@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -24,10 +24,11 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
 
   private final JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
 
-  @Qualifier("keycloak.principalClaimName")
+  @Value("${keycloak.principalClaimName}")
+
   private final String principalClaimName;
 
-  @Qualifier("keycloak.client")
+  @Value("${keycloak.client}")
   private final String client;
 
   @Override
