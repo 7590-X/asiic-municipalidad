@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/0001-first-schema-db.sql
+  - include:
+      file: db/changelog/0002-add-new-column-to-locations.sql
