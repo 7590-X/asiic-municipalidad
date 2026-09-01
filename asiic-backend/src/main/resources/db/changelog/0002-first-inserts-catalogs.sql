@@ -37,5 +37,4 @@ INSERT INTO as_locaciones (lo_pais, lo_depto, lo_muni, lo_comuna, lo_nacionalida
     (1 ,1 ,1 ,21 ,null ,null ,current_timestamp ,'Zona 21'),
     (1, 1, 1, 22, null, null, current_timestamp, 'Zona 22'),
     (1, 1, 1, 23, null, null, current_timestamp, 'Zona 23'),
-    (1, 1, 1, 24, null, null, current_timestamp, 'Zona 24'),
-    (1, 1, 1, 25, null, null, current_timestamp, 'Zona 25');
+    (1, 1, 1, 24, null, null, current_timestamp, 'Zona 24');
