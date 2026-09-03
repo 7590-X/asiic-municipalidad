@@ -16,7 +16,7 @@ application:
 
 spring:
   security:
-    oath2:
+    oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${keycloak.server}/realms/${keycloak.realm}
@@ -35,8 +35,21 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USER}
+    from: ${MAIL_FROM}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
   liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
+    change-log: classpath:db/db.changelog-master.yaml
+    enabled: true
 server:
   port: 8888

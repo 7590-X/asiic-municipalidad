@@ -1,4 +1,4 @@
-package com.assic.muni.application.security;
+package com.assic.muni.infrastructure.security;
 
 import java.util.Collection;
 import java.util.Map;

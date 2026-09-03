@@ -10,7 +10,7 @@
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
   <groupId>com.assic</groupId>
-  <artifactId>assic-system</artifactId>
+  <artifactId>asiic-backend</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name />
   <description />
@@ -116,6 +116,11 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <dependencyManagement>

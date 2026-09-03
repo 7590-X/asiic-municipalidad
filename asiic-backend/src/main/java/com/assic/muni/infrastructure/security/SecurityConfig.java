@@ -1,7 +1,6 @@
-package com.assic.muni.application.config;
+package com.assic.muni.infrastructure.security;
 
 
-import com.assic.muni.application.security.JwtAuthConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;

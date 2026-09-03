@@ -1,4 +1,4 @@
-package com.assic.muni.application.config;
+package com.assic.muni.infrastructure.config;
 
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
