@@ -26,10 +26,13 @@ public class AsDireccione {
     @Column(name = "di_direccion", nullable = false, length = 100)
     private String diDireccion;
 
-    @Size(max = 1)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "di_tipo", insertable = false, updatable = false)
+    private AsCatalogo diTipoObj;
+
     @NotNull
-    @Column(name = "di_tipo", nullable = false, length = 1)
-    private String diTipo;
+    @Column(name = "di_tipo")
+    private Integer diTipo;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
@@ -40,8 +43,11 @@ public class AsDireccione {
     private Instant diFecModifico;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "di_locacion")
-    private AsLocacione diLocacion;
+    @JoinColumn(name = "di_locacion", insertable = false, updatable = false)
+    private AsLocacione diLocacionObj;
+
+    @Column(name = "di_locacion")
+    private Integer diLocacion;
 
 
 }

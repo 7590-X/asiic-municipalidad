@@ -47,13 +47,19 @@ public class AsPersona {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "pe_estado_civil", nullable = false)
-    private AsCatalogo peEstadoCivil;
+    @JoinColumn(name = "pe_estado_civil", nullable = false, insertable = false, updatable = false)
+    private AsCatalogo peEstadoCivilObj;
+
+    @Column(name = "pe_estado_civil")
+    private Short peEstadoCivil;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "pe_tip_persona", nullable = false)
-    private AsCatalogo peTipPersona;
+    @JoinColumn(name = "pe_tip_persona", nullable = false, insertable = false, updatable = false)
+    private AsCatalogo peTipPersonaObj;
+
+    @Column(name = "pe_tip_persona")
+    private Short peTipPersona;
 
 
 }

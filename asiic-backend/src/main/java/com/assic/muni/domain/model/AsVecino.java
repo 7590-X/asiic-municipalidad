@@ -38,13 +38,11 @@ public class AsVecino {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ve_profesion", nullable = false)
-    private AsCatalogo veProfesion;
+    @JoinColumn(name = "ve_profesion", nullable = false,  insertable = false, updatable = false)
+    private AsCatalogo veProfesionObj;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ve_direccion", nullable = false)
-    private AsDireccione veDireccion;
+    @Column(name = "ve_profesion")
+    private Short veProfesion;
 
     @Size(max = 1)
     @NotNull

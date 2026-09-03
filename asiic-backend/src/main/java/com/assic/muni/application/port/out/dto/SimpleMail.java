@@ -1,9 +1,7 @@
 package com.assic.muni.application.port.out.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import org.springframework.modulith.NamedInterface;
 
-@NamedInterface
 public record SimpleMail(
 
   @NotBlank(message = "El correo destinatario es obligatorio")
