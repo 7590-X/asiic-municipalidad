@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/0002-first-inserts-catalogs.sql
   - include:
       file: db/changelog/0003-new-sp-for-add-catalogs.sql
+  - include:
+     file: db/changelog/0004-catalogos-registro-vecino.sql
