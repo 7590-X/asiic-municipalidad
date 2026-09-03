@@ -50,12 +50,12 @@ public class RegistrarVecinoCmd {
     @NotBlank
     @Pattern(regexp = "\\d+", message = "estado_civil_id inválido")
     @JsonProperty("estado_civil_id")
-    private String estadoCivilId;
+    private Short estadoCivilId;
 
     @NotBlank
     @Pattern(regexp = "\\d+", message = "profesion_id inválido")
     @JsonProperty("profesion_id")
-    private String profesionId;      // RN2: Opcional
+    private Short profesionId;      // RN2: Opcional
 
     @NotNull @Positive
     @JsonProperty("locacion_id")

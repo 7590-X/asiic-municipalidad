@@ -1,4 +1,4 @@
-package com.assic.muni.application.config;
+package com.assic.muni.infrastructure.config;
 
 import jakarta.ws.rs.client.Client;
 import org.jboss.resteasy.client.jaxrs.internal.ResteasyClientBuilderImpl;

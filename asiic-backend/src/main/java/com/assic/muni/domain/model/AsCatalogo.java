@@ -33,5 +33,7 @@ public class AsCatalogo {
     @Column(name = "ca_fec_registro", nullable = false)
     private Instant caFecRegistro;
 
+    @Column(name = "ca_seudo", insertable = false, updatable = false)
+    private String caSeudo;
 
 }

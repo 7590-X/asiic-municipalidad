@@ -44,40 +44,35 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
     private String realm;
 
     private static final String T_TIPO_PERSONA = "as_tipo_persona";
-    private static final String T_PROFESION    = "as_profesion";
+    private static final String T_PROFESION = "as_profesion";
     private static final String T_ESTADO_CIVIL = "as_estado_civil";
 
     // RN1/RN2: el vecino es persona individual; el sistema lo da de alta como Activo.
     private static final String VAL_TIPO_PERSONA_VECINO = "Individual";
     private static final String ESTADO_ACTIVO = "A";
-    private static final String ROL_VECINO    = "ROLE_VECINO";
+    private static final String ROL_VECINO = "ROLE_VECINO";
 
     @Override
     @Transactional
     public URI handle(RegistrarVecinoCmd cmd) {
 
-        // Formato / obligatoriedad -> @Valid (Bean Validation) en el controller.
-
-        // 1. Duplicados por CUI o correo (FA1)
-        if (personaRepository.existsByPeCui(cmd.getCui())
-                || correoRepository.existsByCoCorreo(cmd.getCorreo())) {
-            throw new ServiceException(HttpStatus.CONFLICT,
-                    "El CUI o Correo Ingresado ya se encuentra registrado en el sistema");
+        // Validación de CUI y Correo Electrónico
+        int validacion = personaRepository.validateByPeCuiAndPeCoCorreo(cmd.getCui(), cmd.getCorreo());
+        if (validacion != 0) {
+            switch (validacion) {
+                case 1:
+                    throw new ServiceException(HttpStatus.CONFLICT,
+                            "El CUI o Correo Ingresado ya se encuentra registrado en el sistema");
+                case 2:
+                    throw new ServiceException(HttpStatus.CONFLICT,
+                            "El Correo Ingresado ya se encuentra registrado en el sistema");
+                default:
+                    throw new RuntimeException("No se pudo validar la entrada de datos.");
+            }
         }
 
-        // 2. Resolver catálogos y locación (antes de tocar Keycloak)
-        AsCatalogo estadoCivil = resolverCatalogo(cmd.getEstadoCivilId(), T_ESTADO_CIVIL, "estado_civil_id");
-        AsCatalogo profesion   = resolverCatalogo(cmd.getProfesionId(),   T_PROFESION,    "profesion_id");
-
-        AsCatalogo tipoPersona = catalogoRepository
-                .findFirstByCaTabla_TaNombreAndCaValorIgnoreCase(T_TIPO_PERSONA, VAL_TIPO_PERSONA_VECINO)
-                .orElseThrow(() -> new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR,
-                        "El catálogo '" + T_TIPO_PERSONA + "' no contiene el valor '"
-                                + VAL_TIPO_PERSONA_VECINO + "' (ejecutar changeset 0004)"));
-
-        AsLocacione locacion = locacionRepository.findById(cmd.getLocacionId())
-                .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
-                        "La zona (locacion_id) seleccionada no existe"));
+        AsCatalogo tipoPersona = catalogoRepository.findByCaSeudo("PEIN")
+                .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,"No se pudo verificar la identidad del vecino"));
 
         // 3. Contraseña temporal segura (paso 2.3.6)
         String passwordTemporal = generarPasswordTemporal();
@@ -104,8 +99,8 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
                     .peNombre(cmd.getNombres())
                     .peApellido(cmd.getApellidos())
                     .peGenero(cmd.getGenero().toUpperCase())
-                    .peEstadoCivil(estadoCivil)
-                    .peTipPersona(tipoPersona)
+                    .peEstadoCivil(cmd.getEstadoCivilId())
+                    .peTipPersona(tipoPersona.getId())
                     .build());
 
             AsCorreo correo = correoRepository.save(AsCorreo.builder()
@@ -122,8 +117,7 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
 
             AsDireccione direccion = direccionRepository.save(AsDireccione.builder()
                     .diDireccion(cmd.getDireccion())
-                    .diTipo("R")                 // residencia (RN2: Dirección Exacta)
-                    .diLocacion(locacion)
+                    .diLocacion(cmd.getLocacionId())
                     .diFecRegistro(ahora)
                     .build());
 
@@ -131,8 +125,7 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
                     .vePersona(persona)          // @MapsId -> ve_id = persona.getId()
                     .veCorreo(correo)
                     .veTelefono(telefono)
-                    .veDireccion(direccion)
-                    .veProfesion(profesion)
+                    .veProfesion(cmd.getProfesionId())
                     .veEstado(ESTADO_ACTIVO)
                     .veFecRegistro(ahora)
                     .veIpRegistro(ip)
@@ -146,24 +139,6 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
             eliminarUsuarioKeycloakSilencioso(keycloakUserId); // @Transactional revierte BD, no Keycloak
             throw ex;
         }
-    }
-
-    /** Verifica que el id exista y pertenezca al catálogo esperado; devuelve la entidad gestionada. */
-    private AsCatalogo resolverCatalogo(String idRaw, String tablaEsperada, String campo) {
-        short id;
-        try {
-            id = Short.parseShort(idRaw.trim());
-        } catch (NumberFormatException e) {
-            throw new ServiceException(HttpStatus.BAD_REQUEST, "El campo '" + campo + "' no es un identificador válido");
-        }
-        AsCatalogo catalogo = catalogoRepository.findById(id)
-                .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
-                        "El valor enviado en '" + campo + "' no existe en el catálogo"));
-        if (!tablaEsperada.equals(catalogo.getCaTabla().getTaNombre())) {
-            throw new ServiceException(HttpStatus.BAD_REQUEST,
-                    "El valor enviado en '" + campo + "' no corresponde al catálogo " + tablaEsperada);
-        }
-        return catalogo;
     }
 
     // ---------- Keycloak ----------

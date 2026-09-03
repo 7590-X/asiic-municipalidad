@@ -12,8 +12,5 @@ import java.util.Optional;
 @Repository
 public interface AsCatalogoRepository extends JpaRepository<AsCatalogo, Short> {
 
-    @Query(value = "SELECT clave, valor FROM fn_obtener_catalogo_kv(:nombreTabla)", nativeQuery = true)
-    List<Object[]> obtenerClaveValor(@Param("nombreTabla") String nombreTabla);
-
-    Optional<AsCatalogo> findFirstByCaTabla_TaNombreAndCaValorIgnoreCase(String taNombre, String caValor);
+    Optional<AsCatalogo> findByCaSeudo(String caSeudo);
 }

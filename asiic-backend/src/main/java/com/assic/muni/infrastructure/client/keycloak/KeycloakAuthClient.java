@@ -1,4 +1,4 @@
-package com.assic.muni.application.client;
+package com.assic.muni.infrastructure.client.keycloak;
 
 import java.util.Map;
 

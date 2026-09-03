@@ -9,3 +9,7 @@ databaseChangeLog:
       file: db/changelog/0003-new-sp-for-add-catalogs.sql
   - include:
      file: db/changelog/0004-catalogos-registro-vecino.sql
+  - include:
+      file: db/changelog/0005-new-fiel-on-as_catalogos.sql
+  - include:
+      file: db/changelog/0006-alterar-esquema-vecinos.sql

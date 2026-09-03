@@ -1,4 +1,4 @@
-package com.assic.muni.application.client;
+package com.assic.muni.infrastructure.client.keycloak;
 
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
