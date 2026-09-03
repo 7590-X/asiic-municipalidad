@@ -3,21 +3,28 @@ package com.assic.muni.domain.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @Entity
 @Table(name = "as_vecinos")
 public class AsVecino {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ve_id", nullable = false)
     private Integer id;
+
+    @NotNull
+    @MapsId
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "ve_id")
+    private AsPersona vePersona;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -64,6 +71,5 @@ public class AsVecino {
     @Size(max = 32)
     @Column(name = "ve_ip_modifico", length = 32)
     private String veIpModifico;
-
 
 }
