@@ -33,3 +33,4 @@ build/
 .vscode/
 _env
 src/main/resources/application-local.yaml
+/.env
