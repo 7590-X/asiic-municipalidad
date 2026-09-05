@@ -1,11 +1,12 @@
 package com.assic.muni.presentation.api;
 
 import com.assic.muni.application.cqrs.dto.CatalogoItemDto;
-import com.assic.muni.application.exception.ServiceException;
-import com.assic.muni.infrastructure.repository.AsCatalogoRepository;
+import com.assic.muni.application.cqrs.enums.ECatalogo;
+import com.assic.muni.application.cqrs.query.CatalogoQuery;
 import com.assic.muni.infrastructure.repository.LocacionRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,22 +15,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/asiic/public/catalogos")
 @RequiredArgsConstructor
+@Tag(name = "Catálogos públicos")
 public class CatalogoController {
 
-    private final AsCatalogoRepository catalogoRepository;
+    private final CatalogoQuery catalogoQuery;
     private final LocacionRepository locacionRepository;
 
-    @GetMapping("/{nombre}")
-    public ResponseEntity<List<CatalogoItemDto>> obtener(@PathVariable String nombre) {
-        String tabla = switch (nombre) {
-            case "estado-civil" -> "as_estado_civil";
-            case "profesion"    -> "as_profesion";
-            default -> throw new ServiceException(HttpStatus.BAD_REQUEST, "Catálogo inválido");
-        };
-        return ResponseEntity.ok(
-                catalogoRepository.findByCaTabla_TaNombreOrderByIdAsc(tabla).stream()
-                        .map(c -> new CatalogoItemDto(c.getId(), c.getCaValor()))
-                        .toList());
+    @GetMapping("/{catalogo}")
+    @Operation(summary = "Obtener listado de items de un catalogo")
+    public ResponseEntity<List<CatalogoItemDto>> obtener(@PathVariable ECatalogo catalogo) {
+        return ResponseEntity.ok(catalogoQuery.getCatalogoItemsByCatalogoId(catalogo));
     }
 
     @GetMapping("/zonas")
