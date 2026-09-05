@@ -4,17 +4,20 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ClarityModule } from '@clr/angular';
 import { forkJoin } from 'rxjs';
-import { OnlyDigitsDirective } from '../../../../shared/directives/only-digits.directive';
 
 import { CatalogoService } from '../../services/catalogo.service';
 import { VecinoService } from '../../services/vecino.service';
 import { CatalogoItem } from '../../models/catalogo-item.model';
 import { ApiResponse, RegistrarVecinoRequest } from '../../models/registrar-vecino.model';
+import { IdentificacionComponent } from '../../components/identificacion/identificacion.component';
+import { ContactoComponent } from '../../components/contacto/contacto.component';
+import { UbicacionComponent } from "../../components/ubicacion/ubicacion.component";
+import { DocumentosComponent } from '../../components/documentos/documentos.component';
 
 @Component({
   selector: 'app-registro-vecino',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ClarityModule, OnlyDigitsDirective],
+  imports: [CommonModule, ReactiveFormsModule, ClarityModule, IdentificacionComponent, ContactoComponent, UbicacionComponent, DocumentosComponent],
   templateUrl: './registro-vecino.component.html',
   styleUrl: './registro-vecino.component.scss',
 })
@@ -45,10 +48,13 @@ export class RegistroVecinoComponent implements OnInit {
     contacto: this.fb.nonNullable.group({
       telefono: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
       correo: ['', [Validators.required, Validators.email, Validators.maxLength(45)]],
-      direccion: ['', [Validators.required, Validators.maxLength(100)]],
     }),
     ubicacion: this.fb.nonNullable.group({
-      locacion_id: [null as number | null, Validators.required],
+      pais_id: [null as number | null,],
+      departamento_id: [null as number | null,],
+      municipio_id: [null as number | null,],
+      locacion_id: [null as number | null, Validators.required], // Comuna
+      direccion: ['', [Validators.required, Validators.maxLength(100)]],
     }),
     documentos: this.fb.nonNullable.group({
       nit: ['', [Validators.pattern(/^\d{0,12}$/)]],
@@ -93,7 +99,10 @@ export class RegistroVecinoComponent implements OnInit {
       profesion_id: v.identificacion.profesion_id,
       telefono: v.contacto.telefono,
       correo: v.contacto.correo,
-      direccion: v.contacto.direccion,
+      direccion: v.ubicacion.direccion,
+      pais_id: v.ubicacion.pais_id as number,
+      departamento_id: v.ubicacion.departamento_id as number,
+      municipio_id: v.ubicacion.municipio_id as number,
       locacion_id: v.ubicacion.locacion_id as number,
       nit: v.documentos.nit || undefined,
       pasaporte: v.documentos.pasaporte || undefined,

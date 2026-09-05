@@ -23,30 +23,13 @@
         </button>
       </div>
     </div>
-
+    <!-- Cambios minimos que reducen el codigo un vergo XD, nichi hueco -->
     <div class="lp-hero__cards">
-      <div class="lp-card">
-        <span class="lp-card__badge">1</span>
-        <div>
-          <h3>Reporte incidencias</h3>
-          <p>Quejas, reclamos, denuncias y sugerencias en minutos.</p>
-        </div>
-      </div>
-      <div class="lp-card">
-        <span class="lp-card__badge">2</span>
-        <div>
-          <h3>Dé seguimiento</h3>
-          <p>Consulte el estado de sus gestiones en todo momento.</p>
-        </div>
-      </div>
-      <div class="lp-card">
-        <span class="lp-card__badge">3</span>
-        <div>
-          <h3>Reciba notificaciones</h3>
-          <p>Le avisamos por correo cada avance importante.</p>
-        </div>
-      </div>
+      @for (step of steps; track step.badge) {
+      <app-step-card [badge]="step.badge" [title]="step.title" [description]="step.description" />
+      }
     </div>
+    <!-- Aqui estuvo el Elver Galarla -->
   </main>
 
   <footer class="lp-foot">

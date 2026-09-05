@@ -13,15 +13,9 @@ keycloak:
       id: asiic-admin-client
       secret: ${KC_ADMIN_SECRET}
 
-application:
-  name: asiic-api
-
-management:
-  health:
-    mail:
-      enabled: false
-
 spring:
+  application:
+    name: asiic-backend
   security:
     oauth2:
       resourceserver:
@@ -54,9 +48,6 @@ spring:
           auth: true
           starttls:
             enable: true
-          ssl:
-            trust: "*"
-            checkserveridentity: false
 
   liquibase:
     change-log: classpath:db/db.changelog-master.yaml

@@ -43,7 +43,7 @@ public class AsDireccione {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "di_locacion", insertable = false, updatable = false)
-    private AsLocacione diLocacionObj;
+    private AsLocacion diLocacionObj;
 
     @Column(name = "di_locacion")
     private Integer diLocacion;

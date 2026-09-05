@@ -1,0 +1,51 @@
+<div [formGroup]="stepForm" class="rv-grid">
+  <!-- País -->
+  <clr-select-container>
+    <label class="clr-required-mark">País</label>
+    <select clrSelect formControlName="pais_id">
+      <option [ngValue]="null">Seleccione…</option>
+      <option *ngFor="let p of paises()" [ngValue]="p.id">{{ p.valor }}</option>
+    </select>
+    <!-- <clr-control-error *clrIfError="'required'">Seleccione el país</clr-control-error> -->
+  </clr-select-container>
+
+  <!-- Departamento -->
+  <clr-select-container>
+    <label class="clr-required-mark">Departamento</label>
+    <select clrSelect formControlName="departamento_id">
+      <option [ngValue]="null">Seleccione…</option>
+      <option *ngFor="let d of departamentos()" [ngValue]="d.id">{{ d.valor }}</option>
+    </select>
+    <!-- <clr-control-error *clrIfError="'required'">Seleccione el departamento</clr-control-error> -->
+  </clr-select-container>
+
+  <!-- Municipio -->
+  <clr-select-container>
+    <label class="clr-required-mark">Municipio</label>
+    <select clrSelect formControlName="municipio_id">
+      <option [ngValue]="null">Seleccione…</option>
+      <option *ngFor="let m of municipios()" [ngValue]="m.id">{{ m.valor }}</option>
+    </select>
+    <!-- <clr-control-error *clrIfError="'required'">Seleccione el municipio</clr-control-error> -->
+  </clr-select-container>
+
+  <!-- Comuna (antes Zona) -->
+  <clr-select-container>
+    <label class="clr-required-mark">Comuna</label>
+    <select clrSelect formControlName="locacion_id">
+      <option [ngValue]="null">Seleccione…</option>
+      <option *ngFor="let z of zonas()" [ngValue]="z.id">{{ z.valor }}</option>
+    </select>
+    <clr-control-error *clrIfError="'required'">Seleccione la comuna</clr-control-error>
+  </clr-select-container>
+
+  <!-- Dirección exacta -->
+  <clr-input-container class="rv-full">
+    <label class="clr-required-mark">Dirección exacta</label>
+    <input clrInput formControlName="direccion" />
+    <clr-control-helper>Dirección de residencia según recibo de luz</clr-control-helper>
+    <clr-control-error *clrIfError="'required'">La dirección es obligatoria</clr-control-error>
+    <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }}
+      caracteres</clr-control-error>
+  </clr-input-container>
+</div>
