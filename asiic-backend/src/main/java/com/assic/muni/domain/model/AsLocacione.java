@@ -51,5 +51,9 @@ public class AsLocacione {
     @Column(name = "lo_fec_modifico")
     private Instant loFecModifico;
 
+    @Size(max = 45)
+    @Column(name = "lo_descripcion", length = 45)
+    private String loDescripcion;
+
 
 }

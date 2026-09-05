@@ -4,10 +4,9 @@ import com.assic.muni.domain.model.AsLocacione;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface LocacionRepository extends JpaRepository<AsLocacione, Integer> {
-
-    Optional<AsLocacione> findFirstByLoDeptoAndLoMuniAndLoComuna(Short loDepto, Short loMuni, Short loComuna);
+    List<AsLocacione> findByLoComunaGreaterThanOrderByLoComunaAsc(Short loComuna);
 }

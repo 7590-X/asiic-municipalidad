@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
+import org.springframework.context.ApplicationEventPublisher;
+import com.assic.muni.domain.event.VecinoCreadoEvent;
+import java.time.ZonedDateTime;
 import java.net.URI;
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -37,6 +39,7 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
     private final DireccionRepository direccionRepository;
     private final AsCatalogoRepository catalogoRepository;
     private final LocacionRepository locacionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final Keycloak keycloakAdminClient;
 
@@ -61,11 +64,9 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
         if (validacion != 0) {
             switch (validacion) {
                 case 1:
-                    throw new ServiceException(HttpStatus.CONFLICT,
-                            "El CUI o Correo Ingresado ya se encuentra registrado en el sistema");
                 case 2:
                     throw new ServiceException(HttpStatus.CONFLICT,
-                            "El Correo Ingresado ya se encuentra registrado en el sistema");
+                            "El CUI o Correo Ingresado ya se encuentra registrado en el sistema");
                 default:
                     throw new RuntimeException("No se pudo validar la entrada de datos.");
             }
@@ -130,6 +131,13 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
                     .veFecRegistro(ahora)
                     .veIpRegistro(ip)
                     .build());
+
+            eventPublisher.publishEvent(new VecinoCreadoEvent(
+                    cmd.getCorreo(),
+                    passwordTemporal,
+                    "Cuenta de vecino creada exitosamente",
+                    ZonedDateTime.now()
+            ));
 
             // TODO fuera de alcance: FA3 (correo de bienvenida con contraseña temporal)
             //                        y bitácora de auditoría (paso 9).

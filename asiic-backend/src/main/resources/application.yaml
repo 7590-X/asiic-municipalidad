@@ -3,6 +3,8 @@ keycloak:
   realm: ${KC_REALM}
   server: ${KC_SERVER}
   principalClaimName: preferred_name
+  ssl:
+    disable-trust-manager: ${KC_DISABLE_TRUST_MANAGER:false}
   clients:
     auth:
       id: asiic-auth-client
@@ -13,6 +15,11 @@ keycloak:
 
 application:
   name: asiic-api
+
+management:
+  health:
+    mail:
+      enabled: false
 
 spring:
   security:
@@ -47,6 +54,9 @@ spring:
           auth: true
           starttls:
             enable: true
+          ssl:
+            trust: "*"
+            checkserveridentity: false
 
   liquibase:
     change-log: classpath:db/db.changelog-master.yaml

@@ -1,0 +1,122 @@
+:host {
+  display: block;
+  font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
+}
+
+.lp-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+
+  background:
+    linear-gradient(150deg, rgba(27, 73, 101, 0.82) 0%, rgba(20, 55, 78, 0.9) 100%),
+    url('/muni-hero.jpg') center 30% / cover no-repeat;
+}
+
+.lp-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.75rem 3rem;
+
+  &__emblem { height: 42px; width: 42px; }
+  &__brand {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+    strong { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; }
+    span   { font-size: 0.62rem; letter-spacing: 3px; color: rgba(255, 255, 255, 0.75); }
+  }
+}
+
+.lp-hero {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3rem;
+  padding: 2rem 3rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+
+  &__text { flex: 1 1 420px; max-width: 560px; }
+
+  &__eyebrow {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #ffd98a;
+    margin-bottom: 0.75rem;
+  }
+
+  h1 { margin: 0 0 1rem; font-size: 2.6rem; line-height: 1.15; font-weight: 700; color: #fff; }
+  p  { margin: 0 0 2rem; font-size: 1.05rem; line-height: 1.6; color: rgba(255, 255, 255, 0.85); }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    .btn-outline {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.5);
+      background: transparent;
+      &:disabled { opacity: 0.55; cursor: not-allowed; }
+    }
+  }
+
+  &__cards {
+    flex: 1 1 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+}
+
+.lp-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem;
+
+  &__badge {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    font-weight: 700;
+  }
+
+  h3 { margin: 0 0 0.3rem; font-size: 1rem; font-weight: 600; color: #fff; }
+  p  { margin: 0; font-size: 0.88rem; color: rgba(255, 255, 255, 0.8); }
+}
+
+.lp-foot {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.78rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.65);
+  }
+}
+
+@media (max-width: 720px) {
+  .lp-nav { padding: 1.25rem 1.5rem; }
+  .lp-hero { padding: 1.5rem 1.5rem 3rem; }
+  .lp-hero h1 { font-size: 2rem; }
+}
