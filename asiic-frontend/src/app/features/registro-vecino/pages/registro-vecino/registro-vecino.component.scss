@@ -1,0 +1,136 @@
+:host {
+  display: block;
+  font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
+}
+
+.rv-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(900px 500px at 100% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
+    linear-gradient(150deg, #4997d0 0%, #1b4965 100%);
+}
+
+.rv-shell {
+  width: 100%;
+  max-width: 1120px;
+  min-height: 640px;
+  display: flex;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -25px rgba(6, 26, 41, 0.55);
+}
+
+/* ---------- Panel izquierdo ---------- */
+.rv-aside {
+  flex: 0 0 38%;
+  max-width: 400px;
+  padding: 2.5rem 2.25rem;
+  color: #fff;
+  background: linear-gradient(160deg, #143b53 0%, #1b4965 45%, #2e6f9e 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+
+    img { height: 46px; width: 46px; flex: none; }
+    strong { display: block; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.5px; }
+    span   { display: block; font-size: 0.66rem; letter-spacing: 3px; color: rgba(255, 255, 255, 0.75); }
+  }
+
+  &__body {
+    flex: 1;
+
+    h1 { margin: 0 0 0.75rem; font-size: 1.7rem; line-height: 1.2; font-weight: 700; color: #ffffff }
+    p  { margin: 0 0 1.75rem; font-size: 0.92rem; line-height: 1.55; color: rgba(255, 255, 255, 0.85); }
+  }
+
+  &__steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    span {
+      flex: none;
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  }
+
+  &__foot {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.7);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 1.25rem;
+  }
+}
+
+/* ---------- Panel derecho ---------- */
+.rv-main {
+  flex: 1;
+  padding: 2.5rem 2.5rem 2.75rem;
+  overflow-y: auto;
+}
+
+.rv-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #5c6c77;
+  padding: 1rem 0;
+}
+
+/* campos a 2 columnas dentro de cada paso */
+clr-step-content {
+  .rv-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2rem;
+    row-gap: 0.3rem;
+    margin-bottom: 1.25rem;
+  }
+  .rv-grid .rv-full { grid-column: 1 / -1; }
+
+  .clr-form-control { width: 100%; margin-top: 0.5rem; }
+  .clr-control-container,
+  .clr-input-wrapper,
+  .clr-select-wrapper { width: 100%; max-width: 100%; }
+  input.clr-input,
+  select.clr-select { width: 100%; }
+
+  .btn { margin-top: 0.5rem; }
+}
+
+@media (max-width: 900px) {
+  .rv-shell { flex-direction: column; min-height: 0; }
+  .rv-aside { flex: none; max-width: none; }
+  .rv-aside__steps { flex-direction: row; flex-wrap: wrap; }
+  .rv-main { padding: 2rem 1.5rem 2.25rem; }
+  clr-step-content .rv-grid { grid-template-columns: 1fr; column-gap: 0; }
+}

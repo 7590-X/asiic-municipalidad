@@ -1,0 +1,214 @@
+<section class="rv-page">
+  <div class="rv-shell">
+
+    <!-- Panel izquierdo: marca -->
+    <aside class="rv-aside">
+      <div class="rv-aside__brand">
+        <img src="muni-emblem-white.svg" alt="" />
+        <div>
+          <strong>MUNICIPALIDAD</strong>
+          <span>DE GUATEMALA</span>
+        </div>
+      </div>
+
+      <div class="rv-aside__body">
+        <h1>Cree su cuenta de vecino</h1>
+        <p>
+          Regístrese en el portal municipal para reportar incidencias,
+          dar seguimiento a sus gestiones y recibir notificaciones.
+        </p>
+
+        <ol class="rv-aside__steps">
+          <li><span>1</span> Identificación</li>
+          <li><span>2</span> Contacto</li>
+          <li><span>3</span> Ubicación</li>
+          <li><span>4</span> Documentos</li>
+        </ol>
+      </div>
+
+      <p class="rv-aside__foot">
+        Recibirá su contraseña temporal por correo electrónico.
+      </p>
+    </aside>
+
+    <!-- Panel derecho: wizard -->
+    <div class="rv-main">
+      <clr-alert
+        *ngIf="exito()"
+        [clrAlertLightweight]="true"
+        clrAlertType="success"
+        [clrAlertClosable]="false"
+      >
+        <clr-alert-item>
+          <span class="alert-text">
+            Registro exitoso. Revise su bandeja de correo para obtener sus credenciales de acceso.
+          </span>
+        </clr-alert-item>
+      </clr-alert>
+
+      <clr-alert
+        *ngIf="errorMsg()"
+        [clrAlertLightweight]="true"
+        clrAlertType="danger"
+        (clrAlertClosedChange)="errorMsg.set(null)"
+      >
+        <clr-alert-item><span class="alert-text">{{ errorMsg() }}</span></clr-alert-item>
+      </clr-alert>
+
+      <div *ngIf="cargandoCatalogos()" class="rv-loading">
+        <span class="spinner spinner-sm"></span> Cargando catálogos…
+      </div>
+
+      <form
+        *ngIf="!exito() && !cargandoCatalogos()"
+        clrStepper
+        [formGroup]="form"
+        (ngSubmit)="enviar()"
+      >
+        <!-- Paso 1 -->
+        <clr-stepper-panel formGroupName="identificacion">
+          <clr-step-title>Identificación</clr-step-title>
+          <clr-step-description>Datos personales del vecino</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <div class="rv-grid">
+              <clr-input-container class="rv-full">
+                <label class="clr-required-mark">CUI</label>
+                <!-- Paso 1: CUI -->
+                <input clrInput formControlName="cui"
+                       appOnlyDigits inputmode="numeric" maxlength="13" autocomplete="off" />
+                <clr-control-helper>Código Único de Identificación (13 dígitos)</clr-control-helper>
+                <clr-control-error *clrIfError="'required'">El CUI es obligatorio</clr-control-error>
+                <clr-control-error *clrIfError="'pattern'">Debe tener exactamente 13 dígitos</clr-control-error>
+              </clr-input-container>
+
+              <clr-input-container>
+                <label class="clr-required-mark">Nombres</label>
+                <input clrInput formControlName="nombres" />
+                <clr-control-error *clrIfError="'required'">Los nombres son obligatorios</clr-control-error>
+                <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }} caracteres</clr-control-error>
+              </clr-input-container>
+
+              <clr-input-container>
+                <label class="clr-required-mark">Apellidos</label>
+                <input clrInput formControlName="apellidos" />
+                <clr-control-error *clrIfError="'required'">Los apellidos son obligatorios</clr-control-error>
+                <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }} caracteres</clr-control-error>
+              </clr-input-container>
+
+              <clr-select-container>
+                <label class="clr-required-mark">Género</label>
+                <select clrSelect formControlName="genero">
+                  <option value="">Seleccione…</option>
+                  <option value="M">Masculino</option>
+                  <option value="F">Femenino</option>
+                </select>
+                <clr-control-error *clrIfError="'required'">Seleccione el género</clr-control-error>
+              </clr-select-container>
+
+              <clr-select-container>
+                <label class="clr-required-mark">Estado civil</label>
+                <select clrSelect formControlName="estado_civil_id">
+                  <option value="">Seleccione…</option>
+                  <option *ngFor="let c of estadoCivil()" [value]="c.id">{{ c.valor }}</option>
+                </select>
+                <clr-control-error *clrIfError="'required'">Seleccione el estado civil</clr-control-error>
+              </clr-select-container>
+
+              <clr-select-container>
+                <label class="clr-required-mark">Profesión</label>
+                <select clrSelect formControlName="profesion_id">
+                  <option value="">Seleccione…</option>
+                  <option *ngFor="let p of profesiones()" [value]="p.id">{{ p.valor }}</option>
+                </select>
+                <clr-control-error *clrIfError="'required'">Seleccione la profesión</clr-control-error>
+              </clr-select-container>
+            </div>
+            <button clrStepButton="next" class="btn btn-primary">Siguiente</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+        <!-- Paso 2 -->
+        <clr-stepper-panel formGroupName="contacto">
+          <clr-step-title>Contacto</clr-step-title>
+          <clr-step-description>Teléfono, correo y residencia</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <div class="rv-grid">
+
+              <clr-input-container>
+                <label class="clr-required-mark">Teléfono</label>
+                <input clrInput formControlName="telefono"
+                       appOnlyDigits inputmode="numeric" maxlength="8" autocomplete="off" />
+                <clr-control-helper>8 dígitos</clr-control-helper>
+                <clr-control-error *clrIfError="'required'">El teléfono es obligatorio</clr-control-error>
+                <clr-control-error *clrIfError="'pattern'">Debe tener exactamente 8 dígitos</clr-control-error>
+              </clr-input-container>
+
+              <clr-input-container>
+                <label class="clr-required-mark">Correo</label>
+                <input clrInput type="email" formControlName="correo" />
+                <clr-control-helper>Se usará para enviarle sus credenciales</clr-control-helper>
+                <clr-control-error *clrIfError="'required'">El correo es obligatorio</clr-control-error>
+                <clr-control-error *clrIfError="'email'">Formato de correo inválido</clr-control-error>
+              </clr-input-container>
+
+              <clr-input-container class="rv-full">
+                <label class="clr-required-mark">Dirección exacta</label>
+                <input clrInput formControlName="direccion" />
+                <clr-control-helper>Dirección de residencia según recibo de luz</clr-control-helper>
+                <clr-control-error *clrIfError="'required'">La dirección es obligatoria</clr-control-error>
+                <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }} caracteres</clr-control-error>
+              </clr-input-container>
+            </div>
+            <button clrStepButton="next" class="btn btn-primary">Siguiente</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+        <!-- Paso 3 -->
+        <clr-stepper-panel formGroupName="ubicacion">
+          <clr-step-title>Ubicación</clr-step-title>
+          <clr-step-description>Zona del municipio</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <div class="rv-grid">
+              <clr-select-container>
+                <label class="clr-required-mark">Zona</label>
+                <select clrSelect formControlName="locacion_id">
+                  <option [ngValue]="null">Seleccione…</option>
+                  <option *ngFor="let z of zonas()" [ngValue]="z.id">{{ z.valor }}</option>
+                </select>
+                <clr-control-error *clrIfError="'required'">Seleccione la zona</clr-control-error>
+              </clr-select-container>
+            </div>
+            <button clrStepButton="next" class="btn btn-primary">Siguiente</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+        <!-- Paso 4 -->
+        <clr-stepper-panel formGroupName="documentos">
+          <clr-step-title>Documentos</clr-step-title>
+          <clr-step-description>Opcionales</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <div class="rv-grid">
+              <clr-input-container>
+                <label>NIT</label>
+                <input clrInput formControlName="nit" />
+                <clr-control-helper>Opcional</clr-control-helper>
+                <clr-control-error *clrIfError="'pattern'">Solo dígitos (máx. 12)</clr-control-error>
+              </clr-input-container>
+
+              <clr-input-container>
+                <label>Pasaporte</label>
+                <input clrInput formControlName="pasaporte" />
+                <clr-control-helper>Opcional (vecino extranjero)</clr-control-helper>
+                <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }} caracteres</clr-control-error>
+              </clr-input-container>
+            </div>
+            <button clrStepButton="submit" class="btn btn-primary" [clrLoading]="enviando()">
+              Crear cuenta
+            </button>
+          </clr-step-content>
+        </clr-stepper-panel>
+      </form>
+    </div>
+
+  </div>
+</section>
