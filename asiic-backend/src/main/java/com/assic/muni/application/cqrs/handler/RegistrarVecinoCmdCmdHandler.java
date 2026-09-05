@@ -30,7 +30,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVecinoCmd> {
+public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<URI, RegistrarVecinoCmd> {
 
     private final VecinoRepository vecinoRepository;
     private final PersonaRepository personaRepository;
@@ -38,7 +38,7 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
     private final TelefonoRepository telefonoRepository;
     private final DireccionRepository direccionRepository;
     private final AsCatalogoRepository catalogoRepository;
-    private final LocacionRepository locacionRepository;
+    private final AsLocacionRepository asLocacionRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     private final Keycloak keycloakAdminClient;
@@ -46,12 +46,6 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
     @Value("${keycloak.realm}")
     private String realm;
 
-    private static final String T_TIPO_PERSONA = "as_tipo_persona";
-    private static final String T_PROFESION = "as_profesion";
-    private static final String T_ESTADO_CIVIL = "as_estado_civil";
-
-    // RN1/RN2: el vecino es persona individual; el sistema lo da de alta como Activo.
-    private static final String VAL_TIPO_PERSONA_VECINO = "Individual";
     private static final String ESTADO_ACTIVO = "A";
     private static final String ROL_VECINO = "ROLE_VECINO";
 

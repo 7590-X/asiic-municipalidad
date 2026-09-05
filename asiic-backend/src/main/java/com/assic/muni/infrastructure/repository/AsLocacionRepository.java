@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface LocacionRepository extends JpaRepository<AsLocacion, Integer> {
+public interface AsLocacionRepository extends JpaRepository<AsLocacion, Integer> {
     List<AsLocacion> findByLoComunaGreaterThanOrderByLoComunaAsc(Short loComuna);
 
     @Query("""
@@ -21,17 +21,17 @@ public interface LocacionRepository extends JpaRepository<AsLocacion, Integer> {
         select p from AsLocacion p
         where p.loPais = :loPais and p.loDepto != 0 and p.loMuni = 0 and p.loComuna = 0
         """)
-    List<AsLocacion> findAllDeptos(int loPais);
+    List<AsLocacion> findAllDeptos(short loPais);
 
     @Query("""
         select p from AsLocacion p
-        where p.loPais = :loPais and p.loDepto = :loDepto and p.loMuni = 0 and p.loComuna = 0
+        where p.loPais = :loPais and p.loDepto = :loDepto and p.loMuni != 0 and p.loComuna = 0
         """)
-    List<AsLocacion> findAllMunis(int loPais, int loDepto);
+    List<AsLocacion> findAllMunis(short loPais, short loDepto);
 
     @Query("""
         select p from AsLocacion p
         where p.loPais = :loPais and p.loDepto = :loDepto and p.loMuni = :loMuni and p.loComuna != 0
         """)
-    List<AsLocacion> findAllComunas(int loPais, int loDepto, int  loMuni);
+    List<AsLocacion> findAllComunas(short loPais, short loDepto, short  loMuni);
 }

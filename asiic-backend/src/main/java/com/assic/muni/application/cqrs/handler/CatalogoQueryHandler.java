@@ -1,8 +1,7 @@
-package com.assic.muni.infrastructure.service;
+package com.assic.muni.application.cqrs.handler;
 
-import com.assic.muni.application.cqrs.dto.CatalogoItemDto;
 import com.assic.muni.application.cqrs.enums.ECatalogo;
-import com.assic.muni.application.cqrs.query.CatalogoQuery;
+import com.assic.muni.application.cqrs.dto.CatalogoDto;
 import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.domain.model.AsCatalogo;
 import com.assic.muni.infrastructure.repository.AsCatalogoRepository;
@@ -15,7 +14,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class CatalogoQueryService implements CatalogoQuery {
+public class CatalogoQueryHandler {
 
     private final AsCatalogoRepository asCatalogoRepository;
 
@@ -24,15 +23,14 @@ public class CatalogoQueryService implements CatalogoQuery {
             ECatalogo.C_PROFESION, "as_profesion"
     );
 
-    @Override
-    public List<CatalogoItemDto> getCatalogoItemsByCatalogoId(ECatalogo catalogo) {
+    public List<CatalogoDto> getCatalogoItemsByCatalogoId(ECatalogo catalogo) {
         String table = mCatalogos.get(catalogo);
         List<AsCatalogo> list = asCatalogoRepository.findByCaTabla_TaNombreOrderByIdAsc(table);
         if (list.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No existen items para el catalogo " + catalogo.getValue());
         }
         return list.stream()
-                .map(c -> new CatalogoItemDto(c.getId(), c.getCaValor()))
+                .map(c -> new CatalogoDto(c.getId(), c.getCaValor()))
                 .toList();
     }
 }

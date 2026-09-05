@@ -33,7 +33,7 @@ public class AsPersona {
     private String peApellido;
 
     @Size(max = 12)
-    @Column(name = "pe_nit", length = 12)
+    @Column(name = "pe_nit", length = 13)
     private String peNit;
 
     @Size(max = 20)
