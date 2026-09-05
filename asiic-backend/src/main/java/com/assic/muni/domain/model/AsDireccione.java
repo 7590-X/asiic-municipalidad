@@ -30,7 +30,6 @@ public class AsDireccione {
     @JoinColumn(name = "di_tipo", insertable = false, updatable = false)
     private AsCatalogo diTipoObj;
 
-    @NotNull
     @Column(name = "di_tipo")
     private Integer diTipo;
 

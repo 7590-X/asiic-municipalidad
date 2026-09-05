@@ -1,7 +1,7 @@
 package com.assic.muni.infrastructure.repository;
 
 import com.assic.muni.domain.model.AsPersona;
-import feign.Param;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

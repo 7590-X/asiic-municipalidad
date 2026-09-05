@@ -47,15 +47,15 @@ public class RegistrarVecinoCmd {
     @JsonProperty("direccion")
     private String direccion;        // Dirección Exacta (residencia)
 
-    @NotBlank
-    @Pattern(regexp = "\\d+", message = "estado_civil_id inválido")
+    @NotNull
+    @Positive
     @JsonProperty("estado_civil_id")
     private Short estadoCivilId;
 
-    @NotBlank
-    @Pattern(regexp = "\\d+", message = "profesion_id inválido")
+    @NotNull
+    @Positive
     @JsonProperty("profesion_id")
-    private Short profesionId;      // RN2: Opcional
+    private Short profesionId;
 
     @NotNull @Positive
     @JsonProperty("locacion_id")
