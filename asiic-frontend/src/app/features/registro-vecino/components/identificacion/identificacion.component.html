@@ -1,0 +1,52 @@
+<div [formGroup]="stepForm" class="rv-grid">
+  <clr-input-container class="rv-full">
+    <label class="clr-required-mark">CUI</label>
+    <input clrInput formControlName="cui" appOnlyDigits inputmode="numeric" maxlength="13" autocomplete="off" />
+    <clr-control-error *clrIfError="'required'">El CUI es obligatorio</clr-control-error>
+    <clr-control-error *clrIfError="'pattern'">Debe tener exactamente 13 dígitos</clr-control-error>
+  </clr-input-container>
+
+  <clr-input-container>
+    <label class="clr-required-mark">Nombres</label>
+    <input clrInput formControlName="nombres" appCapitalizeWords />
+    <clr-control-error *clrIfError="'required'">Los nombres son obligatorios</clr-control-error>
+    <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }}
+      caracteres</clr-control-error>
+  </clr-input-container>
+
+  <clr-input-container>
+    <label class="clr-required-mark">Apellidos</label>
+    <input clrInput formControlName="apellidos" appCapitalizeWords />
+    <clr-control-error *clrIfError="'required'">Los apellidos son obligatorios</clr-control-error>
+    <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }}
+      caracteres</clr-control-error>
+  </clr-input-container>
+
+  <clr-select-container>
+    <label class="clr-required-mark">Género</label>
+    <select clrSelect formControlName="genero">
+      <option value="">Seleccione…</option>
+      <option value="M">Masculino</option>
+      <option value="F">Femenino</option>
+    </select>
+    <clr-control-error *clrIfError="'required'">Seleccione el género</clr-control-error>
+  </clr-select-container>
+
+  <clr-select-container>
+    <label class="clr-required-mark">Estado civil</label>
+    <select clrSelect formControlName="estado_civil_id">
+      <option value="">Seleccione…</option>
+      <option *ngFor="let c of estadoCivil()" [value]="c.id">{{ c.valor }}</option>
+    </select>
+    <clr-control-error *clrIfError="'required'">Seleccione el estado civil</clr-control-error>
+  </clr-select-container>
+
+  <clr-select-container>
+    <label class="clr-required-mark">Profesión</label>
+    <select clrSelect formControlName="profesion_id">
+      <option value="">Seleccione…</option>
+      <option *ngFor="let p of profesiones()" [value]="p.id">{{ p.valor }}</option>
+    </select>
+    <clr-control-error *clrIfError="'required'">Seleccione la profesión</clr-control-error>
+  </clr-select-container>
+</div>

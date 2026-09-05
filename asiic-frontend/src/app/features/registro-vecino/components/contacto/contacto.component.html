@@ -1,0 +1,15 @@
+<div [formGroup]="stepForm" class="rv-grid">
+  <clr-input-container>
+    <label class="clr-required-mark">Teléfono</label>
+    <input clrInput formControlName="telefono" appOnlyDigits inputmode="numeric" maxlength="8" autocomplete="off" />
+    <clr-control-error *clrIfError="'required'">El teléfono es obligatorio</clr-control-error>
+    <clr-control-error *clrIfError="'pattern'">Debe tener exactamente 8 dígitos</clr-control-error>
+  </clr-input-container>
+
+  <clr-input-container>
+    <label class="clr-required-mark">Correo</label>
+    <input clrInput type="email" formControlName="correo" />
+    <clr-control-error *clrIfError="'required'">El correo es obligatorio</clr-control-error>
+    <clr-control-error *clrIfError="'email'">Formato de correo inválido</clr-control-error>
+  </clr-input-container>
+</div>

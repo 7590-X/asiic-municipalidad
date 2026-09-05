@@ -10,6 +10,9 @@ export interface RegistrarVecinoRequest {
   direccion: string;
   estado_civil_id: string;
   profesion_id: string;
+  pais_id?: number;
+  departamento_id?: number;
+  municipio_id?: number;
   locacion_id: number;
 }
 

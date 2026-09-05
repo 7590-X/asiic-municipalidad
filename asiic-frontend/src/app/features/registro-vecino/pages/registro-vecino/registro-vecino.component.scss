@@ -108,23 +108,26 @@
 
 /* campos a 2 columnas dentro de cada paso */
 clr-step-content {
-  .rv-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 2rem;
-    row-gap: 0.3rem;
-    margin-bottom: 1.25rem;
+  ::ng-deep {
+    .rv-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 2rem;
+      row-gap: 0.3rem;
+      margin-bottom: 1.25rem;
+
+      .rv-full { grid-column: 1 / -1; }
+    }
+
+    .clr-form-control { width: 100%; margin-top: 0.5rem; }
+    .clr-control-container,
+    .clr-input-wrapper,
+    .clr-select-wrapper { width: 100%; max-width: 100%; }
+    input.clr-input,
+    select.clr-select { width: 100%; }
+
+    .btn { margin-top: 0.5rem; }
   }
-  .rv-grid .rv-full { grid-column: 1 / -1; }
-
-  .clr-form-control { width: 100%; margin-top: 0.5rem; }
-  .clr-control-container,
-  .clr-input-wrapper,
-  .clr-select-wrapper { width: 100%; max-width: 100%; }
-  input.clr-input,
-  select.clr-select { width: 100%; }
-
-  .btn { margin-top: 0.5rem; }
 }
 
 @media (max-width: 900px) {

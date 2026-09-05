@@ -1,0 +1,16 @@
+<div [formGroup]="stepForm" class="rv-grid">
+  <clr-input-container>
+    <label>NIT</label>
+    <input clrInput formControlName="nit" />
+    <clr-control-helper>Opcional</clr-control-helper>
+    <clr-control-error *clrIfError="'pattern'">Solo dígitos (máx. 12)</clr-control-error>
+  </clr-input-container>
+
+  <clr-input-container>
+    <label>Pasaporte</label>
+    <input clrInput formControlName="pasaporte" />
+    <clr-control-helper>Opcional (vecino extranjero)</clr-control-helper>
+    <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }}
+      caracteres</clr-control-error>
+  </clr-input-container>
+</div>
