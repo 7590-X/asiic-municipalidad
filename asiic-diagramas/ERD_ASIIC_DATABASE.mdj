@@ -7185,7 +7185,7 @@
 							},
 							"name": "pe_nit",
 							"type": "varchar",
-							"length": "12",
+							"length": "13",
 							"nullable": true
 						},
 						{
