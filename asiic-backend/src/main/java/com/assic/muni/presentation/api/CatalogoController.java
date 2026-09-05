@@ -1,45 +1,37 @@
 package com.assic.muni.presentation.api;
 
-import com.assic.muni.application.cqrs.cmd.RegistrarCatalogoCmd;
-import com.assic.muni.application.cqrs.handler.RegistrarCatalogoCmdHandler;
-import com.assic.muni.application.exception.ServiceException;
-import com.assic.muni.infrastructure.repository.AsCatalogoRepository;
+import com.assic.muni.application.cqrs.dto.CatalogoItemDto;
+import com.assic.muni.application.cqrs.enums.ECatalogo;
+import com.assic.muni.application.cqrs.query.CatalogoQuery;
+import com.assic.muni.infrastructure.repository.LocacionRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/catalogos")
+@RequestMapping("/api/v1/asiic/public/catalogos")
 @RequiredArgsConstructor
+@Tag(name = "Catálogos públicos")
 public class CatalogoController {
 
-    private final RegistrarCatalogoCmdHandler registrarCatalogoHandler;
-    private final AsCatalogoRepository catalogoRepository;
-
+    private final CatalogoQuery catalogoQuery;
+    private final LocacionRepository locacionRepository;
 
     @GetMapping("/{catalogo}")
-    public ResponseEntity<List<Object>> obtenerCatalogo(@PathVariable String catalogo) {
-        List<Object> lst = switch (catalogo){
-            case "ca1"  -> List.of();
-            default -> throw new ServiceException(HttpStatus.BAD_REQUEST, "Catalogo invalido");
-        };
-
-        return ResponseEntity.ok(lst);
+    @Operation(summary = "Obtener listado de items de un catalogo")
+    public ResponseEntity<List<CatalogoItemDto>> obtener(@PathVariable ECatalogo catalogo) {
+        return ResponseEntity.ok(catalogoQuery.getCatalogoItemsByCatalogoId(catalogo));
     }
 
-    //Hacer el catálogo de las funciones clave valor, gestor cursivo para obtener la data, el parámetro de entrada y me genere la data
-    //Lógica de programación ESP, mostrar Frontend, jdbc client
-
-    //Validar que el OID Keyclook 201 de create
-    //Almacenar la data
-    //Generar un mensaje de 201 de Keyclook por medio de header location URL con la que puede acceder al recurso.
-    //Path del recurso
-    //Devolver la URI
-
-    //Angular, simplicidad, framework clarityDesingSystem, Vware.
-    //Estados.
-
- }
+    @GetMapping("/zonas")
+    public ResponseEntity<List<CatalogoItemDto>> zonas() {
+        return ResponseEntity.ok(
+                locacionRepository.findByLoComunaGreaterThanOrderByLoComunaAsc((short) 0).stream()
+                        .map(l -> new CatalogoItemDto(l.getId(), l.getLoDescripcion()))
+                        .toList());
+    }
+}

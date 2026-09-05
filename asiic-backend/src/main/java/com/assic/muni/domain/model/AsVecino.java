@@ -36,9 +36,8 @@ public class AsVecino {
     @JoinColumn(name = "ve_telefono", nullable = false)
     private AsTelefono veTelefono;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "ve_profesion", nullable = false,  insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ve_profesion", insertable = false, updatable = false)
     private AsCatalogo veProfesionObj;
 
     @Column(name = "ve_profesion")
