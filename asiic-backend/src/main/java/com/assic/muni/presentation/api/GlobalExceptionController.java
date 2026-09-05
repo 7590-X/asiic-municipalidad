@@ -34,4 +34,12 @@ public class GlobalExceptionController {
                 .body(new ApiResponseDto<>(HttpStatus.BAD_REQUEST.value(), request.getRequestURI(),
                         ZonedDateTime.now(), detalle, null));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponseDto<Object>> handleIllegalArgumentException(
+            IllegalArgumentException e, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .body(new ApiResponseDto<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), request.getRequestURI(),
+                        ZonedDateTime.now(), e.getMessage(), null));
+    }
 }
