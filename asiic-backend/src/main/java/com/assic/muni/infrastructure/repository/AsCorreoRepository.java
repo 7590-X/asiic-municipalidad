@@ -3,5 +3,8 @@ package com.assic.muni.infrastructure.repository;
 import com.assic.muni.domain.model.AsCorreo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CorreoRepository extends JpaRepository<AsCorreo, Integer> {
+public interface AsCorreoRepository extends JpaRepository<AsCorreo, Integer> {
+
+    boolean existsByCoCorreo(String coCorreo);
+
 }

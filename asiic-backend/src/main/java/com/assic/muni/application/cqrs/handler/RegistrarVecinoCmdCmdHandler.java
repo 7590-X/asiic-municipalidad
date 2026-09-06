@@ -33,9 +33,9 @@ import java.util.List;
 public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<URI, RegistrarVecinoCmd> {
 
     private final VecinoRepository vecinoRepository;
-    private final PersonaRepository personaRepository;
-    private final CorreoRepository correoRepository;
-    private final TelefonoRepository telefonoRepository;
+    private final AsPersonaRepository asPersonaRepository;
+    private final AsCorreoRepository asCorreoRepository;
+    private final AsTelefonoRepository asTelefonoRepository;
     private final DireccionRepository direccionRepository;
     private final AsCatalogoRepository catalogoRepository;
     private final AsLocacionRepository asLocacionRepository;
@@ -54,7 +54,7 @@ public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<URI, Registr
     public URI handle(RegistrarVecinoCmd cmd) {
 
         // Validación de CUI y Correo Electrónico
-        int validacion = personaRepository.validateByPeCuiAndPeCoCorreo(cmd.getCui(), cmd.getCorreo());
+        int validacion = asPersonaRepository.validateByPeCuiAndPeCoCorreo(cmd.getCui(), cmd.getCorreo());
         if (validacion != 0) {
             switch (validacion) {
                 case 1:
@@ -87,7 +87,7 @@ public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<URI, Registr
             Instant ahora = Instant.now();
             String ip = obtenerIpCliente();
 
-            AsPersona persona = personaRepository.save(AsPersona.builder()
+            AsPersona persona = asPersonaRepository.save(AsPersona.builder()
                     .peCui(cmd.getCui())
                     .peNit(cmd.getNit())
                     .pePasaporte(cmd.getPasaporte())
@@ -98,13 +98,13 @@ public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<URI, Registr
                     .peTipPersona(tipoPersona.getId())
                     .build());
 
-            AsCorreo correo = correoRepository.save(AsCorreo.builder()
+            AsCorreo correo = asCorreoRepository.save(AsCorreo.builder()
                     .coCorreo(cmd.getCorreo())
                     .coFecRegistro(ahora)
                     .coUsrRegistro(cmd.getCui())
                     .build());
 
-            AsTelefono telefono = telefonoRepository.save(AsTelefono.builder()
+            AsTelefono telefono = asTelefonoRepository.save(AsTelefono.builder()
                     .teTelefono(cmd.getTelefono().trim())
                     .teFecRegistro(ahora)
                     .teUsrRegistro(cmd.getCui())

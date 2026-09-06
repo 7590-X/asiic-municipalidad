@@ -5,9 +5,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface PersonaRepository extends JpaRepository<AsPersona, Integer> {
+public interface AsPersonaRepository extends JpaRepository<AsPersona, Integer> {
 
     boolean existsByPeCui(String peCui);
+
+    boolean existsByPeNit(String peNit);
 
     @Query(value = """
         select case
