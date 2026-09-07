@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, of, shareReplay, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { CatalogoItem } from '../models/catalogo-item.model';
+import { CatalogoItem } from '../../../core/models/catalogo-item.model';
 
 const CACHE_PREFIX = 'asiic:catalogo:';
 const TTL_MS = 30 * 60 * 1000; // 30 minutos

@@ -2,39 +2,40 @@
   <!-- País -->
   <clr-select-container>
     <label class="clr-required-mark">País</label>
-    <select clrSelect formControlName="pais_id">
+    <select clrSelect [(ngModel)]="paisId" [ngModelOptions]="{standalone: true}" (ngModelChange)="onPaisChange($event)">
       <option [ngValue]="null">Seleccione…</option>
-      <option *ngFor="let p of paises()" [ngValue]="p.id">{{ p.valor }}</option>
+      <option *ngFor="let p of paises()" [ngValue]="p.pais_id">{{ p.descripcion }}</option>
     </select>
-    <!-- <clr-control-error *clrIfError="'required'">Seleccione el país</clr-control-error> -->
+    <clr-control-error *clrIfError="'required'">Seleccione el país</clr-control-error>
   </clr-select-container>
 
   <!-- Departamento -->
   <clr-select-container>
-    <label class="clr-required-mark">Departamento</label>
-    <select clrSelect formControlName="departamento_id">
+    <label class=" clr-required-mark">Departamento</label>
+    <select clrSelect [(ngModel)]="deptoId" [ngModelOptions]="{standalone: true}"
+      (ngModelChange)="onDeptoChange($event)">
       <option [ngValue]="null">Seleccione…</option>
-      <option *ngFor="let d of departamentos()" [ngValue]="d.id">{{ d.valor }}</option>
+      <option *ngFor="let d of deptos()" [ngValue]="d.depto_id">{{ d.descripcion }}</option>
     </select>
-    <!-- <clr-control-error *clrIfError="'required'">Seleccione el departamento</clr-control-error> -->
+    <clr-control-error *clrIfError="'required'">Seleccione el departamento</clr-control-error>
   </clr-select-container>
 
   <!-- Municipio -->
   <clr-select-container>
     <label class="clr-required-mark">Municipio</label>
-    <select clrSelect formControlName="municipio_id">
+    <select clrSelect [(ngModel)]="muniId" [ngModelOptions]="{standalone: true}" (ngModelChange)="onMuniChange($event)">
       <option [ngValue]="null">Seleccione…</option>
-      <option *ngFor="let m of municipios()" [ngValue]="m.id">{{ m.valor }}</option>
+      <option *ngFor="let m of munis()" [ngValue]="m.muni_id">{{ m.descripcion }}</option>
     </select>
-    <!-- <clr-control-error *clrIfError="'required'">Seleccione el municipio</clr-control-error> -->
+    <clr-control-error *clrIfError="'required'">Seleccione el municipio</clr-control-error>
   </clr-select-container>
 
   <!-- Comuna (antes Zona) -->
   <clr-select-container>
     <label class="clr-required-mark">Comuna</label>
-    <select clrSelect formControlName="locacion_id">
+    <select clrSelect formControlName="comuna_id">
       <option [ngValue]="null">Seleccione…</option>
-      <option *ngFor="let z of zonas()" [ngValue]="z.id">{{ z.valor }}</option>
+      <option *ngFor="let c of comunas()" [ngValue]="c.comuna_id">{{ c.descripcion }}</option>
     </select>
     <clr-control-error *clrIfError="'required'">Seleccione la comuna</clr-control-error>
   </clr-select-container>
@@ -49,3 +50,4 @@
       caracteres</clr-control-error>
   </clr-input-container>
 </div>
+<button clrStepButton="next" class="btn btn-primary">Siguiente</button>
