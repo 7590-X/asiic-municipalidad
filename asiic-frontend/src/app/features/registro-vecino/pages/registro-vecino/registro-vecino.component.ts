@@ -1,18 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ClarityModule } from '@clr/angular';
-import { forkJoin } from 'rxjs';
-
-import { CatalogoService } from '../../services/catalogo.service';
+import { ClarityModule, ClrLoadingState } from '@clr/angular';
 import { VecinoService } from '../../services/vecino.service';
-import { CatalogoItem } from '../../models/catalogo-item.model';
 import { ApiResponse, RegistrarVecinoRequest } from '../../models/registrar-vecino.model';
 import { IdentificacionComponent } from '../../components/identificacion/identificacion.component';
 import { ContactoComponent } from '../../components/contacto/contacto.component';
 import { UbicacionComponent } from "../../components/ubicacion/ubicacion.component";
 import { DocumentosComponent } from '../../components/documentos/documentos.component';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { cuiValidator } from '../../../../shared/validators/cui.validator';
+import { ValidacionesService } from '../../../../core/services/validaciones.service';
+import { telefonoValidator } from '../../../../shared/validators/correo.validator';
 
 @Component({
   selector: 'app-registro-vecino',
@@ -21,24 +21,24 @@ import { DocumentosComponent } from '../../components/documentos/documentos.comp
   templateUrl: './registro-vecino.component.html',
   styleUrl: './registro-vecino.component.scss',
 })
-export class RegistroVecinoComponent implements OnInit {
+export class RegistroVecinoComponent {
+  // Servicios
   private fb = inject(FormBuilder);
-  private catalogos = inject(CatalogoService);
   private vecinos = inject(VecinoService);
+  private validaciones: ValidacionesService = inject(ValidacionesService)
+  private notification = inject(NotificationService)
 
-  estadoCivil = signal<CatalogoItem[]>([]);
-  profesiones = signal<CatalogoItem[]>([]);
-  zonas = signal<CatalogoItem[]>([]);
-
-  cargandoCatalogos = signal(true);
-  enviando = signal(false);
-  exito = signal(false);
-  errorMsg = signal<string | null>(null);
-
-  // Un FormGroup por paso del wizard (lo exige clrStepper).
+  // Formulario para creación de vecino
   form = this.fb.nonNullable.group({
     identificacion: this.fb.nonNullable.group({
-      cui: ['', [Validators.required, Validators.pattern(/^\d{13}$/)]],
+      cui: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern(/^\d{13}$/)
+        ],
+        cuiValidator(this.validaciones)
+      ],
       nombres: ['', [Validators.required, Validators.maxLength(45)]],
       apellidos: ['', [Validators.required, Validators.maxLength(45)]],
       genero: ['', Validators.required],
@@ -47,48 +47,35 @@ export class RegistroVecinoComponent implements OnInit {
     }),
     contacto: this.fb.nonNullable.group({
       telefono: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
-      correo: ['', [Validators.required, Validators.email, Validators.maxLength(45)]],
+      correo: ['',
+        [
+          Validators.required,
+          Validators.email,
+          Validators.maxLength(45)
+        ],
+        telefonoValidator(this.validaciones)
+      ],
     }),
     ubicacion: this.fb.nonNullable.group({
-      pais_id: [null as number | null,],
-      departamento_id: [null as number | null,],
-      municipio_id: [null as number | null,],
-      locacion_id: [null as number | null, Validators.required], // Comuna
+      comuna_id: [null as number | null, Validators.required],
       direccion: ['', [Validators.required, Validators.maxLength(100)]],
     }),
     documentos: this.fb.nonNullable.group({
-      nit: ['', [Validators.pattern(/^\d{0,12}$/)]],
-      pasaporte: ['', [Validators.maxLength(20)]],
+      nit: ['', [Validators.pattern(/^\d*[a-zA-Z]?$/), Validators.maxLength(13)]],
+      pasaporte: ['', [Validators.pattern(/^[a-zA-Z0-9]*$/), Validators.maxLength(20)]],
     }),
   });
 
-  ngOnInit(): void {
-    forkJoin({
-      ec: this.catalogos.estadoCivil(),
-      pr: this.catalogos.profesiones(),
-      zo: this.catalogos.zonas(),
-    }).subscribe({
-      next: ({ ec, pr, zo }) => {
-        this.estadoCivil.set(ec);
-        this.profesiones.set(pr);
-        this.zonas.set(zo);
-        this.cargandoCatalogos.set(false);
-      },
-      error: () => {
-        this.errorMsg.set('No se pudieron cargar los catálogos. Recargue la página.');
-        this.cargandoCatalogos.set(false);
-      },
-    });
-  }
+  // Estados
+  submitBtnState: ClrLoadingState = ClrLoadingState.DEFAULT;
 
-  enviar(): void {
+  submit(): void {
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    this.enviando.set(true);
-    this.errorMsg.set(null);
-
+    this.submitBtnState = ClrLoadingState.LOADING;
     const v = this.form.getRawValue();
     const body: RegistrarVecinoRequest = {
       cui: v.identificacion.cui,
@@ -100,33 +87,20 @@ export class RegistroVecinoComponent implements OnInit {
       telefono: v.contacto.telefono,
       correo: v.contacto.correo,
       direccion: v.ubicacion.direccion,
-      pais_id: v.ubicacion.pais_id as number,
-      departamento_id: v.ubicacion.departamento_id as number,
-      municipio_id: v.ubicacion.municipio_id as number,
-      locacion_id: v.ubicacion.locacion_id as number,
+      locacion_id: v.ubicacion.comuna_id as number,
       nit: v.documentos.nit || undefined,
       pasaporte: v.documentos.pasaporte || undefined,
     };
 
     this.vecinos.registrar(body).subscribe({
-      next: () => {
-        this.enviando.set(false);
-        this.exito.set(true); // CU paso 2.3.10
+      next: (resp) => {
+        this.submitBtnState = ClrLoadingState.SUCCESS;
+        this.notification.success("Cuenta creada exitosamente")
       },
       error: (err: HttpErrorResponse) => {
-        this.enviando.set(false);
-        this.errorMsg.set(this.mensajeDeError(err));
+        this.notification.error(err.message)
+        this.submitBtnState = ClrLoadingState.ERROR;
       },
     });
-  }
-
-  private mensajeDeError(err: HttpErrorResponse): string {
-    try {
-      const parsed = JSON.parse(err.error) as ApiResponse;
-      if (parsed?.message) return parsed.message;
-    } catch {
-      if (typeof err.error === 'string' && err.error.trim()) return err.error;
-    }
-    return 'No se pudo completar el registro. Intente más tarde.';
   }
 }

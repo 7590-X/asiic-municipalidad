@@ -1,9 +1,10 @@
-<div [formGroup]="stepForm" class="rv-grid">
+<div *ngIf="stepForm" [formGroup]="stepForm" class="rv-grid">
   <clr-input-container class="rv-full">
     <label class="clr-required-mark">CUI</label>
     <input clrInput formControlName="cui" appOnlyDigits inputmode="numeric" maxlength="13" autocomplete="off" />
     <clr-control-error *clrIfError="'required'">El CUI es obligatorio</clr-control-error>
     <clr-control-error *clrIfError="'pattern'">Debe tener exactamente 13 dígitos</clr-control-error>
+    <clr-control-error *clrIfError="'invalidCui'; error as err">{{ err }}</clr-control-error>
   </clr-input-container>
 
   <clr-input-container>
@@ -24,10 +25,11 @@
 
   <clr-select-container>
     <label class="clr-required-mark">Género</label>
-    <select clrSelect formControlName="genero">
+    <select clrSelect formControlName="genero" s>
       <option value="">Seleccione…</option>
-      <option value="M">Masculino</option>
-      <option value="F">Femenino</option>
+      @for (g of generos; track $index) {
+      <option [value]='g.id'>{{g.value}}</option>
+      }
     </select>
     <clr-control-error *clrIfError="'required'">Seleccione el género</clr-control-error>
   </clr-select-container>
@@ -50,3 +52,4 @@
     <clr-control-error *clrIfError="'required'">Seleccione la profesión</clr-control-error>
   </clr-select-container>
 </div>
+<button clrStepButton="next" class="btn btn-primary">Siguiente</button>

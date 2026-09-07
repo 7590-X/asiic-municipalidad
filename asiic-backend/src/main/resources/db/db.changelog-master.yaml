@@ -13,3 +13,5 @@ databaseChangeLog:
       file: db/changelog/0005-new-fiel-on-as_catalogos.sql
   - include:
       file: db/changelog/0006-alterar-esquema-vecinos.sql
+  - include:
+      file: db/changelog/260905-1-alteracion-personas-nit.sql

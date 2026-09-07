@@ -1,7 +1,7 @@
 package com.assic.muni.presentation.api;
 
 import com.assic.muni.application.cqrs.cmd.RegistrarVecinoCmd;
-import com.assic.muni.application.cqrs.handler.RegistrarVecinoCmdHandler;
+import com.assic.muni.application.cqrs.handler.RegistrarVecinoCmdCmdHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -17,7 +17,7 @@ import java.net.URI;
 @RequiredArgsConstructor
 public class VecinoController {
 
-    private final RegistrarVecinoCmdHandler registrarVecinoHandler;
+    private final RegistrarVecinoCmdCmdHandler registrarVecinoHandler;
 
     @PostMapping
     @Operation(summary = "Registro de nuevo vecino en el sistema")

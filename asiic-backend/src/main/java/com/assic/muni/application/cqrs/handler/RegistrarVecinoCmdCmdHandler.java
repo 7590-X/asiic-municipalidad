@@ -30,15 +30,15 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVecinoCmd> {
+public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<URI, RegistrarVecinoCmd> {
 
     private final VecinoRepository vecinoRepository;
-    private final PersonaRepository personaRepository;
-    private final CorreoRepository correoRepository;
-    private final TelefonoRepository telefonoRepository;
+    private final AsPersonaRepository asPersonaRepository;
+    private final AsCorreoRepository asCorreoRepository;
+    private final AsTelefonoRepository asTelefonoRepository;
     private final DireccionRepository direccionRepository;
     private final AsCatalogoRepository catalogoRepository;
-    private final LocacionRepository locacionRepository;
+    private final AsLocacionRepository asLocacionRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     private final Keycloak keycloakAdminClient;
@@ -46,12 +46,6 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
     @Value("${keycloak.realm}")
     private String realm;
 
-    private static final String T_TIPO_PERSONA = "as_tipo_persona";
-    private static final String T_PROFESION = "as_profesion";
-    private static final String T_ESTADO_CIVIL = "as_estado_civil";
-
-    // RN1/RN2: el vecino es persona individual; el sistema lo da de alta como Activo.
-    private static final String VAL_TIPO_PERSONA_VECINO = "Individual";
     private static final String ESTADO_ACTIVO = "A";
     private static final String ROL_VECINO = "ROLE_VECINO";
 
@@ -60,7 +54,7 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
     public URI handle(RegistrarVecinoCmd cmd) {
 
         // Validación de CUI y Correo Electrónico
-        int validacion = personaRepository.validateByPeCuiAndPeCoCorreo(cmd.getCui(), cmd.getCorreo());
+        int validacion = asPersonaRepository.validateByPeCuiAndPeCoCorreo(cmd.getCui(), cmd.getCorreo());
         if (validacion != 0) {
             switch (validacion) {
                 case 1:
@@ -93,7 +87,7 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
             Instant ahora = Instant.now();
             String ip = obtenerIpCliente();
 
-            AsPersona persona = personaRepository.save(AsPersona.builder()
+            AsPersona persona = asPersonaRepository.save(AsPersona.builder()
                     .peCui(cmd.getCui())
                     .peNit(cmd.getNit())
                     .pePasaporte(cmd.getPasaporte())
@@ -104,13 +98,13 @@ public class RegistrarVecinoCmdHandler implements CQRSHandler<URI, RegistrarVeci
                     .peTipPersona(tipoPersona.getId())
                     .build());
 
-            AsCorreo correo = correoRepository.save(AsCorreo.builder()
+            AsCorreo correo = asCorreoRepository.save(AsCorreo.builder()
                     .coCorreo(cmd.getCorreo())
                     .coFecRegistro(ahora)
                     .coUsrRegistro(cmd.getCui())
                     .build());
 
-            AsTelefono telefono = telefonoRepository.save(AsTelefono.builder()
+            AsTelefono telefono = asTelefonoRepository.save(AsTelefono.builder()
                     .teTelefono(cmd.getTelefono().trim())
                     .teFecRegistro(ahora)
                     .teUsrRegistro(cmd.getCui())
