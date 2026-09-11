@@ -108,7 +108,7 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
         try {
             RoleRepresentation vecinoRole = keycloakAdminClient.realm(realm)
                     .roles()
-                    .get(kcRole.name())
+                    .get(kcRole.getValue())
                     .toRepresentation();
             keycloakAdminClient.realm(realm).users().get(userId)
                     .roles().realmLevel().add(List.of(vecinoRole));
