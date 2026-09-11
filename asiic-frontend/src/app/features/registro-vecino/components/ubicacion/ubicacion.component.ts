@@ -1,15 +1,17 @@
-import { Component, DestroyRef, inject, Input, input, OnInit, output } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ClarityModule } from '@clr/angular';
 import { LocacionesService } from '../../../../core/services/locaciones.service';
 import { LocacionModel } from '../../../../core/models/locacion.model';
 import { signal } from '@angular/core';
+import { CapitalizeWordsDirective } from '../../../../shared/directives/capitalize-words.directive';
+import { OnlyDigitsDirective } from '../../../../shared/directives/only-digits.directive';
 
 @Component({
   selector: 'app-ubicacion',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, ClarityModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, ClarityModule, CapitalizeWordsDirective, OnlyDigitsDirective],
   templateUrl: './ubicacion.component.html',
 })
 export class UbicacionComponent implements OnInit {

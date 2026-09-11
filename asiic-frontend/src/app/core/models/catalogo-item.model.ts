@@ -1,4 +1,4 @@
-export interface CatalogoItem {
+export interface CatalogoItemModel {
   id: number | string;
   valor: string;
 }

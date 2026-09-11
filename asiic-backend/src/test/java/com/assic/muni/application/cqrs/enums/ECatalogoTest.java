@@ -1,5 +1,6 @@
 package com.assic.muni.application.cqrs.enums;
 
+import com.assic.muni.application.enums.ECatalogo;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

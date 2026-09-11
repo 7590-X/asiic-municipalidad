@@ -41,13 +41,18 @@
   </clr-select-container>
 
   <!-- Dirección exacta -->
-  <clr-input-container class="rv-full">
+  <clr-input-container class="rv-mark">
     <label class="clr-required-mark">Dirección exacta</label>
-    <input clrInput formControlName="direccion" />
+    <input clrInput formControlName="direccion" maxlength="100" appCapitalizeWords />
     <clr-control-helper>Dirección de residencia según recibo de luz</clr-control-helper>
-    <clr-control-error *clrIfError="'required'">La dirección es obligatoria</clr-control-error>
-    <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }}
-      caracteres</clr-control-error>
+    <clr-control-error *clrIfError="'required'">La dirección es requerida</clr-control-error>
+  </clr-input-container>
+
+  <!-- Número de contador -->
+  <clr-input-container class="rv-mark">
+    <label class="clr-required-mark">Número de contador</label>
+    <input clrInput formControlName="no_contador" maxlength="20" appOnlyDigits />
+    <clr-control-error *clrIfError="'required'">El número de contador es requerido</clr-control-error>
   </clr-input-container>
 </div>
 <button clrStepButton="next" class="btn btn-primary">Siguiente</button>

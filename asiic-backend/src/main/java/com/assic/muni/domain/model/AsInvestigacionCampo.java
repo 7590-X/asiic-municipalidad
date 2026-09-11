@@ -32,16 +32,16 @@ public class AsInvestigacionCampo {
     @Column(name = "ic_fec_registro", nullable = false)
     private Instant icFecRegistro;
 
-    @Size(max = 20)
+    @Size(max = 36)
     @NotNull
-    @Column(name = "ic_usr_registro", nullable = false, length = 20)
+    @Column(name = "ic_usr_registro", nullable = false, length = 36)
     private String icUsrRegistro;
 
     @Column(name = "ic_fec_modifico")
     private Instant icFecModifico;
 
-    @Size(max = 20)
-    @Column(name = "ic_usr_modifico", length = 20)
+    @Size(max = 36)
+    @Column(name = "ic_usr_modifico", length = 36)
     private String icUsrModifico;
 
     @Size(max = 1)

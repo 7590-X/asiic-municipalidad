@@ -33,16 +33,16 @@ public class AsInsidenciaArchivo {
     @Column(name = "ai_fec_registro", nullable = false)
     private Instant aiFecRegistro;
 
-    @Size(max = 25)
+    @Size(max = 36)
     @NotNull
-    @Column(name = "ai_usr_registro", nullable = false, length = 25)
+    @Column(name = "ai_usr_registro", nullable = false, length = 36)
     private String aiUsrRegistro;
 
     @Column(name = "ai_fec_modifico")
     private Instant aiFecModifico;
 
-    @Size(max = 25)
-    @Column(name = "ai_usr_modifico", length = 25)
+    @Size(max = 36)
+    @Column(name = "ai_usr_modifico", length = 36)
     private String aiUsrModifico;
 
     @Size(max = 1)

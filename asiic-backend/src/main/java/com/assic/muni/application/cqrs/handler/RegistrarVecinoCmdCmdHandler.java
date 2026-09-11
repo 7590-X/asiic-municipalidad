@@ -2,16 +2,13 @@ package com.assic.muni.application.cqrs.handler;
 
 import com.assic.muni.application.cqrs.cmd.RegistrarVecinoCmd;
 import com.assic.muni.application.exception.ServiceException;
+import com.assic.muni.application.port.out.IdentityProviderPort;
 import com.assic.muni.domain.model.*;
+import com.assic.muni.infrastructure.exception.InfrastructureException;
 import com.assic.muni.infrastructure.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.RoleRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,17 +17,15 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.context.ApplicationEventPublisher;
 import com.assic.muni.domain.event.VecinoCreadoEvent;
-import java.time.ZonedDateTime;
+
 import java.net.URI;
 import java.security.SecureRandom;
-import java.time.Instant;
 import java.util.Base64;
-import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<URI, RegistrarVecinoCmd> {
+public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<Integer, RegistrarVecinoCmd> {
 
     private final VecinoRepository vecinoRepository;
     private final AsPersonaRepository asPersonaRepository;
@@ -38,53 +33,37 @@ public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<URI, Registr
     private final AsTelefonoRepository asTelefonoRepository;
     private final DireccionRepository direccionRepository;
     private final AsCatalogoRepository catalogoRepository;
-    private final AsLocacionRepository asLocacionRepository;
     private final ApplicationEventPublisher eventPublisher;
-
-    private final Keycloak keycloakAdminClient;
+    private final IdentityProviderPort identityProviderPort;
+    private final AsDomicilioRepository domicilioRepository;
+    private final AsVecinoDomicilioRepository vecinoDomicilioRepository;
+    private final AsUsuarioRepository usuarioRepository;
 
     @Value("${keycloak.realm}")
     private String realm;
 
-    private static final String ESTADO_ACTIVO = "A";
-    private static final String ROL_VECINO = "ROLE_VECINO";
-
     @Override
     @Transactional
-    public URI handle(RegistrarVecinoCmd cmd) {
+    public Integer handle(RegistrarVecinoCmd cmd) {
 
-        // Validación de CUI y Correo Electrónico
         int validacion = asPersonaRepository.validateByPeCuiAndPeCoCorreo(cmd.getCui(), cmd.getCorreo());
         if (validacion != 0) {
             switch (validacion) {
                 case 1:
+                    throw new ServiceException(HttpStatus.CONFLICT, "El número de CUI no se encuentra disponible");
                 case 2:
-                    throw new ServiceException(HttpStatus.CONFLICT,
-                            "El CUI o Correo Ingresado ya se encuentra registrado en el sistema");
+                    throw new ServiceException(HttpStatus.CONFLICT, "El correo no se encuentra disponible");
                 default:
                     throw new RuntimeException("No se pudo validar la entrada de datos.");
             }
         }
 
-        AsCatalogo tipoPersona = catalogoRepository.findByCaSeudo("PEIN")
-                .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,"No se pudo verificar la identidad del vecino"));
-
-        // 3. Contraseña temporal segura (paso 2.3.6)
-        String passwordTemporal = generarPasswordTemporal();
-
-        // 4. Alta en Keycloak
-        URI location = crearUsuarioKeycloak(cmd, passwordTemporal);
-        String keycloakUserId = extraerId(location);
+        String userId = identityProviderPort.createNewIdentityUser(cmd);
 
         try {
-            // 5. Rol ROLE_VECINO
-            RoleRepresentation vecinoRole = keycloakAdminClient.realm(realm)
-                    .roles().get(ROL_VECINO).toRepresentation();
-            keycloakAdminClient.realm(realm).users().get(keycloakUserId)
-                    .roles().realmLevel().add(List.of(vecinoRole));
+            AsCatalogo tipoPersona = catalogoRepository.findByCaSeudo("PEIN")
+                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar la identidad del vecino"));
 
-            // 6. Persistencia del alta
-            Instant ahora = Instant.now();
             String ip = obtenerIpCliente();
 
             AsPersona persona = asPersonaRepository.save(AsPersona.builder()
@@ -100,93 +79,66 @@ public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<URI, Registr
 
             AsCorreo correo = asCorreoRepository.save(AsCorreo.builder()
                     .coCorreo(cmd.getCorreo())
-                    .coFecRegistro(ahora)
-                    .coUsrRegistro(cmd.getCui())
+                    .coUsrRegistro(userId)
                     .build());
 
             AsTelefono telefono = asTelefonoRepository.save(AsTelefono.builder()
                     .teTelefono(cmd.getTelefono().trim())
-                    .teFecRegistro(ahora)
-                    .teUsrRegistro(cmd.getCui())
+                    .teUsrRegistro(userId)
                     .build());
 
-            AsDireccione direccion = direccionRepository.save(AsDireccione.builder()
+            AsDireccion direccion = direccionRepository.save(AsDireccion.builder()
                     .diDireccion(cmd.getDireccion())
                     .diLocacion(cmd.getLocacionId())
-                    .diFecRegistro(ahora)
                     .build());
 
-            vecinoRepository.save(AsVecino.builder()
-                    .vePersona(persona)          // @MapsId -> ve_id = persona.getId()
+            AsVecino vecino = vecinoRepository.save(AsVecino.builder()
+                    .vePersona(persona)
                     .veCorreo(correo)
                     .veTelefono(telefono)
                     .veProfesion(cmd.getProfesionId())
-                    .veEstado(ESTADO_ACTIVO)
-                    .veFecRegistro(ahora)
+                    .veEstado("A")
+                    .veUsrRegistro(userId)
                     .veIpRegistro(ip)
                     .build());
 
-            eventPublisher.publishEvent(new VecinoCreadoEvent(
-                    cmd.getCorreo(),
-                    passwordTemporal,
-                    "Cuenta de vecino creada exitosamente",
-                    ZonedDateTime.now()
-            ));
+            AsDomicilio domicilio = domicilioRepository.save(AsDomicilio.builder()
+                    .doContador(cmd.getNoContador())
+                    .doDireccion(direccion)
+                    .build());
 
-            // TODO fuera de alcance: FA3 (correo de bienvenida con contraseña temporal)
-            //                        y bitácora de auditoría (paso 9).
-            return location;
+            vecinoDomicilioRepository.save(AsVecinoDomicilio.builder()
+                    .vdDomicilio(domicilio)
+                    .vdVecino(vecino)
+                    .vdEstado("A")
+                    .build());
 
-        } catch (RuntimeException ex) {
-            eliminarUsuarioKeycloakSilencioso(keycloakUserId); // @Transactional revierte BD, no Keycloak
-            throw ex;
-        }
-    }
+            AsCatalogo tipoUsuario = catalogoRepository.findByCaSeudo("RVECO")
+                    .orElseThrow(() -> new ServiceException(HttpStatus.NOT_IMPLEMENTED, "No se pudo determinar el tipo de usuario en el sistema"));
 
-    // ---------- Keycloak ----------
-
-    private URI crearUsuarioKeycloak(RegistrarVecinoCmd cmd, String passwordTemporal) {
-        UserRepresentation kcUser = new UserRepresentation();
-        kcUser.setUsername(cmd.getCui());
-        kcUser.setEmail(cmd.getCorreo());
-        kcUser.setFirstName(cmd.getNombres());
-        kcUser.setLastName(cmd.getApellidos());
-        kcUser.setEnabled(true);
-        kcUser.setEmailVerified(true);
-
-        CredentialRepresentation credential = new CredentialRepresentation();
-        credential.setType(CredentialRepresentation.PASSWORD);
-        credential.setValue(passwordTemporal);
-        credential.setTemporary(true);
-        kcUser.setCredentials(List.of(credential));
-
-        try (Response response = keycloakAdminClient.realm(realm).users().create(kcUser)) {
-            int status = response.getStatus();
-            if (status == 409) {
-                throw new ServiceException(HttpStatus.CONFLICT,
-                        "El CUI o Correo Ingresado ya se encuentra registrado en el sistema");
-            }
-            if (status != 201) {
-                throw new ServiceException(HttpStatus.BAD_GATEWAY,
-                        "No fue posible crear la cuenta en el proveedor de identidad (HTTP " + status + ")");
-            }
-            return response.getLocation();
-        }
-    }
-
-    private void eliminarUsuarioKeycloakSilencioso(String keycloakUserId) {
-        try {
-            keycloakAdminClient.realm(realm).users().get(keycloakUserId).remove();
-            log.warn("Usuario {} revertido en Keycloak tras fallo de persistencia.", keycloakUserId);
+            usuarioRepository.save(AsUsuario.builder()
+                    .usId(userId)
+                    .usTipo(tipoUsuario)
+                    .usEstado("I") // Se activa hasta que se confirma la cuenta
+                    .usIpRegistro(ip)
+                    .usPersona(persona)
+                    .usUsrRegistro(userId)
+                    .build());
+            log.info("[ACCOUNT_CREATED] Cuenta de usuario creado con UUID:{}, ID Vecino: {}", userId, vecino.getId());
+        } catch (InfrastructureException e) {
+            identityProviderPort.deleteIdentityUser(userId);
+            throw e;
         } catch (RuntimeException e) {
-            log.error("No se pudo revertir el usuario {} en Keycloak. Requiere limpieza manual.", keycloakUserId, e);
+            log.error("[CRITICAL_ERROR]", e);
+            identityProviderPort.deleteIdentityUser(userId);
+            throw e;
         }
+        eventPublisher.publishEvent(new VecinoCreadoEvent(
+                userId, cmd.getCorreo(), (cmd.getNombres() + " " + cmd.getApellidos())
+        ));
+        return null;
     }
 
-    private String extraerId(URI location) {
-        String path = location.getPath();
-        return path.substring(path.lastIndexOf('/') + 1);
-    }
 
     // ---------- Utilidades ----------
 

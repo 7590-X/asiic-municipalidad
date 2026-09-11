@@ -1,6 +1,6 @@
 package com.assic.muni.application.converter;
 
-import com.assic.muni.application.cqrs.enums.ENumero;
+import com.assic.muni.application.enums.ENumero;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 

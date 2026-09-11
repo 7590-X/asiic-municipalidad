@@ -1,4 +1,4 @@
-package com.assic.muni.application.cqrs.enums;
+package com.assic.muni.application.enums;
 
 public enum ENumero {
     N_CUI("cui"), N_NIT("nit"), N_CORREO("correo");

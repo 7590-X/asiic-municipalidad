@@ -1,8 +1,9 @@
-package com.assic.muni.presentation.api;
+package com.assic.muni.presentation.api.otrs;
 
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
 import com.assic.muni.application.exception.ServiceException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -38,6 +39,13 @@ public class GlobalExceptionController {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponseDto<Object>> handleIllegalArgumentException(
             IllegalArgumentException e, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .body(new ApiResponseDto<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), request.getRequestURI(),
+                        ZonedDateTime.now(), e.getMessage(), null));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponseDto<Void>> handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest request){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(new ApiResponseDto<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), request.getRequestURI(),
                         ZonedDateTime.now(), e.getMessage(), null));

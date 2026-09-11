@@ -33,7 +33,7 @@
 
     <!-- Panel derecho: wizard -->
     <div class="rv-main">
-      <form clrStepper [formGroup]="form">
+      <form *ngIf="!isSuccess()" clrStepper [formGroup]="form">
         <!-- Identificación -->
         <clr-stepper-panel formGroupName="identificacion">
           <clr-step-title>Identificación</clr-step-title>
@@ -75,6 +75,17 @@
           </clr-step-content>
         </clr-stepper-panel>
       </form>
+
+      <div *ngIf="isSuccess()"
+        style="padding: 2rem; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+        <clr-alert clrAlertType="success" [clrAlertClosable]="false">
+          <clr-alert-item>
+            <span class="alert-text">
+              {{ successMessage() }}
+            </span>
+          </clr-alert-item>
+        </clr-alert>
+      </div>
     </div>
 
   </div>

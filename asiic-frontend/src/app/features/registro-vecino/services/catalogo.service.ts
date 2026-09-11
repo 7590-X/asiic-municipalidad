@@ -2,13 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, of, shareReplay, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { CatalogoItem } from '../../../core/models/catalogo-item.model';
+import { CatalogoItemModel } from '../../../core/models/catalogo-item.model';
 
 const CACHE_PREFIX = 'asiic:catalogo:';
 const TTL_MS = 30 * 60 * 1000; // 30 minutos
 
 interface EntradaCache {
-  data: CatalogoItem[];
+  data: CatalogoItemModel[];
   guardadoEn: number; // epoch ms
 }
 
@@ -17,9 +17,9 @@ export class CatalogoService {
   private http = inject(HttpClient);
   private base = `${environment.apiBaseUrl}/public/catalogos`;
 
-  private cache = new Map<string, Observable<CatalogoItem[]>>();
+  private cache = new Map<string, Observable<CatalogoItemModel[]>>();
 
-  private obtener(path: string): Observable<CatalogoItem[]> {
+  private obtener(path: string): Observable<CatalogoItemModel[]> {
     let obs = this.cache.get(path);
     if (obs) return obs;
 
@@ -27,7 +27,7 @@ export class CatalogoService {
 
     obs = guardado
       ? of(guardado).pipe(shareReplay({ bufferSize: 1, refCount: false }))
-      : this.http.get<CatalogoItem[]>(`${this.base}/${path}`).pipe(
+      : this.http.get<CatalogoItemModel[]>(`${this.base}/${path}`).pipe(
         tap((data) => this.guardarStorage(path, data)),
         catchError((err) => {
           this.cache.delete(path);
@@ -40,7 +40,7 @@ export class CatalogoService {
     return obs;
   }
 
-  private leerStorage(path: string): CatalogoItem[] | null {
+  private leerStorage(path: string): CatalogoItemModel[] | null {
     try {
       const raw = localStorage.getItem(CACHE_PREFIX + path);
       if (!raw) return null;
@@ -57,7 +57,7 @@ export class CatalogoService {
     }
   }
 
-  private guardarStorage(path: string, data: CatalogoItem[]): void {
+  private guardarStorage(path: string, data: CatalogoItemModel[]): void {
     try {
       const entrada: EntradaCache = { data, guardadoEn: Date.now() };
       localStorage.setItem(CACHE_PREFIX + path, JSON.stringify(entrada));
@@ -66,9 +66,9 @@ export class CatalogoService {
     }
   }
 
-  estadoCivil(): Observable<CatalogoItem[]> { return this.obtener('estado-civil'); }
-  profesiones(): Observable<CatalogoItem[]> { return this.obtener('profesion'); }
-  zonas(): Observable<CatalogoItem[]> { return this.obtener('zonas'); }
+  estadoCivil(): Observable<CatalogoItemModel[]> { return this.obtener('estado-civil'); }
+  profesiones(): Observable<CatalogoItemModel[]> { return this.obtener('profesion'); }
+  zonas(): Observable<CatalogoItemModel[]> { return this.obtener('zonas'); }
 
   limpiarCache(): void {
     this.cache.clear();

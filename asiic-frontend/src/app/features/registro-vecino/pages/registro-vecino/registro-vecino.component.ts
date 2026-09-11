@@ -3,8 +3,8 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ClarityModule, ClrLoadingState } from '@clr/angular';
-import { VecinoService } from '../../services/vecino.service';
-import { ApiResponse, RegistrarVecinoRequest } from '../../models/registrar-vecino.model';
+import { VecinoService } from '../../../../core/services/vecino-publico.service';
+import { RegistrarVecinoRequest } from '../../../../core/models/registrar-vecino-request.model';
 import { IdentificacionComponent } from '../../components/identificacion/identificacion.component';
 import { ContactoComponent } from '../../components/contacto/contacto.component';
 import { UbicacionComponent } from "../../components/ubicacion/ubicacion.component";
@@ -59,6 +59,7 @@ export class RegistroVecinoComponent {
     ubicacion: this.fb.nonNullable.group({
       comuna_id: [null as number | null, Validators.required],
       direccion: ['', [Validators.required, Validators.maxLength(100)]],
+      no_contador: ['', [Validators.required, Validators.maxLength(100)]],
     }),
     documentos: this.fb.nonNullable.group({
       nit: ['', [Validators.pattern(/^\d*[a-zA-Z]?$/), Validators.maxLength(13)]],
@@ -68,6 +69,8 @@ export class RegistroVecinoComponent {
 
   // Estados
   submitBtnState: ClrLoadingState = ClrLoadingState.DEFAULT;
+  isSuccess = signal<boolean>(false)
+  successMessage = signal<string>('')
 
   submit(): void {
 
@@ -88,18 +91,20 @@ export class RegistroVecinoComponent {
       correo: v.contacto.correo,
       direccion: v.ubicacion.direccion,
       locacion_id: v.ubicacion.comuna_id as number,
-      nit: v.documentos.nit || undefined,
-      pasaporte: v.documentos.pasaporte || undefined,
+      nit: v.documentos.nit,
+      pasaporte: v.documentos.pasaporte,
+      no_contador: v.ubicacion.no_contador
     };
 
     this.vecinos.registrar(body).subscribe({
       next: (resp) => {
         this.submitBtnState = ClrLoadingState.SUCCESS;
-        this.notification.success("Cuenta creada exitosamente")
+        this.isSuccess.set(true)
+        this.successMessage.set(resp.message)
       },
       error: (err: HttpErrorResponse) => {
-        this.notification.error(err.message)
         this.submitBtnState = ClrLoadingState.ERROR;
+        this.notification.error(err.error.message)
       },
     });
   }

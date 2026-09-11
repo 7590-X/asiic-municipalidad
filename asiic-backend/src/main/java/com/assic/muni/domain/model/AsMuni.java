@@ -55,7 +55,7 @@ public class AsMuni {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "mu_direccion", nullable = false)
-    private AsDireccione muDireccion;
+    private AsDireccion muDireccion;
 
 
 }

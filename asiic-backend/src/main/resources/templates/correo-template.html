@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Notificación</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #1a4968; color: #ffffff;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #1a4968; padding: 40px 20px;">
+    <tr>
+        <td align="center">
+            <!-- Contenedor Principal (Max 600px para clientes de correo) -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; text-align: left;">
+
+                <!-- Header (Logo y Textos) -->
+                <tr>
+                    <td style="padding-bottom: 40px;">
+                        <table cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <!-- Logo (Opcional) -->
+                                <td style="padding-right: 15px;" th:if="${logoUrl != null}">
+                                    <img th:src="${logoUrl}" alt="Logo" width="45" style="display: block; border-radius: 50%; border: 1px solid #ffffff;">
+                                </td>
+                                <!-- Textos Institucionales -->
+                                <td>
+                                    <div style="font-size: 16px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;" th:text="${headerTitle}">TITULO HEADER</div>
+                                    <div style="font-size: 11px; letter-spacing: 2px; color: #9abed6; text-transform: uppercase;" th:text="${headerSubtitle}">SUBTITULO HEADER</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Título Principal -->
+                <tr>
+                    <td style="padding-bottom: 20px;">
+                        <h1 style="margin: 0; font-size: 32px; font-weight: bold; line-height: 1.2;" th:text="${title}">Título Principal</h1>
+                    </td>
+                </tr>
+
+                <!-- Cuerpo del Mensaje (utext permite procesar etiquetas HTML como <br> o <b>) -->
+                <tr>
+                    <td style="padding-bottom: 30px; font-size: 17px; line-height: 1.5; color: #d8e8f2;" th:utext="${messageBody}">
+                        Cuerpo del mensaje.
+                    </td>
+                </tr>
+
+                <!-- Lista Numerada Dinámica (Opcional) -->
+                <tr th:if="${items != null and !items.isEmpty()}">
+                    <td style="padding-bottom: 30px;">
+                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                            <tr th:each="item, stat : ${items}">
+                                <td width="40" valign="top" style="padding-bottom: 15px;">
+                                    <!-- Círculo del número -->
+                                    <div style="background-color: #386a8a; color: #ffffff; width: 26px; height: 26px; border-radius: 50%; text-align: center; line-height: 26px; font-weight: bold; font-size: 14px;" th:text="${stat.count}">1</div>
+                                </td>
+                                <td valign="top" style="padding-bottom: 15px; font-size: 17px; color: #ffffff; line-height: 1.4;" th:text="${item}">
+                                    Texto del item
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Botón de Acción (Opcional: Ideal para verificación o reset de password) -->
+                <tr th:if="${buttonUrl != null}">
+                    <td style="padding-bottom: 40px;">
+                        <a th:href="${buttonUrl}" style="display: inline-block; padding: 12px 28px; background-color: #ffffff; color: #1a4968; text-decoration: none; font-weight: bold; border-radius: 4px; font-size: 16px;" th:text="${buttonText}">Acción</a>
+                    </td>
+                </tr>
+
+                <!-- Separador y Footer -->
+                <tr>
+                    <td style="border-top: 1px solid #386a8a; padding-top: 20px;">
+                        <div style="font-size: 14px; line-height: 1.5; color: #9abed6;" th:utext="${footerText}">
+                            Texto de pie de página.
+                        </div>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

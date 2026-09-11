@@ -39,16 +39,16 @@ public class AsDocumentoInvestigacion {
     @Column(name = "di_fec_registro", nullable = false)
     private Instant diFecRegistro;
 
-    @Size(max = 20)
+    @Size(max = 36)
     @NotNull
-    @Column(name = "di_usr_registro", nullable = false, length = 20)
+    @Column(name = "di_usr_registro", nullable = false, length = 36)
     private String diUsrRegistro;
 
     @Column(name = "di_fec_modifico")
     private Instant diFecModifico;
 
-    @Size(max = 20)
-    @Column(name = "di_usr_modifico", length = 20)
+    @Size(max = 36)
+    @Column(name = "di_usr_modifico", length = 36)
     private String diUsrModifico;
 
     @Size(max = 1)

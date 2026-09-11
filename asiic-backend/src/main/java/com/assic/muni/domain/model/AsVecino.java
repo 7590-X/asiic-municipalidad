@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
@@ -15,7 +18,9 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "as_vecinos")
+@EntityListeners(AuditingEntityListener.class)
 public class AsVecino {
+
     @Id
     @Column(name = "ve_id", nullable = false)
     private Integer id;
@@ -48,21 +53,27 @@ public class AsVecino {
     @Column(name = "ve_estado", nullable = false, length = 1)
     private String veEstado;
 
-    @NotNull
+    @CreatedDate
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "ve_fec_registro", nullable = false)
     private Instant veFecRegistro;
+
+    @Size(max = 36)
+    @NotNull
+    @Column(name = "ve_usr_registro", nullable = false, length = 36)
+    private String veUsrRegistro;
 
     @Size(max = 32)
     @NotNull
     @Column(name = "ve_ip_registro", nullable = false, length = 32)
     private String veIpRegistro;
 
+    @LastModifiedDate
     @Column(name = "ve_fec_modifico")
     private Instant veFecModifico;
 
-    @Size(max = 25)
-    @Column(name = "ve_usr_modifico", length = 25)
+    @Size(max = 36)
+    @Column(name = "ve_usr_modifico", length = 36)
     private String veUsrModifico;
 
     @Size(max = 32)

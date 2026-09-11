@@ -7,26 +7,28 @@ import lombok.Data;
 @Data
 public class RegistrarVecinoCmd {
 
-    @NotBlank
+    @NotBlank(message = "El campo 'cui' es obligatorio")
     @Pattern(regexp = "\\d{13}", message = "Formato de CUI es invalido")
     @JsonProperty("cui")
     private String cui;
 
-    @Size(max = 13)
-    @Pattern(regexp = "\\d*[a-zA-Z]?$", message = "Formato de NIT es invalido")
+    @Size(min = 4, max = 13, message = "El NIT debe de tener entre 4 y 13 caracteres")
+    @Pattern(regexp = "^\\d*[A-Z]?$", message = "Formato de NIT es invalido")
     @JsonProperty("nit")
     private String nit;
 
-    @Size(max = 20)
+    @Size(max = 20, message = "El número de pasaporte debe de tenér máximo 20 caracteres")
     @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "Formato de pasaporte es invalido")
     @JsonProperty("pasaporte")
     private String pasaporte;
 
-    @NotBlank @Size(max = 45)
+    @Size(max = 45)
+    @NotBlank(message = "El campo 'nombres' es obligatorio")
     @JsonProperty("nombres")
     private String nombres;
 
-    @NotBlank @Size(max = 45)
+    @Size(max = 45, message = "Los apellidos deben de tenér un máximo de 45 caracteres")
+    @NotBlank(message = "El campos 'apellidos' es obligatorio")
     @JsonProperty("apellidos")
     private String apellidos;
 
@@ -65,4 +67,10 @@ public class RegistrarVecinoCmd {
     @Positive
     @JsonProperty("locacion_id")
     private Integer locacionId;
+
+    @Size(max = 20, message = "El número de contador sobrepasa los 20 caracteres")
+    @NotNull(message = "NO. de contador es requerido")
+    @Pattern(regexp = "^\\d*[A-Z]?$", message = "Formato de del número de contador es invalido")
+    @JsonProperty("no_contador")
+    private String noContador;
 }

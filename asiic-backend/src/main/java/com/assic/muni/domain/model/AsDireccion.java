@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
@@ -15,7 +18,8 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "as_direcciones")
-public class AsDireccione {
+@EntityListeners(AuditingEntityListener.class)
+public class AsDireccion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "di_id", nullable = false)
@@ -33,11 +37,12 @@ public class AsDireccione {
     @Column(name = "di_tipo")
     private Integer diTipo;
 
-    @NotNull
+    @CreatedDate
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "di_fec_registro", nullable = false)
     private Instant diFecRegistro;
 
+    @LastModifiedDate
     @Column(name = "di_fec_modifico")
     private Instant diFecModifico;
 
