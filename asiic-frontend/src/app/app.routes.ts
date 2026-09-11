@@ -9,7 +9,7 @@ export const routes: Routes = [
   {
     path: 'registro',
     loadComponent: () =>
-      import('./features/registro-vecino/pages/registro-vecino/registro-vecino.component')
+      import('./features/vecino/pages/registro-vecino/registro-vecino.component')
         .then((m) => m.RegistroVecinoComponent),
   },
   { path: '**', redirectTo: '' },
