@@ -19,19 +19,10 @@ import java.util.List;
 public class PubCatalogoController {
 
     private final CatalogoQueryHandler catalogoQueryHandler;
-    private final AsLocacionRepository asLocacionRepository;
 
     @GetMapping("/{catalogo}")
     @Operation(summary = "Obtener listado de items de un catalogo")
     public ResponseEntity<List<CatalogoDto>> obtener(@PathVariable ECatalogo catalogo) {
         return ResponseEntity.ok(catalogoQueryHandler.getCatalogoItemsByCatalogoId(catalogo));
-    }
-
-    @GetMapping("/zonas")
-    public ResponseEntity<List<CatalogoDto>> zonas() {
-        return ResponseEntity.ok(
-                asLocacionRepository.findByLoComunaGreaterThanOrderByLoComunaAsc((short) 0).stream()
-                        .map(l -> new CatalogoDto(l.getId(), l.getLoDescripcion()))
-                        .toList());
     }
 }
