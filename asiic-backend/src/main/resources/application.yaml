@@ -1,6 +1,6 @@
 app:
   frontend:
-    domain: ${FRONT_DOMAIN:-http://localhost:4200}
+    domain: ${FRONT_DOMAIN:http://localhost:4200}
   security:
     jwt:
       secret: ${JWT_TEMP_SECRET}

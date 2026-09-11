@@ -12,5 +12,11 @@ export const routes: Routes = [
       import('./features/vecino/pages/registro-vecino/registro-vecino.component')
         .then((m) => m.RegistroVecinoComponent),
   },
+  {
+    path: 'confirmar-cuenta',
+    loadComponent: () =>
+      import('./features/vecino/pages/confirmar-cuenta/confirmar-cuenta.component')
+        .then((m) => m.RegistroVecinoComponent),
+  },
   { path: '**', redirectTo: '' },
 ];
