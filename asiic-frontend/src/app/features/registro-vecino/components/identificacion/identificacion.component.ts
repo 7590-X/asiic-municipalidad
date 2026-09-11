@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { ClarityModule } from '@clr/angular';
 import { OnlyDigitsDirective } from '../../../../shared/directives/only-digits.directive';
 import { CapitalizeWordsDirective } from '../../../../shared/directives/capitalize-words.directive';
-import { CatalogoItem } from '../../../../core/models/catalogo-item.model';
+import { CatalogoItemModel } from '../../../../core/models/catalogo-item.model';
 import { CatalogosService } from '../../../../core/services/catalogos.service';
 import { forkJoin } from 'rxjs';
 
@@ -21,8 +21,8 @@ export class IdentificacionComponent implements OnInit {
   catalogosService = inject(CatalogosService)
   destroyRef = inject(DestroyRef)
 
-  estadoCivil = signal<CatalogoItem[]>([])
-  profesiones = signal<CatalogoItem[]>([])
+  estadoCivil = signal<CatalogoItemModel[]>([])
+  profesiones = signal<CatalogoItemModel[]>([])
 
   generos = [
     {

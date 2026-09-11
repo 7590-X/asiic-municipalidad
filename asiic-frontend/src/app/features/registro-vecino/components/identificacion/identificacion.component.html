@@ -9,18 +9,14 @@
 
   <clr-input-container>
     <label class="clr-required-mark">Nombres</label>
-    <input clrInput formControlName="nombres" appCapitalizeWords />
+    <input clrInput formControlName="nombres" appCapitalizeWords maxlength="45" />
     <clr-control-error *clrIfError="'required'">Los nombres son obligatorios</clr-control-error>
-    <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }}
-      caracteres</clr-control-error>
   </clr-input-container>
 
   <clr-input-container>
     <label class="clr-required-mark">Apellidos</label>
-    <input clrInput formControlName="apellidos" appCapitalizeWords />
+    <input clrInput formControlName="apellidos" appCapitalizeWords maxlength="45" />
     <clr-control-error *clrIfError="'required'">Los apellidos son obligatorios</clr-control-error>
-    <clr-control-error *clrIfError="'maxlength'; error as err">Máximo {{ err.requiredLength }}
-      caracteres</clr-control-error>
   </clr-input-container>
 
   <clr-select-container>

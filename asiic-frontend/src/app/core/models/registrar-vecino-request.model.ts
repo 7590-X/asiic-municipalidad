@@ -14,6 +14,7 @@ export interface RegistrarVecinoRequest {
   departamento_id?: number;
   municipio_id?: number;
   locacion_id: number;
+  no_contador: string
 }
 
 export interface ApiResponse<T = unknown> {
