@@ -1,6 +1,6 @@
-package com.assic.muni.presentation.api;
+package com.assic.muni.presentation.api.pubs;
 
-import com.assic.muni.application.cqrs.enums.ENumero;
+import com.assic.muni.application.enums.ENumero;
 import com.assic.muni.application.cqrs.handler.NumerosQueryHandler;
 import com.assic.muni.application.exception.ServiceException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/asiic/public/validacion-numeros")
 @Tag(name = "Validaciones de valores de identidad personal")
-public class ValidacionNumeroController {
+public class PubValidacionNumeroController {
 
     private final NumerosQueryHandler numerosQueryHandler;
 

@@ -1,4 +1,4 @@
-package com.assic.muni.presentation.api;
+package com.assic.muni.presentation.api.pubs;
 
 import com.assic.muni.application.cqrs.dto.LocacionDto;
 import com.assic.muni.application.cqrs.handler.LocacionesQueryHandler;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Catálogos de Locaciones")
 @RequestMapping("/api/v1/asiic/public/locaciones")
-public class LocacionesController {
+public class PubLocacionesController {
 
     private final LocacionesQueryHandler locacionesQueryHandler;
 

@@ -32,7 +32,7 @@ public class AsPersona {
     @Column(name = "pe_apellido", nullable = false, length = 45)
     private String peApellido;
 
-    @Size(max = 12)
+    @Size(max = 13)
     @Column(name = "pe_nit", length = 13)
     private String peNit;
 
@@ -58,6 +58,4 @@ public class AsPersona {
 
     @Column(name = "pe_tip_persona")
     private Short peTipPersona;
-
-
 }

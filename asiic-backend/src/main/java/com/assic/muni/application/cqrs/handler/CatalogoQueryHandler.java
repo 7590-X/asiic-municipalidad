@@ -1,6 +1,6 @@
 package com.assic.muni.application.cqrs.handler;
 
-import com.assic.muni.application.cqrs.enums.ECatalogo;
+import com.assic.muni.application.enums.ECatalogo;
 import com.assic.muni.application.cqrs.dto.CatalogoDto;
 import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.domain.model.AsCatalogo;

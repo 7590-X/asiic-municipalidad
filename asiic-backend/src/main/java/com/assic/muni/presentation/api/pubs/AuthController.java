@@ -1,4 +1,4 @@
-package com.assic.muni.presentation.api;
+package com.assic.muni.presentation.api.pubs;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

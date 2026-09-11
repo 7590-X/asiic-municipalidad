@@ -1,4 +1,4 @@
-package com.assic.muni.application.cqrs.enums;
+package com.assic.muni.application.enums;
 
 import lombok.Getter;
 

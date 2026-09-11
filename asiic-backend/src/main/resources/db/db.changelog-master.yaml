@@ -15,3 +15,13 @@ databaseChangeLog:
       file: db/changelog/0006-alterar-esquema-vecinos.sql
   - include:
       file: db/changelog/260905-1-alteracion-personas-nit.sql
+  - include:
+      file: db/changelog/260908-1-alterar-tabla-as-vecinos.sql
+  - include:
+      file: db/changelog/260908-2-alterar-campos-usr_N.sql
+  - include:
+      file: db/changelog/260908-3-alterar-campo-as-vecinos-domicilios.sql
+  - include:
+      file: db/changelog/260909-1-modificacion-sp_agregar_catalogo.sql
+  - include:
+      file: db/changelog/260909-2-agregar-nuevos-catalogos.sql

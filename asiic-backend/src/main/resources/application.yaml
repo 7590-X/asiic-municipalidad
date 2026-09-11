@@ -1,3 +1,13 @@
+app:
+  frontend:
+    domain: ${FRONT_DOMAIN:-http://localhost:4200}
+  security:
+    jwt:
+      secret: ${JWT_TEMP_SECRET}
+      expiration:
+        reset-password: 900000  # 15 mins
+        verity-email: 86400000  # 24 horas
+
 keycloak:
   client: ${KC_CLIENT}
   realm: ${KC_REALM}

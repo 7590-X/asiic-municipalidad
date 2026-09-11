@@ -99,16 +99,16 @@ public class AsInsidencia {
     @Column(name = "in_fec_registro", nullable = false)
     private Instant inFecRegistro;
 
-    @Size(max = 25)
+    @Size(max = 36)
     @NotNull
-    @Column(name = "in_usr_registro", nullable = false, length = 25)
+    @Column(name = "in_usr_registro", nullable = false, length = 36)
     private String inUsrRegistro;
 
     @Column(name = "in_fec_modifico")
     private Instant inFecModifico;
 
-    @Size(max = 25)
-    @Column(name = "in_usr_modifico", length = 25)
+    @Size(max = 36)
+    @Column(name = "in_usr_modifico", length = 36)
     private String inUsrModifico;
 
     @ManyToOne(fetch = FetchType.LAZY)
