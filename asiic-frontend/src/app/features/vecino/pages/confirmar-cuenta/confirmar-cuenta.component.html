@@ -1,0 +1,74 @@
+<section class="rv-page">
+  <div class="rv-shell">
+    
+    <!-- Panel izquierdo: marca -->
+    <aside class="rv-aside">
+      <div class="rv-aside__brand">
+        <img src="muni-emblem-white.svg" alt="" />
+        <div>
+          <strong>MUNICIPALIDAD</strong>
+          <span>DE GUATEMALA</span>
+        </div>
+      </div>
+
+      <div class="rv-aside__body">
+        <h1>Genere su contraseña</h1>
+        <p>
+          Ingrese una contraseña segura para activar su cuenta de vecino.
+        </p>
+      </div>
+
+      <p class="rv-aside__foot">
+        Su cuenta le permitirá reportar incidencias, dar seguimiento a sus gestiones y recibir notificaciones.
+      </p>
+    </aside>
+
+    <!-- Panel derecho: formulario -->
+    <div class="rv-main">
+      <div *ngIf="!isSuccess()" style="padding-top: 2rem;">
+        <h2 style="margin-top: 0; margin-bottom: 2rem;">Establecer contraseña</h2>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="clr-form">
+            
+          <div class="clr-form-control clr-row">
+            <label class="clr-control-label clr-col-12 clr-col-md-4">Contraseña</label>
+            <div class="clr-control-container clr-col-12 clr-col-md-8">
+              <div class="clr-input-wrapper" style="width: 100%; max-width: 100%;">
+                <input type="password" class="clr-input" formControlName="password" placeholder="Ingrese su contraseña" style="width: 100%;">
+              </div>
+              <span class="clr-subtext" *ngIf="form.controls.password.touched && form.controls.password.hasError('required')">Este campo es requerido.</span>
+              <span class="clr-subtext" *ngIf="form.controls.password.touched && form.controls.password.hasError('minlength')">Debe tener al menos 8 caracteres.</span>
+            </div>
+          </div>
+          
+          <div class="clr-form-control clr-row" style="margin-top: 1rem;">
+            <label class="clr-control-label clr-col-12 clr-col-md-4">Confirmar contraseña</label>
+            <div class="clr-control-container clr-col-12 clr-col-md-8">
+              <div class="clr-input-wrapper" style="width: 100%; max-width: 100%;">
+                <input type="password" class="clr-input" formControlName="confirmPassword" placeholder="Confirme su contraseña" style="width: 100%;">
+              </div>
+              <span class="clr-subtext" *ngIf="form.controls.confirmPassword.touched && form.controls.confirmPassword.hasError('required')">Este campo es requerido.</span>
+            </div>
+          </div>
+          
+          <div style="margin-top: 2.5rem;">
+            <button type="submit" [clrLoading]="submitBtnState" class="btn btn-primary" style="width: 100%;">
+              Confirmar Cuenta y Generar Contraseña
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div *ngIf="isSuccess()"
+        style="padding: 2rem; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+        <clr-alert clrAlertType="success" [clrAlertClosable]="false">
+          <clr-alert-item>
+            <span class="alert-text">
+              {{ successMessage() }}
+            </span>
+          </clr-alert-item>
+        </clr-alert>
+      </div>
+    </div>
+
+  </div>
+</section>
