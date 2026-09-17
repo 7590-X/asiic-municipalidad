@@ -3,6 +3,7 @@ package com.assic.muni.infrastructure.listener;
 import com.assic.muni.application.port.out.EmailServicePort;
 import com.assic.muni.application.port.out.TemporalTokenPort;
 import com.assic.muni.application.port.out.dto.SimpleMail;
+import com.assic.muni.domain.event.CuentaConfirmadaEvent;
 import com.assic.muni.domain.event.VecinoCreadoEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,29 @@ public class VecinoEventListener {
         emailServicePort.sendSimpleEmail(new SimpleMail(
                 event.email(),
                 "ASIIC Municipalidades - Cuenta Creada",
-                html
-        ));
+                html));
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void eventCuentaConfirmada(CuentaConfirmadaEvent event) {
+        Map<String, Object> variables = new HashMap<>();
+
+        variables.put("title", "Cuenta de Vecino Confirmada Exitosamente");
+        variables.put("messageBody",
+                String.format("""
+                        Estimado vecino %s, tu cuenta ha sido confirmada a las %s exitosamente,
+                        ahora puedes acceder a la plataforma de manera ilimitada para hacer tus gestiones.""",
+                        event.fullName(), event.confirmationTime().toString()));
+
+        variables.put("footerText", "Municipalidades de Guatemala");
+
+        Context context = new Context();
+        context.setVariables(variables);
+        String html = templateEngine.process("correo-template", context);
+
+        emailServicePort.sendSimpleEmail(new SimpleMail(
+                event.email(),
+                "ASIIC Municipalidades - Cuenta Confirmada",
+                html));
     }
 }
