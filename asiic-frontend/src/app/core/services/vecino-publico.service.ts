@@ -11,4 +11,8 @@ export class VecinoService {
   registrar(body: RegistrarVecinoRequest): Observable<ApiResponse> {
     return this.http.post<ApiResponse>(`${environment.apiBaseUrl}/public/vecinos`, body)
   }
+
+  confirmarCuenta(body: {token: string, password: string}): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${environment.apiBaseUrl}/public/vecinos/confirmar-cuenta`, body);
+  }
 }
