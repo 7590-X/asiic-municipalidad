@@ -11,9 +11,8 @@ public interface IdentityProviderPort {
     /**
      * Confirmar correo y asignar contraseña en keycloak
      *
-     * @param token    Token que contiene UUID de cuenta KC
+     * @param userId   Id de usuario en KC
      * @param password Contraseña para asignar a la cuenta en KC
-     * @return Retornar UUID de cuenta KC
      */
-    String confirmIdentityUser(String token, String password);
+    void confirmIdentityUser(String userId, String password);
 }

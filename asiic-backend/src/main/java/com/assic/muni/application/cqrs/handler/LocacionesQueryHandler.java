@@ -3,7 +3,7 @@ package com.assic.muni.application.cqrs.handler;
 import com.assic.muni.application.cqrs.dto.LocacionDto;
 import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.domain.model.AsLocacion;
-import com.assic.muni.infrastructure.repository.AsLocacionRepository;
+import com.assic.muni.domain.repository.AsLocacionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

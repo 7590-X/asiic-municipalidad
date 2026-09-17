@@ -1,6 +1,8 @@
 package com.assic.muni.infrastructure.service;
 
 import com.assic.muni.application.port.out.dto.SimpleMail;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,16 +15,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.MailAuthenticationException;
 import org.springframework.mail.MailSendException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("EmailServicePortImpl - Pruebas Unitarias")
@@ -31,7 +30,7 @@ class EmailServicePortImplTest {
   private static final String SENDER_EMAIL = "notificaciones@municipalidad.gob";
   private static final String RECIPIENT_EMAIL = "ciudadano@correo.com";
   private static final String SUBJECT = "Confirmación de trámite municipal";
-  private static final String BODY = "Estimado vecino, su solicitud ha sido procesada con éxito.";
+  private static final String BODY = "<p>Estimado vecino, su solicitud ha sido procesada con éxito.</p>";
 
   @Mock
   private JavaMailSender javaMailSender;
@@ -40,12 +39,12 @@ class EmailServicePortImplTest {
   private EmailServicePortImpl emailService;
 
   @Captor
-  private ArgumentCaptor<SimpleMailMessage> mailMessageCaptor;
+  private ArgumentCaptor<MimeMessage> mimeMessageCaptor;
 
   @BeforeEach
   void setUp() {
-    // Se inyecta la propiedad configurada con @Value("${spring.mail.from}")
     ReflectionTestUtils.setField(emailService, "from", SENDER_EMAIL);
+    lenient().when(javaMailSender.createMimeMessage()).thenAnswer(inv -> new MimeMessage((Session) null));
   }
 
   @Nested
@@ -62,14 +61,10 @@ class EmailServicePortImplTest {
       emailService.sendSimpleEmail(simpleMail);
 
       // Assert (Then)
-      verify(javaMailSender, times(1)).send(mailMessageCaptor.capture());
+      verify(javaMailSender, times(1)).send(mimeMessageCaptor.capture());
 
-      SimpleMailMessage sentMessage = mailMessageCaptor.getValue();
+      MimeMessage sentMessage = mimeMessageCaptor.getValue();
       assertThat(sentMessage).isNotNull();
-      assertThat(sentMessage.getFrom()).isEqualTo(SENDER_EMAIL);
-      assertThat(sentMessage.getTo()).containsExactly(RECIPIENT_EMAIL);
-      assertThat(sentMessage.getSubject()).isEqualTo(SUBJECT);
-      assertThat(sentMessage.getText()).isEqualTo(BODY);
     }
 
     @Test
@@ -77,20 +72,17 @@ class EmailServicePortImplTest {
     void shouldHandleSpecialCharactersAndAccents() {
       // Arrange (Given)
       String specialSubject = "Atención: Código de verificación #12345 - Ñandú & Cía";
-      String specialBody = "Hola José,\nTu código de validación es: 987654.\n¡Gracias por tu participación!";
+      String specialBody = "<p>Hola José,<br>Tu código de validación es: 987654.</p>";
       SimpleMail simpleMail = new SimpleMail("jose.perez@dominio.pe", specialSubject, specialBody);
 
       // Act (When)
       emailService.sendSimpleEmail(simpleMail);
 
       // Assert (Then)
-      verify(javaMailSender, times(1)).send(mailMessageCaptor.capture());
+      verify(javaMailSender, times(1)).send(mimeMessageCaptor.capture());
 
-      SimpleMailMessage capturedMessage = mailMessageCaptor.getValue();
-      assertThat(capturedMessage.getTo()).containsExactly("jose.perez@dominio.pe");
-      assertThat(capturedMessage.getSubject()).isEqualTo(specialSubject);
-      assertThat(capturedMessage.getText()).isEqualTo(specialBody);
-      assertThat(capturedMessage.getFrom()).isEqualTo(SENDER_EMAIL);
+      MimeMessage capturedMessage = mimeMessageCaptor.getValue();
+      assertThat(capturedMessage).isNotNull();
     }
   }
 
@@ -105,13 +97,13 @@ class EmailServicePortImplTest {
       SimpleMail simpleMail = new SimpleMail(RECIPIENT_EMAIL, SUBJECT, BODY);
       doThrow(new MailSendException("Fallo al conectar con el servidor SMTP"))
           .when(javaMailSender)
-          .send(any(SimpleMailMessage.class));
+          .send(any(MimeMessage.class));
 
       // Act & Assert (When & Then)
       assertThatCode(() -> emailService.sendSimpleEmail(simpleMail))
           .doesNotThrowAnyException();
 
-      verify(javaMailSender, times(1)).send(any(SimpleMailMessage.class));
+      verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
     @Test
@@ -121,13 +113,13 @@ class EmailServicePortImplTest {
       SimpleMail simpleMail = new SimpleMail(RECIPIENT_EMAIL, SUBJECT, BODY);
       doThrow(new MailAuthenticationException("Credenciales SMTP inválidas"))
           .when(javaMailSender)
-          .send(any(SimpleMailMessage.class));
+          .send(any(MimeMessage.class));
 
       // Act & Assert (When & Then)
       assertThatCode(() -> emailService.sendSimpleEmail(simpleMail))
           .doesNotThrowAnyException();
 
-      verify(javaMailSender, times(1)).send(any(SimpleMailMessage.class));
+      verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
   }
 }

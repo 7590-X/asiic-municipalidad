@@ -1,4 +1,4 @@
-package com.assic.muni.infrastructure.repository;
+package com.assic.muni.domain.repository;
 
 import com.assic.muni.domain.model.AsVecino;
 import org.springframework.data.jpa.repository.JpaRepository;

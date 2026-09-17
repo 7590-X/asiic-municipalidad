@@ -3,29 +3,20 @@ package com.assic.muni.application.cqrs.handler;
 import com.assic.muni.application.cqrs.cmd.RegistrarVecinoCmd;
 import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.application.port.out.IdentityProviderPort;
+import com.assic.muni.domain.event.VecinoCreadoEvent;
 import com.assic.muni.domain.model.*;
-import com.assic.muni.infrastructure.exception.InfrastructureException;
-import com.assic.muni.infrastructure.repository.*;
-import jakarta.servlet.http.HttpServletRequest;
+import com.assic.muni.domain.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.context.ApplicationEventPublisher;
-import com.assic.muni.domain.event.VecinoCreadoEvent;
-
-import java.net.URI;
-import java.security.SecureRandom;
-import java.util.Base64;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<Integer, RegistrarVecinoCmd> {
+public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<Integer, RegistrarVecinoCmd> {
 
     private final VecinoRepository vecinoRepository;
     private final AsPersonaRepository asPersonaRepository;
@@ -38,9 +29,6 @@ public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<Integer, Reg
     private final AsDomicilioRepository domicilioRepository;
     private final AsVecinoDomicilioRepository vecinoDomicilioRepository;
     private final AsUsuarioRepository usuarioRepository;
-
-    @Value("${keycloak.realm}")
-    private String realm;
 
     @Override
     @Transactional
@@ -64,7 +52,9 @@ public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<Integer, Reg
             AsCatalogo tipoPersona = catalogoRepository.findByCaSeudo("PEIN")
                     .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar la identidad del vecino"));
 
-            String ip = obtenerIpCliente();
+            String ip = (cmd.getIpRegistro() != null && !cmd.getIpRegistro().isBlank())
+                    ? cmd.getIpRegistro()
+                    : "127.0.0.1";
 
             AsPersona persona = asPersonaRepository.save(AsPersona.builder()
                     .peCui(cmd.getCui())
@@ -125,11 +115,8 @@ public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<Integer, Reg
                     .usUsrRegistro(userId)
                     .build());
             log.info("[ACCOUNT_CREATED] Cuenta de usuario creado con UUID:{}, ID Vecino: {}", userId, vecino.getId());
-        } catch (InfrastructureException e) {
-            identityProviderPort.deleteIdentityUser(userId);
-            throw e;
         } catch (RuntimeException e) {
-            log.error("[CRITICAL_ERROR]", e);
+            log.error("[REGISTRO_VECINO_ERROR] Error al registrar entidades del vecino. Compensando usuario en Identity Provider...", e);
             identityProviderPort.deleteIdentityUser(userId);
             throw e;
         }
@@ -137,26 +124,5 @@ public class RegistrarVecinoCmdCmdHandler implements CQRSCmdHandler<Integer, Reg
                 userId, cmd.getCorreo(), (cmd.getNombres() + " " + cmd.getApellidos())
         ));
         return null;
-    }
-
-
-    // ---------- Utilidades ----------
-
-    private String obtenerIpCliente() {
-        ServletRequestAttributes attrs =
-                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attrs == null) return "127.0.0.1";
-        HttpServletRequest request = attrs.getRequest();
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip != null && ip.contains(",") ? ip.split(",")[0].trim() : ip;
-    }
-
-    private String generarPasswordTemporal() {
-        byte[] randomBytes = new byte[9];
-        new SecureRandom().nextBytes(randomBytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 }

@@ -1,4 +1,4 @@
-package com.assic.muni.infrastructure.repository;
+package com.assic.muni.domain.repository;
 
 import com.assic.muni.domain.model.AsCatalogo;
 import org.springframework.data.jpa.repository.JpaRepository;

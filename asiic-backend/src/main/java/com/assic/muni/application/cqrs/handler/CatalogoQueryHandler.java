@@ -4,7 +4,7 @@ import com.assic.muni.application.enums.ECatalogo;
 import com.assic.muni.application.cqrs.dto.CatalogoDto;
 import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.domain.model.AsCatalogo;
-import com.assic.muni.infrastructure.repository.AsCatalogoRepository;
+import com.assic.muni.domain.repository.AsCatalogoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

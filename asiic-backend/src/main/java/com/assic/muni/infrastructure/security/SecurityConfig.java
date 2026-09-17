@@ -1,42 +1,47 @@
 package com.assic.muni.infrastructure.security;
 
-
 import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableFeignClients
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthConverter jwtAuthConverter;
 
+    @Value("${app.frontend.domain:http://localhost:4200}")
+    private String frontendDomain;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Permitir swagger sin seguridad pero solo en localhost
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**","/api/v1/catalogos/estado-civil")
-                        .access((authentication, context) -> {
-                            final String IP = context.getRequest().getRemoteAddr();
-                            boolean isLocalHost = "127.0.0.1".equals(IP)
-                                    || "0:0:0:0:0:0:0:1".equals(IP)
-                                    || "::1".equals(IP);
-
-                            return new AuthorizationDecision(isLocalHost);
-                        })
-                        // Permitir endpoints sin autenticación ni autorización
-                        .requestMatchers("/api/v1/asiic/public/**").permitAll()
+                        // Documentación Swagger/OpenAPI
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+                        // Endpoints públicos y de autenticación
+                        .requestMatchers(
+                                "/api/v1/asiic/public/**",
+                                "/api/v1/asiic/auth/**"
+                        ).permitAll()
                         // Todas las demás request requieren token válido
                         .anyRequest().authenticated()
                 )
@@ -46,4 +51,18 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of(frontendDomain, "http://localhost:*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
+
