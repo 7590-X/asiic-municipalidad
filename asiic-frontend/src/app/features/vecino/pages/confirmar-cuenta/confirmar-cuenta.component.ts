@@ -6,11 +6,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ClarityModule, ClrLoadingState } from '@clr/angular';
 import { VecinoService } from '../../../../core/services/vecino-publico.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { AsidePanelComponent } from '../../components/aside-panel/aside-panel.component';
 
 @Component({
   selector: 'app-confirmar-cuenta',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ClarityModule],
+  imports: [CommonModule, ReactiveFormsModule, ClarityModule, AsidePanelComponent],
   templateUrl: './confirmar-cuenta.component.html',
   styleUrl: './confirmar-cuenta.component.scss'
 })

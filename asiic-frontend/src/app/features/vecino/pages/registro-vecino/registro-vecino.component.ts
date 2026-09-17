@@ -11,13 +11,14 @@ import { UbicacionComponent } from "../../components/ubicacion/ubicacion.compone
 import { DocumentosComponent } from '../../components/documentos/documentos.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { cuiValidator } from '../../../../shared/validators/cui.validator';
-import { ValidacionesService } from '../../../../core/services/validaciones.service';
 import { telefonoValidator } from '../../../../shared/validators/correo.validator';
+import { AsidePanelComponent } from '../../components/aside-panel/aside-panel.component';
+import { ValidacionesService } from '../../../../core/services/validaciones.service';
 
 @Component({
   selector: 'app-registro-vecino',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ClarityModule, IdentificacionComponent, ContactoComponent, UbicacionComponent, DocumentosComponent],
+  imports: [CommonModule, ReactiveFormsModule, ClarityModule, IdentificacionComponent, ContactoComponent, UbicacionComponent, DocumentosComponent, AsidePanelComponent],
   templateUrl: './registro-vecino.component.html',
   styleUrl: './registro-vecino.component.scss',
 })
