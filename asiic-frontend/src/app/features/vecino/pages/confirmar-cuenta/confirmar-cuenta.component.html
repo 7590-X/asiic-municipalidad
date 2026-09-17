@@ -25,51 +25,34 @@
 
     <!-- Panel derecho: formulario -->
     <div class="rv-main">
-      <div *ngIf="!isSuccess()" style="padding-top: 2rem;">
-        <form [formGroup]="form" (ngSubmit)="submit()" class="clr-form">
+      <div *ngIf="!isSuccess()" class="form-container">
+        <form [formGroup]="form" (ngSubmit)="submit()" class="clr-form" clrLayout="vertical">
+          <div class="form-grid">
+            <clr-password-container class="col-span-2">
+              <label class="clr-required-mark">Contraseña</label>
+              <input clrPassword formControlName="password" placeholder="Ingrese su contraseña" />
+              <clr-control-error *clrIfError="'required'">Este campo es requerido.</clr-control-error>
+              <clr-control-error *clrIfError="'minlength'">Debe tener al menos 8 caracteres.</clr-control-error>
+              <clr-control-error *clrIfError="'pattern'">Contraseña insegura, debe de tener como mínimo una letra
+                mayúscula y un número.</clr-control-error>
+            </clr-password-container>
 
-          <div class="clr-form-control clr-row">
-            <label class="clr-control-label clr-col-12 clr-col-md-4">Contraseña</label>
-            <div class="clr-control-container clr-col-12 clr-col-md-8">
-              <div class="clr-input-wrapper" style="width: 100%; max-width: 100%;">
-                <input type="password" class="clr-input" formControlName="password" placeholder="Ingrese su contraseña"
-                  style="width: 100%;">
-              </div>
-              <span class="clr-subtext"
-                *ngIf="form.controls.password.touched && form.controls.password.hasError('required')">Este campo es
-                requerido.</span>
-              <span class="clr-subtext"
-                *ngIf="form.controls.password.touched && form.controls.password.hasError('minlength')">Debe tener al
-                menos 8 caracteres.</span>
-              <span class="clr-subtext"
-                *ngIf="form.controls.password.touched && !form.controls.password.hasError('minlength') && form.controls.password.hasError('pattern')">Contraseña
-                insegura, debe de tener como mínimo una letra mayúscula y un número.</span>
-            </div>
+            <clr-password-container class="col-span-2">
+              <label class="clr-required-mark">Confirmar contraseña</label>
+              <input clrPassword formControlName="confirmPassword" placeholder="Confirme su contraseña" />
+              <clr-control-error *clrIfError="'required'">Este campo es requerido.</clr-control-error>
+            </clr-password-container>
           </div>
 
-          <div class="clr-form-control clr-row" style="margin-top: 1rem;">
-            <label class="clr-control-label clr-col-12 clr-col-md-4">Confirmar contraseña</label>
-            <div class="clr-control-container clr-col-12 clr-col-md-8">
-              <div class="clr-input-wrapper" style="width: 100%; max-width: 100%;">
-                <input type="password" class="clr-input" formControlName="confirmPassword"
-                  placeholder="Confirme su contraseña" style="width: 100%;">
-              </div>
-              <span class="clr-subtext"
-                *ngIf="form.controls.confirmPassword.touched && form.controls.confirmPassword.hasError('required')">Este
-                campo es requerido.</span>
-            </div>
-          </div>
-
-          <div style="margin-top: 2.5rem;">
-            <button type="submit" [clrLoading]="submitBtnState" class="btn btn-primary" style="width: 100%;">
+          <div class="submit-container">
+            <button type="submit" [clrLoading]="submitBtnState" class="btn btn-primary">
               Confirmar Cuenta
             </button>
           </div>
         </form>
       </div>
 
-      <div *ngIf="isSuccess()"
-        style="padding: 2rem; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+      <div *ngIf="isSuccess()" class="success-container">
         <clr-alert clrAlertType="success" [clrAlertClosable]="false">
           <clr-alert-item>
             <span class="alert-text">
