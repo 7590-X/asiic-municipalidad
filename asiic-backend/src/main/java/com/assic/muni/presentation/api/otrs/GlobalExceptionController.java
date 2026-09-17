@@ -2,6 +2,7 @@ package com.assic.muni.presentation.api.otrs;
 
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
 import com.assic.muni.application.exception.ServiceException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -48,6 +49,13 @@ public class GlobalExceptionController {
     public ResponseEntity<ApiResponseDto<Void>> handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest request){
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .body(new ApiResponseDto<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), request.getRequestURI(),
+                        ZonedDateTime.now(), e.getMessage(), null));
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponseDto<Void>> handleJwtException(JwtException e, HttpServletRequest request){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
+                .body(new ApiResponseDto<>(HttpStatus.BAD_REQUEST.value(), request.getRequestURI(),
                         ZonedDateTime.now(), e.getMessage(), null));
     }
 }

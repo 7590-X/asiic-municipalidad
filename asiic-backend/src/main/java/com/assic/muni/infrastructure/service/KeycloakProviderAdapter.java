@@ -68,13 +68,10 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
     }
 
     @Override
-    public String confirmIdentityUser(String token, String password) {
-        // Validar token y obtener UUID cuenta KC
-        String userId = temporalTokenPort.validateAndExtractUserId(token, ETokenAction.VERIFY_EMAIL);
+    public void confirmIdentityUser(String userId, String password) {
         kcEmailVerified(userId, true);
         kcAssignCredencial(userId, password);
 
-        return userId;
     }
 
     private void kcEmailVerified(String userId, boolean emailVerified) {

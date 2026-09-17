@@ -16,8 +16,13 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
+
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
@@ -25,11 +30,16 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
   private final JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
 
   @Value("${keycloak.principalClaimName}")
-
-  private final String principalClaimName;
+  private String principalClaimName;
 
   @Value("${keycloak.client}")
-  private final String client;
+  private String client;
+
+  @PostConstruct
+  public void postConstruct() {
+    log.info("[KC] principalClaimName: {}", this.principalClaimName);
+    log.info("[KC] client: {}", this.client);
+  }
 
   @Override
   public AbstractAuthenticationToken convert(Jwt source) {

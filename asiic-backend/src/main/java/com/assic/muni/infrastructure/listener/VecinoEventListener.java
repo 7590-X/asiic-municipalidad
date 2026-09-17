@@ -5,9 +5,11 @@ import com.assic.muni.application.port.out.TemporalTokenPort;
 import com.assic.muni.application.port.out.dto.SimpleMail;
 import com.assic.muni.domain.event.VecinoCreadoEvent;
 import com.assic.muni.infrastructure.exception.InfrastructureException;
+import com.assic.muni.infrastructure.util.TokenCompressor;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.util.encoders.Base64Encoder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,7 @@ import org.thymeleaf.context.Context;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,6 +34,7 @@ public class VecinoEventListener {
     private final EmailServicePort emailServicePort;
     private final TemporalTokenPort temporalTokenPort;
     private final TemplateEngine templateEngine;
+//    private final TokenCompressor tokenCompressor;
 
     @Value("${app.frontend.domain}")
     private String frontendDomain;
@@ -41,9 +45,10 @@ public class VecinoEventListener {
         Map<String, Object> variables = new HashMap<>();
 
         variables.put("title", "Cuenta de Vecino Creada Exitosamente");
-        variables.put("messageBody", "Ingresa al siguiente link para confirmar tu contraseña y crear una contraseña");
+        variables.put("messageBody", "Confirmar tu cuenta y crear una contraseña");
 
         final String token = temporalTokenPort.generateVerifyEmailToken(event.userId());
+
         final String link = frontendDomain + "/confirmar-cuenta?token=" + token;
 
         variables.put("buttonUrl", link);
@@ -56,7 +61,7 @@ public class VecinoEventListener {
 
         emailServicePort.sendSimpleEmail(new SimpleMail(
                 event.email(),
-                "Portal Municipalidad - Cuenta Creada",
+                "ASIIC Municipalidades - Cuenta Creada",
                 html
         ));
     }

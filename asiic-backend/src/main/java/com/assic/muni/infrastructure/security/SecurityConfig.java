@@ -26,7 +26,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // Permitir swagger sin seguridad pero solo en localhost
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**","/api/v1/catalogos/estado-civil")
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        )
                         .access((authentication, context) -> {
                             final String IP = context.getRequest().getRemoteAddr();
                             boolean isLocalHost = "127.0.0.1".equals(IP)
@@ -36,7 +39,10 @@ public class SecurityConfig {
                             return new AuthorizationDecision(isLocalHost);
                         })
                         // Permitir endpoints sin autenticación ni autorización
-                        .requestMatchers("/api/v1/asiic/public/**").permitAll()
+                        .requestMatchers(
+                                "/api/v1/asiic/public/**",
+                                "/api/v1/asiic/auth/**"
+                        ).permitAll()
                         // Todas las demás request requieren token válido
                         .anyRequest().authenticated()
                 )
