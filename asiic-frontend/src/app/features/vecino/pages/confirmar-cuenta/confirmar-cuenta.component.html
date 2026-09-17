@@ -18,14 +18,14 @@
               <input clrPassword formControlName="password" placeholder="Ingrese su contraseña" />
               <clr-control-error *clrIfError="'required'">Este campo es requerido.</clr-control-error>
               <clr-control-error *clrIfError="'minlength'">Debe tener al menos 8 caracteres.</clr-control-error>
-              <clr-control-error *clrIfError="'pattern'">Contraseña insegura, debe de tener como mínimo una letra
-                mayúscula y un número.</clr-control-error>
+              <clr-control-error *clrIfError="'pattern'">La contraseña debe contener al menos un número, una letra minúscula y una mayúscula.</clr-control-error>
             </clr-password-container>
 
             <clr-password-container class="col-span-2">
               <label class="clr-required-mark">Confirmar contraseña</label>
               <input clrPassword formControlName="confirmPassword" placeholder="Confirme su contraseña" />
               <clr-control-error *clrIfError="'required'">Este campo es requerido.</clr-control-error>
+              <clr-control-error *clrIfError="'passwordMismatch'">Las contraseñas no coinciden.</clr-control-error>
             </clr-password-container>
           </div>
 

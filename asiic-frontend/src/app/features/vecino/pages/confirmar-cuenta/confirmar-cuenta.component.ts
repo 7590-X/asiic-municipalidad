@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ClarityModule, ClrLoadingState } from '@clr/angular';
-import { VecinoService } from '../../../../core/services/vecino-publico.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AsidePanelComponent } from '../../components/aside-panel/aside-panel.component';
+import { AuthService } from '../../../../core/services/auth.service';
+import { passwordMatchValidator } from '../../../../shared/validators/password-match.validator';
 
 @Component({
   selector: 'app-confirmar-cuenta',
@@ -19,8 +20,9 @@ export class ConfirmarCuentaComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private vecinoService = inject(VecinoService);
+  private oauthService = inject(AuthService);
   private notification = inject(NotificationService);
+  private destroyRef = inject(DestroyRef);
 
   token = signal<string>('');
   submitBtnState: ClrLoadingState = ClrLoadingState.DEFAULT;
@@ -28,9 +30,13 @@ export class ConfirmarCuentaComponent implements OnInit {
   successMessage = signal<string>('');
 
   form = this.fb.nonNullable.group({
-    password: ['', [Validators.required, Validators.minLength(8)]],
+    password: ['', [
+      Validators.required,
+      Validators.minLength(8),
+      Validators.pattern(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/)
+    ]],
     confirmPassword: ['', [Validators.required]]
-  });
+  }, { validators: passwordMatchValidator });
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -67,17 +73,18 @@ export class ConfirmarCuentaComponent implements OnInit {
       password: btoa(password) //La contraseña convertida en base64
     };
 
-    this.vecinoService.confirmarCuenta(payload).subscribe({  //Luego el payload que envia el token y la contraseña codificada en base64 al endpoint de confirmar cuenta
+    const subscription = this.oauthService.confirmarCuenta(payload).subscribe({
       next: (resp) => {
         this.submitBtnState = ClrLoadingState.SUCCESS;
         this.isSuccess.set(true);
         this.successMessage.set(resp.message || 'Cuenta confirmada y contraseña generada con éxito.');
-        setTimeout(() => this.router.navigate(['/']), 3000); //despues de 3 segundos se redirige al usuario a la página principal
+        setTimeout(() => this.router.navigate(['/']), 3000);
       },
       error: (err: HttpErrorResponse) => {
         this.submitBtnState = ClrLoadingState.ERROR;
         this.notification.error(err.error?.message || 'Error al confirmar la cuenta');
       }
     });
+    this.destroyRef.onDestroy(() => subscription.unsubscribe())
   }
 }
