@@ -1,0 +1,28 @@
+// =============================================================================
+// Paleta Institucional y Tokens de Color - Municipalidad de Guatemala
+// =============================================================================
+
+// Azules Institucionales (Brand Colors)
+$color-primary-dark:   #143b53; // Azul profundo institucional (aside, encabezados)
+$color-primary:        #1b4965; // Azul corporativo principal
+$color-primary-light:  #2e6f9e; // Azul medio institucional
+$color-primary-accent: #4997d0; // Azul celeste de acento / resalte
+
+// Acentos y Textos Secundarios
+$color-accent-gold:    #ffd98a; // Dorado institucional (portal / landing)
+$color-text-muted:     #5c6c77; // Gris secundario / spinners
+
+// Superficies, Bordes y Sombras
+$color-white:          #ffffff;
+$color-card-shadow:    rgba(6, 26, 41, 0.55);
+
+// Gradientes Institucionales Compartidos
+$gradient-page-bg:
+  radial-gradient(900px 500px at 100% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
+  linear-gradient(150deg, $color-primary-accent 0%, $color-primary 100%);
+
+$gradient-aside:
+  linear-gradient(160deg, $color-primary-dark 0%, $color-primary 45%, $color-primary-light 100%);
+
+$gradient-hero-overlay:
+  linear-gradient(150deg, rgba(27, 73, 101, 0.82) 0%, rgba(20, 55, 78, 0.9) 100%);

@@ -1,3 +1,5 @@
+@use '../../../styles/colors' as *;
+
 :host {
   display: block;
   font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
@@ -8,10 +10,10 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  color: #fff;
+  color: $color-white;
 
   background:
-    linear-gradient(150deg, rgba(27, 73, 101, 0.82) 0%, rgba(20, 55, 78, 0.9) 100%),
+    $gradient-hero-overlay,
     url('/muni-hero.jpg') center 30% / cover no-repeat;
 }
 
@@ -51,11 +53,11 @@
     font-weight: 600;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: #ffd98a;
+    color: $color-accent-gold;
     margin-bottom: 0.75rem;
   }
 
-  h1 { margin: 0 0 1rem; font-size: 2.6rem; line-height: 1.15; font-weight: 700; color: #fff; }
+  h1 { margin: 0 0 1rem; font-size: 2.6rem; line-height: 1.15; font-weight: 700; color: $color-white; }
   p  { margin: 0 0 2rem; font-size: 1.05rem; line-height: 1.6; color: rgba(255, 255, 255, 0.85); }
 
   &__actions {
@@ -64,7 +66,7 @@
     gap: 1rem;
 
     .btn-outline {
-      color: #fff;
+      color: $color-white;
       border-color: rgba(255, 255, 255, 0.5);
       background: transparent;
       &:disabled { opacity: 0.55; cursor: not-allowed; }

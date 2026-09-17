@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ApiResponse } from '../models/registrar-vecino-request.model';
 
 export interface LoginRequest {
   correo: string;
@@ -35,6 +36,10 @@ export class AuthService {
         }
       })
     );
+  }
+
+  confirmarCuenta(body: { token: string, password: string }): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${environment.apiBaseUrl}/auth/confirmar`, body);
   }
 
   logout(): void {

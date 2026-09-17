@@ -1,3 +1,5 @@
+@use '../../../../styles/colors' as *;
+
 :host {
   display: block;
 }
@@ -20,14 +22,14 @@
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.16);
     font-weight: 700;
-    color: #fff;
+    color: $color-white;
   }
 
   h3 {
     margin: 0 0 0.3rem;
     font-size: 1rem;
     font-weight: 600;
-    color: #fff;
+    color: $color-white;
   }
 
   p {

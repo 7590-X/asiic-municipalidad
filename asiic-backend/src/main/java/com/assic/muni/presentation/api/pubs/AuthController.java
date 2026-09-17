@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import lombok.RequiredArgsConstructor;
-
-import java.net.http.HttpResponse;
 import java.time.ZonedDateTime;
 
 @Controller
@@ -28,13 +26,15 @@ public class AuthController {
     @Operation(summary = "Inicio de sesión para los usuarios")
     public ResponseEntity<Object> login() {
         return null;
-        // TODO: Implementar funcionalidades para inicio de sesión con credenciales registradas en Keycloak, utilizando como pasarela spring boot
+        // TODO: Implementar funcionalidades para inicio de sesión con credenciales
+        // registradas en Keycloak, utilizando como pasarela spring boot
     }
 
     @PostMapping("/logout")
     @Operation(summary = "Cierre de sesión para los usuarios")
     public ResponseEntity<Object> logout() {
-        // TODO: investigar sobre cierre de sesion con keycloak, no codificar, presentar un informe técnico de alcance
+        // TODO: investigar sobre cierre de sesion con keycloak, no codificar, presentar
+        // un informe técnico de alcance
         return null;
     }
 
@@ -42,9 +42,9 @@ public class AuthController {
     @Operation(summary = "Refresco de token de sesión")
     public ResponseEntity<Object> refresh() {
         return null;
-        // TODO: investigar sobre refresco de token con keycloak, no codificar, presentar un informe técnico de alcance
+        // TODO: investigar sobre refresco de token con keycloak, no codificar,
+        // presentar un informe técnico de alcance
     }
-
 
     @PostMapping("/confirmar")
     @Operation(summary = "Confirmar cuenta creada")
@@ -53,7 +53,6 @@ public class AuthController {
         return ResponseEntity.ok().body(new ApiResponseDto<>(
                 HttpStatus.OK.value(), null,
                 ZonedDateTime.now(),
-                "Cuenta confirmada, ahora puedes iniciar sesión en tu cuenta", null
-        ));
+                "Cuenta confirmada, ahora puedes iniciar sesión en tu cuenta", null));
     }
 }
