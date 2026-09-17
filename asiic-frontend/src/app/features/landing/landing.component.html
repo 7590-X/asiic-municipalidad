@@ -17,19 +17,15 @@
       </p>
 
       <div class="lp-hero__actions">
-        <a routerLink="/registro" class="btn btn-primary btn-lg">Registrar usuario</a>
-        <button type="button" class="btn btn-outline btn-lg" disabled title="Próximamente">
-          Iniciar sesión
-        </button>
+        <a routerLink="/registro" class="btn btn-primary btn-lg">Registrarse</a>
+        <a routerLink="/login" class="btn btn-outline btn-lg">Iniciar sesión</a>
       </div>
     </div>
-    <!-- Cambios minimos que reducen el codigo un vergo XD, nichi hueco -->
     <div class="lp-hero__cards">
       @for (step of steps; track step.badge) {
       <app-step-card [badge]="step.badge" [title]="step.title" [description]="step.description" />
       }
     </div>
-    <!-- Aqui estuvo el Elver Galarla -->
   </main>
 
   <footer class="lp-foot">
