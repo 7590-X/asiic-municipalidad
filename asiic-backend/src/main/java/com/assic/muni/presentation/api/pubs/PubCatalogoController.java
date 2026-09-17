@@ -3,7 +3,6 @@ package com.assic.muni.presentation.api.pubs;
 import com.assic.muni.application.cqrs.dto.CatalogoDto;
 import com.assic.muni.application.enums.ECatalogo;
 import com.assic.muni.application.cqrs.handler.CatalogoQueryHandler;
-import com.assic.muni.infrastructure.repository.AsLocacionRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

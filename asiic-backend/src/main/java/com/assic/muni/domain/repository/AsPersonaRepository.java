@@ -1,4 +1,4 @@
-package com.assic.muni.infrastructure.repository;
+package com.assic.muni.domain.repository;
 
 import com.assic.muni.domain.model.AsPersona;
 import org.springframework.data.repository.query.Param;

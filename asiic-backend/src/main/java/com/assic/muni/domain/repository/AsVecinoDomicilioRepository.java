@@ -1,4 +1,4 @@
-package com.assic.muni.infrastructure.repository;
+package com.assic.muni.domain.repository;
 
 import com.assic.muni.domain.model.AsVecinoDomicilio;
 import com.assic.muni.domain.model.AsVecinoDomicilioId;

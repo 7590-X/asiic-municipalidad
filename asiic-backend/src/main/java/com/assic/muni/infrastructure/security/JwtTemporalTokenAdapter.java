@@ -2,16 +2,11 @@ package com.assic.muni.infrastructure.security;
 
 import com.assic.muni.application.enums.ETokenAction;
 import com.assic.muni.application.port.out.TemporalTokenPort;
-import com.assic.muni.infrastructure.exception.InfrastructureException;
-import com.assic.muni.infrastructure.util.TokenCompressor;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -31,13 +26,11 @@ public class JwtTemporalTokenAdapter implements TemporalTokenPort {
     public JwtTemporalTokenAdapter(
             @Value("${app.security.jwt.secret}") String secret,
             @Value("${app.security.jwt.expiration.reset-password}") long resetPasswordExpiration,
-            @Value("${app.security.jwt.expiration.verity-email}") long verifyEmailExpiration,
-            TokenCompressor tokenCompressor
-            ) {
+            @Value("${app.security.jwt.expiration.verify-email:${app.security.jwt.expiration.verity-email}}") long verifyEmailExpiration
+    ) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.resetPasswordExpiration = resetPasswordExpiration;
         this.verifyEmailExpiration = verifyEmailExpiration;
-//        this.tokenCompressor = tokenCompressor;
     }
 
 
@@ -66,11 +59,11 @@ public class JwtTemporalTokenAdapter implements TemporalTokenPort {
 
             String action = claims.get("action", String.class);
             if (!expectedAction.name().equals(action)) {
-                throw new RuntimeException("El token no es válido para esta acción");
+                throw new JwtException("El token no es válido para esta acción");
             }
             return claims.getSubject();
         } catch (JwtException e) {
-            throw new RuntimeException("Token inválido o expirado", e);
+            throw e;
         }
     }
 

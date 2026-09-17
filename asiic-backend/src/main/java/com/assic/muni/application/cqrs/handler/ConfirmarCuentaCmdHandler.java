@@ -6,7 +6,7 @@ import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.application.port.out.IdentityProviderPort;
 import com.assic.muni.application.port.out.TemporalTokenPort;
 import com.assic.muni.domain.model.AsUsuario;
-import com.assic.muni.infrastructure.repository.AsUsuarioRepository;
+import com.assic.muni.domain.repository.AsUsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

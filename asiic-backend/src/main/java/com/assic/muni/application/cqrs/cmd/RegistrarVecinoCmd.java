@@ -73,4 +73,7 @@ public class RegistrarVecinoCmd {
     @Pattern(regexp = "^\\d*[A-Z]?$", message = "Formato de del número de contador es invalido")
     @JsonProperty("no_contador")
     private String noContador;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String ipRegistro;
 }

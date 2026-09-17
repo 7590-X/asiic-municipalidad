@@ -4,25 +4,15 @@ import com.assic.muni.application.port.out.EmailServicePort;
 import com.assic.muni.application.port.out.TemporalTokenPort;
 import com.assic.muni.application.port.out.dto.SimpleMail;
 import com.assic.muni.domain.event.VecinoCreadoEvent;
-import com.assic.muni.infrastructure.exception.InfrastructureException;
-import com.assic.muni.infrastructure.util.TokenCompressor;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.util.encoders.Base64Encoder;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +24,6 @@ public class VecinoEventListener {
     private final EmailServicePort emailServicePort;
     private final TemporalTokenPort temporalTokenPort;
     private final TemplateEngine templateEngine;
-//    private final TokenCompressor tokenCompressor;
 
     @Value("${app.frontend.domain}")
     private String frontendDomain;
@@ -64,29 +53,5 @@ public class VecinoEventListener {
                 "ASIIC Municipalidades - Cuenta Creada",
                 html
         ));
-    }
-
-    private String obtainFrontendDomain() {
-        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = attrs.getRequest();
-        String origin = request.getHeader("Origin");
-        if (origin == null || origin.isEmpty()) {
-            origin = request.getHeader("Referer");
-        }
-        if (origin == null || origin.isEmpty()) {
-            origin = request.getHeader("User-Agent");
-        }
-        if (origin == null || origin.isEmpty()) {
-            origin = request.getHeader("X-Forwarded-For");
-        }
-        if (origin == null || origin.isEmpty()) {
-            origin = request.getHeader("Host");
-        }
-        try {
-            URI uri = new URI(origin);
-            return uri.getHost();
-        } catch (URISyntaxException e) {
-            throw new InfrastructureException(HttpStatus.BAD_GATEWAY, "No se pudo identificar el origen de la solicitud");
-        }
     }
 }
