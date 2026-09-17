@@ -1,0 +1,63 @@
+<section class="rv-page">
+  <div class="rv-shell">
+    
+    <!-- Panel izquierdo: marca -->
+    <aside class="rv-aside">
+      <div class="rv-aside__brand">
+        <img src="muni-emblem-white.svg" alt="" />
+        <div>
+          <strong>MUNICIPALIDAD</strong>
+          <span>DE GUATEMALA</span>
+        </div>
+      </div>
+
+      <div class="rv-aside__body">
+        <h1>Iniciar Sesión</h1>
+        <p>
+          Bienvenido al portal municipal. Ingrese con sus credenciales para acceder a su cuenta.
+        </p>
+      </div>
+
+      <p class="rv-aside__foot">
+        ¿Aún no tiene cuenta? <a routerLink="/registro" style="color: #fff; text-decoration: underline;">Regístrese aquí</a>
+      </p>
+    </aside>
+
+    <!-- Panel derecho: formulario -->
+    <div class="rv-main">
+      <div style="padding-top: 1rem;">
+        <h2 style="margin-top: 0; margin-bottom: 2rem;">Acceso</h2>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="clr-form">
+            
+          <div class="clr-form-control clr-row">
+            <label class="clr-control-label clr-col-12 clr-col-md-4">Correo electrónico</label>
+            <div class="clr-control-container clr-col-12 clr-col-md-8">
+              <div class="clr-input-wrapper" style="width: 100%; max-width: 100%;">
+                <input type="email" class="clr-input" formControlName="correo" placeholder="ejemplo@correo.com" style="width: 100%;">
+              </div>
+              <span class="clr-subtext" *ngIf="form.controls.correo.touched && form.controls.correo.hasError('required')">Este campo es requerido.</span>
+              <span class="clr-subtext" *ngIf="form.controls.correo.touched && form.controls.correo.hasError('email')">Ingrese un correo válido.</span>
+            </div>
+          </div>
+          
+          <div class="clr-form-control clr-row" style="margin-top: 1.5rem;">
+            <label class="clr-control-label clr-col-12 clr-col-md-4">Contraseña</label>
+            <div class="clr-control-container clr-col-12 clr-col-md-8">
+              <div class="clr-input-wrapper" style="width: 100%; max-width: 100%;">
+                <input type="password" class="clr-input" formControlName="password" placeholder="Su contraseña" style="width: 100%;">
+              </div>
+              <span class="clr-subtext" *ngIf="form.controls.password.touched && form.controls.password.hasError('required')">Este campo es requerido.</span>
+            </div>
+          </div>
+          
+          <div style="margin-top: 2.5rem;">
+            <button type="submit" [clrLoading]="submitBtnState" class="btn btn-primary" style="width: 100%;">
+              Ingresar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</section>
