@@ -12,9 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.Base64;
-
 @Service
 @RequiredArgsConstructor
 public class ConfirmarCuentaCmdHandler implements CQRSVoidCmdHandler<ConfirmarCuentaCmd> {
@@ -28,7 +25,8 @@ public class ConfirmarCuentaCmdHandler implements CQRSVoidCmdHandler<ConfirmarCu
     public void handle(ConfirmarCuentaCmd cmd) {
         String userId = temporalTokenPort.validateAndExtractUserId(cmd.token(), ETokenAction.VERIFY_EMAIL);
         AsUsuario usuario = usuarioRepository.findById(userId)
-                .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo encontrar información de la cuenta"));
+                .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
+                        "No se pudo encontrar información de la cuenta"));
         if (usuario.getUsEstado().equalsIgnoreCase("A")) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, "La cuenta ya ha sido confirmada anteriormente");
         }

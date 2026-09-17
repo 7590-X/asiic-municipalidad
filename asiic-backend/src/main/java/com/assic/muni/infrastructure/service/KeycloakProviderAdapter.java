@@ -1,9 +1,7 @@
 package com.assic.muni.infrastructure.service;
 
 import com.assic.muni.application.cqrs.cmd.RegistrarVecinoCmd;
-import com.assic.muni.application.enums.ETokenAction;
 import com.assic.muni.application.port.out.IdentityProviderPort;
-import com.assic.muni.application.port.out.TemporalTokenPort;
 import com.assic.muni.infrastructure.enums.KCRole;
 import com.assic.muni.infrastructure.exception.InfrastructureException;
 import jakarta.ws.rs.core.Response;
@@ -25,7 +23,6 @@ import java.util.List;
 public class KeycloakProviderAdapter implements IdentityProviderPort {
 
     private final Keycloak keycloakAdminClient;
-    private final TemporalTokenPort temporalTokenPort;
 
     @Value("${keycloak.realm}")
     private String realm;
@@ -45,7 +42,8 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
             int status = response.getStatus();
             if (status != 201) {
                 log.error("[ERROR_RESPONSE_CREAR_CUENTA_KC] {}", response.readEntity(String.class));
-                throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE, "No se pudo crear la cuenta, contactate con soporte para solucionar el problema");
+                throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE,
+                        "No se pudo crear la cuenta, contactate con soporte para solucionar el problema");
             }
             String path = response.getLocation().getPath();
             String userId = path.substring(path.lastIndexOf('/') + 1);
@@ -53,7 +51,8 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
             return userId;
         } catch (RuntimeException e) {
             log.error("[ERROR_REQUEST_CREAR_CUENTA_KC]", e);
-            throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un problema al intentar crear la cuenta, por favor contacte con soporte");
+            throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Ocurrió un problema al intentar crear la cuenta, por favor contacte con soporte");
         }
     }
 
@@ -63,7 +62,8 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
             keycloakAdminClient.realm(realm).users().get(userId).remove();
         } catch (RuntimeException e) {
             log.error("[ERROR_REQUEST_ELIMINAR_CUENTA_KC]", e);
-            throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE, "Ocurrió un problema al intentar crear la cuenta, por favor contacte con soporte");
+            throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Ocurrió un problema al intentar crear la cuenta, por favor contacte con soporte");
         }
     }
 
@@ -112,7 +112,8 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
         } catch (RuntimeException e) {
             log.error("[ERROR_REQUEST_ASIGNAR_ROLE_KC]", e);
             deleteIdentityUser(userId);
-            throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE, "Ocurrió un problema al intentar crear la cuenta, por favor contacte con soporte");
+            throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Ocurrió un problema al intentar crear la cuenta, por favor contacte con soporte");
         }
     }
 }
