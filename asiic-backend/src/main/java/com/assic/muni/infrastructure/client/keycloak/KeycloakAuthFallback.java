@@ -1,10 +1,9 @@
 package com.assic.muni.infrastructure.client.keycloak;
 
+import com.assic.muni.application.cqrs.dto.TokenDto;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
-
-import java.util.Map;
 
 @Component
 public class KeycloakAuthFallback implements FallbackFactory<KeycloakAuthClient> {
@@ -13,8 +12,8 @@ public class KeycloakAuthFallback implements FallbackFactory<KeycloakAuthClient>
   public KeycloakAuthClient create(Throwable cause) {
     return new KeycloakAuthClient() {
       @Override
-      public Map<String, Object> authenticate(MultiValueMap<String, String> formData) {
-        return Map.of();
+      public TokenDto authenticate(MultiValueMap<String, ?> formData) {
+        return null;
       }
     };
   }

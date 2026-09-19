@@ -1,0 +1,60 @@
+package com.assic.muni.infrastructure.service;
+
+import com.assic.muni.application.cqrs.dto.TokenDto;
+import com.assic.muni.application.exception.ServiceException;
+import com.assic.muni.application.port.out.AuthenticationPort;
+import com.assic.muni.infrastructure.client.keycloak.KeycloakAuthClient;
+import com.assic.muni.infrastructure.exception.InfrastructureException;
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class KeycloakAuthAdapter implements AuthenticationPort {
+
+    private final KeycloakAuthClient keycloakAuthClient;
+
+    @Value("${keycloak.clients.auth.id}")
+    private String clientId;
+
+    @Value("${keycloak.clients.auth.secret}")
+    private String clientSecret;
+
+    @Override
+    public TokenDto authenticate(String username, String password) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type", "password");
+        formData.add("client_id", clientId);
+        formData.add("client_secret", clientSecret);
+        formData.add("username", username);
+        formData.add("password", password);
+        formData.add("scope", "openid");
+
+        try {
+            TokenDto tokenResponse = keycloakAuthClient.authenticate(formData);
+            if (tokenResponse == null || tokenResponse.accessToken() == null) {
+                log.warn("[AUTH_EMPTY_RESPONSE] Respuesta vacía de Keycloak para el usuario: {}", username);
+                throw new ServiceException(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas. Verifique su usuario y contraseña.");
+            }
+            return tokenResponse;
+        } catch (FeignException.BadRequest | FeignException.Unauthorized e) {
+            log.warn("[KEYCLOAK_AUTH_FAILED] Falló autenticación para usuario {}: {}", username, e.getMessage());
+            throw new ServiceException(HttpStatus.UNAUTHORIZED, "Credenciales incorrectas. Verifique su usuario y contraseña.");
+        } catch (FeignException e) {
+            log.error("[KEYCLOAK_AUTH_ERROR] Error de comunicación con Keycloak al autenticar usuario {}", username, e);
+            throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE, "El servicio de autenticación no está disponible en este momento.");
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[KEYCLOAK_UNEXPECTED_ERROR] Error inesperado durante la autenticación de {}", username, e);
+            throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado al procesar la autenticación.");
+        }
+    }
+}

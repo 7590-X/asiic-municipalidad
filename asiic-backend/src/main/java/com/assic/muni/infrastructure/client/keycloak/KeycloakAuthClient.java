@@ -1,7 +1,6 @@
 package com.assic.muni.infrastructure.client.keycloak;
 
-import java.util.Map;
-
+import com.assic.muni.application.cqrs.dto.TokenDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -12,5 +11,5 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface KeycloakAuthClient {
 
   @PostMapping(value = "/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-  Map<String, Object> authenticate(@RequestBody MultiValueMap<String, String> formData);
+  TokenDto authenticate(@RequestBody MultiValueMap<String, ?> formData);
 }
