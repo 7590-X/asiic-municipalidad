@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ClarityModule } from '@clr/angular';
 import { AuthService } from '../../../../core/services/auth.service';
+import { MetricCardComponent } from '../../components/metric-card/metric-card.component';
+import { QuickActionCardComponent } from '../../components/quick-action-card/quick-action-card.component';
 
 export interface TramiteReciente {
   id: string;
@@ -16,7 +18,7 @@ export interface TramiteReciente {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, ClarityModule],
+  imports: [CommonModule, ClarityModule, MetricCardComponent, QuickActionCardComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })

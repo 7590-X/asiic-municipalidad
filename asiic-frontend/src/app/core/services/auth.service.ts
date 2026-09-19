@@ -20,6 +20,7 @@ export class AuthService {
 
   // Estado reactivo con Signals de Angular 19
   readonly currentUser = signal<CurrentUser | null>(this.loadStoredUser());
+
   readonly isAuthenticated = computed(() => {
     const user = this.currentUser();
     if (!user) {

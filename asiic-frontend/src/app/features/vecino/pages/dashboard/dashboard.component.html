@@ -29,86 +29,55 @@
     <div class="clr-row">
       <!-- Métrica 1: Solicitudes Activas -->
       <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
-        <div class="card metric-card card-blue">
-          <div class="card-block">
-            <div class="metric-header">
-              <span class="metric-label">Solicitudes Activas</span>
-              <div class="metric-icon-box blue">
-                <cds-icon shape="folder"></cds-icon>
-              </div>
-            </div>
-            <div class="metric-body">
-              <h2 class="metric-number">{{ metrics().solicitudesActivas }}</h2>
-              <span class="metric-detail">de {{ metrics().solicitudesTotal }} registradas</span>
-            </div>
-            <div class="metric-footer">
-              <span class="badge badge-info">2 en seguimiento</span>
-            </div>
-          </div>
-        </div>
+        <app-metric-card
+          color="blue"
+          label="Solicitudes Activas"
+          icon="folder"
+          [value]="metrics().solicitudesActivas"
+          detail="de {{ metrics().solicitudesTotal }} registradas"
+          badgeClass="badge-info"
+          badgeText="2 en seguimiento">
+        </app-metric-card>
       </div>
 
       <!-- Métrica 2: Quejas y Reclamos -->
       <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
-        <div class="card metric-card card-orange">
-          <div class="card-block">
-            <div class="metric-header">
-              <span class="metric-label">Quejas y Reclamos</span>
-              <div class="metric-icon-box orange">
-                <cds-icon shape="exclamation-circle"></cds-icon>
-              </div>
-            </div>
-            <div class="metric-body">
-              <h2 class="metric-number">{{ metrics().quejasEnProceso }}</h2>
-              <span class="metric-detail">en atención técnica</span>
-            </div>
-            <div class="metric-footer">
-              <span class="badge badge-warning">EMPAGUA asignada</span>
-            </div>
-          </div>
-        </div>
+        <app-metric-card
+          color="orange"
+          label="Quejas y Reclamos"
+          icon="exclamation-circle"
+          [value]="metrics().quejasEnProceso"
+          detail="en atención técnica"
+          badgeClass="badge-warning"
+          badgeText="EMPAGUA asignada">
+        </app-metric-card>
       </div>
 
       <!-- Métrica 3: Notificaciones -->
       <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
-        <div class="card metric-card card-purple">
-          <div class="card-block">
-            <div class="metric-header">
-              <span class="metric-label">Avisos y Respuestas</span>
-              <div class="metric-icon-box purple">
-                <cds-icon shape="bell"></cds-icon>
-              </div>
-            </div>
-            <div class="metric-body">
-              <h2 class="metric-number">{{ metrics().notificacionesNuevas }}</h2>
-              <span class="metric-detail">mensajes sin leer</span>
-            </div>
-            <div class="metric-footer">
-              <span class="badge badge-info">Último aviso hoy</span>
-            </div>
-          </div>
-        </div>
+        <app-metric-card
+          color="purple"
+          label="Avisos y Respuestas"
+          icon="bell"
+          [value]="metrics().notificacionesNuevas"
+          detail="mensajes sin leer"
+          badgeClass="badge-info"
+          badgeText="Último aviso hoy">
+        </app-metric-card>
       </div>
 
       <!-- Métrica 4: Solvencia Municipal -->
       <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
-        <div class="card metric-card card-green">
-          <div class="card-block">
-            <div class="metric-header">
-              <span class="metric-label">Estado Municipal</span>
-              <div class="metric-icon-box green">
-                <cds-icon shape="check-circle"></cds-icon>
-              </div>
-            </div>
-            <div class="metric-body">
-              <h2 class="metric-number text-success">{{ metrics().estadoSolvencia }}</h2>
-              <span class="metric-detail">Boleto de Ornato 2026</span>
-            </div>
-            <div class="metric-footer">
-              <span class="badge badge-success">Constancia vigente</span>
-            </div>
-          </div>
-        </div>
+        <app-metric-card
+          color="green"
+          label="Estado Municipal"
+          icon="check-circle"
+          [value]="metrics().estadoSolvencia"
+          valueClass="text-success"
+          detail="Boleto de Ornato 2026"
+          badgeClass="badge-success"
+          badgeText="Constancia vigente">
+        </app-metric-card>
       </div>
     </div>
   </section>
@@ -122,51 +91,43 @@
     
     <div class="clr-row">
       <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
-        <a routerLink="/vecino/dashboard" class="quick-action-card action-primary">
-          <div class="action-icon">
-            <cds-icon shape="file"></cds-icon>
-          </div>
-          <div class="action-text">
-            <strong>Nueva Solicitud</strong>
-            <span>Servicios públicos y comunitarios</span>
-          </div>
-        </a>
+        <app-quick-action-card
+          link="/vecino/dashboard"
+          actionClass="action-primary"
+          icon="file"
+          title="Nueva Solicitud"
+          description="Servicios públicos y comunitarios">
+        </app-quick-action-card>
       </div>
 
       <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
-        <a routerLink="/vecino/dashboard" class="quick-action-card action-warning">
-          <div class="action-icon">
-            <cds-icon shape="exclamation-circle"></cds-icon>
-          </div>
-          <div class="action-text">
-            <strong>Reportar Avería / Queja</strong>
-            <span>Alumbrado, fugas, baches</span>
-          </div>
-        </a>
+        <app-quick-action-card
+          link="/vecino/dashboard"
+          actionClass="action-warning"
+          icon="exclamation-circle"
+          title="Reportar Avería / Queja"
+          description="Alumbrado, fugas, baches">
+        </app-quick-action-card>
       </div>
 
       <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
-        <a routerLink="/vecino/dashboard" class="quick-action-card action-danger">
-          <div class="action-icon">
-            <cds-icon shape="shield"></cds-icon>
-          </div>
-          <div class="action-text">
-            <strong>Denuncia Ciudadana</strong>
-            <span>Infracciones y vías públicas</span>
-          </div>
-        </a>
+        <app-quick-action-card
+          link="/vecino/dashboard"
+          actionClass="action-danger"
+          icon="shield"
+          title="Denuncia Ciudadana"
+          description="Infracciones y vías públicas">
+        </app-quick-action-card>
       </div>
 
       <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
-        <a routerLink="/vecino/dashboard" class="quick-action-card action-info">
-          <div class="action-icon">
-            <cds-icon shape="talk-bubbles"></cds-icon>
-          </div>
-          <div class="action-text">
-            <strong>Buzón de Sugerencias</strong>
-            <span>Ideas para mejorar tu zona</span>
-          </div>
-        </a>
+        <app-quick-action-card
+          link="/vecino/dashboard"
+          actionClass="action-info"
+          icon="talk-bubbles"
+          title="Buzón de Sugerencias"
+          description="Ideas para mejorar tu zona">
+        </app-quick-action-card>
       </div>
     </div>
   </section>
