@@ -1,0 +1,30 @@
+@use '../../../../styles/colors' as *;
+
+:host {
+  display: block;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.portal-main-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc;
+}
+
+.portal-content-area {
+  background-color: #f8fafc;
+  padding: 1.5rem 2rem 3rem 2rem;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 768px) {
+  .portal-content-area {
+    padding: 1rem 0.75rem;
+  }
+}

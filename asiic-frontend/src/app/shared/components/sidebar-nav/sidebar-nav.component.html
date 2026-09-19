@@ -1,0 +1,82 @@
+<clr-vertical-nav
+  [clrVerticalNavCollapsible]="true"
+  [clrVerticalNavCollapsed]="collapsed"
+  (clrVerticalNavCollapsedChange)="onCollapseChange($event)"
+  class="portal-sidebar-nav"
+>
+  <!-- Enlace directo Inicio -->
+  <a
+    clrVerticalNavLink
+    routerLink="/vecino/dashboard"
+    routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: true }"
+    title="Dashboard Principal"
+  >
+    <cds-icon shape="home" clrVerticalNavIcon></cds-icon>
+    Dashboard Principal
+  </a>
+
+  <!-- Grupo Gestiones Ciudadanas -->
+  <clr-vertical-nav-group [clrVerticalNavGroupExpanded]="true">
+    <cds-icon shape="folder" clrVerticalNavIcon></cds-icon>
+    Gestiones Vecinales
+    <clr-vertical-nav-group-children>
+      <a clrVerticalNavLink routerLink="/vecino/solicitudes" routerLinkActive="active">
+        <cds-icon shape="file" clrVerticalNavIcon></cds-icon>
+        Mis Solicitudes
+      </a>
+      <a clrVerticalNavLink routerLink="/vecino/quejas" routerLinkActive="active">
+        <cds-icon shape="exclamation-circle" clrVerticalNavIcon></cds-icon>
+        Quejas y Reclamos
+      </a>
+      <a clrVerticalNavLink routerLink="/vecino/denuncias" routerLinkActive="active">
+        <cds-icon shape="shield" clrVerticalNavIcon></cds-icon>
+        Denuncias Ciudadanas
+      </a>
+      <a clrVerticalNavLink routerLink="/vecino/sugerencias" routerLinkActive="active">
+        <cds-icon shape="talk-bubbles" clrVerticalNavIcon></cds-icon>
+        Buzón de Sugerencias
+      </a>
+    </clr-vertical-nav-group-children>
+  </clr-vertical-nav-group>
+
+  <!-- Grupo Servicios y Consultas -->
+  <clr-vertical-nav-group [clrVerticalNavGroupExpanded]="false">
+    <cds-icon shape="view-columns" clrVerticalNavIcon></cds-icon>
+    Servicios en Línea
+    <clr-vertical-nav-group-children>
+      <a clrVerticalNavLink routerLink="/vecino/solvencias" routerLinkActive="active">
+        <cds-icon shape="check-circle" clrVerticalNavIcon></cds-icon>
+        Solvencia Municipal
+      </a>
+      <a clrVerticalNavLink routerLink="/vecino/historial" routerLinkActive="active">
+        <cds-icon shape="history" clrVerticalNavIcon></cds-icon>
+        Historial de Trámites
+      </a>
+      <a clrVerticalNavLink routerLink="/vecino/requisitos" routerLinkActive="active">
+        <cds-icon shape="help-info" clrVerticalNavIcon></cds-icon>
+        Guía de Requisitos
+      </a>
+    </clr-vertical-nav-group-children>
+  </clr-vertical-nav-group>
+
+  <!-- Grupo Mi Cuenta -->
+  <clr-vertical-nav-group [clrVerticalNavGroupExpanded]="false">
+    <cds-icon shape="user" clrVerticalNavIcon></cds-icon>
+    Mi Perfil
+    <clr-vertical-nav-group-children>
+      <a clrVerticalNavLink routerLink="/vecino/perfil" routerLinkActive="active">
+        <cds-icon shape="id-badge" clrVerticalNavIcon></cds-icon>
+        Datos de Vecino
+      </a>
+      <a clrVerticalNavLink routerLink="/vecino/notificaciones" routerLinkActive="active">
+        <cds-icon shape="bell" clrVerticalNavIcon></cds-icon>
+        Notificaciones
+      </a>
+      <a clrVerticalNavLink routerLink="/vecino/seguridad" routerLinkActive="active">
+        <cds-icon shape="cog" clrVerticalNavIcon></cds-icon>
+        Seguridad
+      </a>
+    </clr-vertical-nav-group-children>
+  </clr-vertical-nav-group>
+</clr-vertical-nav>

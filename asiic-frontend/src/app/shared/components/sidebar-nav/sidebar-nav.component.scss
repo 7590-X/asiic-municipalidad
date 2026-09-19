@@ -1,0 +1,51 @@
+@use '../../../../styles/colors' as *;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.portal-sidebar-nav {
+  height: 100%;
+  border-right: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  box-shadow: 1px 0 4px rgba(0, 0, 0, 0.04);
+
+  // Enlace activo
+  ::ng-deep a.nav-link.active,
+  ::ng-deep a.clr-vertical-nav-link.active {
+    background-color: rgba(27, 73, 101, 0.08) !important;
+    color: $color-primary !important;
+    font-weight: 600 !important;
+    border-left: 3px solid $color-primary !important;
+
+    cds-icon {
+      --color: #{$color-primary} !important;
+    }
+  }
+
+  // Hover
+  ::ng-deep a.nav-link:hover,
+  ::ng-deep a.clr-vertical-nav-link:hover {
+    background-color: #f1f5f9;
+    color: $color-primary-dark;
+
+    cds-icon {
+      --color: #{$color-primary-light};
+    }
+  }
+
+  // Título de grupos
+  ::ng-deep .nav-group-text,
+  ::ng-deep .clr-vertical-nav-group-trigger {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  // Iconos
+  ::ng-deep cds-icon {
+    --color: #64748b;
+    transition: all 0.2s ease;
+  }
+}

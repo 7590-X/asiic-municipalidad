@@ -1,0 +1,14 @@
+<div class="main-container portal-main-container">
+  <app-header (toggleSidebar)="toggleSidebar()"></app-header>
+  
+  <div class="content-container">
+    <app-sidebar-nav
+      [collapsed]="isSidebarCollapsed"
+      (collapsedChange)="isSidebarCollapsed = $event"
+    ></app-sidebar-nav>
+
+    <main class="content-area portal-content-area" id="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
