@@ -75,6 +75,17 @@
   }
 }
 
+/* Estado de espera / carga nativo */
+.rv-submit-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  color: $color-primary;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
 /* Separador de alerta */
 .mb-4 {
   margin-bottom: 1.25rem;

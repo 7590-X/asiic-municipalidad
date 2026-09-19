@@ -78,6 +78,7 @@ export class RegistroVecinoComponent {
 
   // Estados de interfaz
   submitBtnState: ClrLoadingState = ClrLoadingState.DEFAULT;
+  isSubmitting = signal<boolean>(false);
   isSuccess = signal<boolean>(false);
   successMessage = signal<string>('');
   errorMessage = signal<string | null>(null);
@@ -91,6 +92,7 @@ export class RegistroVecinoComponent {
     }
 
     this.submitBtnState = ClrLoadingState.LOADING;
+    this.isSubmitting.set(true);
     const v = this.form.getRawValue();
 
     const body: RegistrarVecinoRequest = {
@@ -115,11 +117,13 @@ export class RegistroVecinoComponent {
     this.vecinos.registrar(body).subscribe({
       next: (resp) => {
         this.submitBtnState = ClrLoadingState.SUCCESS;
+        this.isSubmitting.set(false);
         this.isSuccess.set(true);
         this.successMessage.set(resp.message || 'Registro completado exitosamente.');
       },
       error: (err: HttpErrorResponse) => {
         this.submitBtnState = ClrLoadingState.ERROR;
+        this.isSubmitting.set(false);
         const msg = err.error?.message || 'Ocurrió un error al procesar el registro. Revise los campos ingresados.';
         this.errorMessage.set(msg);
         this.notification.error(msg);

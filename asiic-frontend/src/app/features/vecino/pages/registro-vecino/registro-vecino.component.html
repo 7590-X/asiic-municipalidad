@@ -76,11 +76,24 @@
           <clr-step-content *clrIfExpanded>
             <app-documentos [stepForm]="form.controls.documentos"></app-documentos>
             <div class="clr-step-button-group">
-              <button clrStepButton="previous" class="btn btn-outline">Atrás</button>
-              <button clrStepButton="submit" [clrLoading]="submitBtnState" class="btn btn-primary">
+              <button clrStepButton="previous" class="btn btn-outline" [disabled]="isSubmitting()">Atrás</button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                [clrLoading]="submitBtnState"
+                [disabled]="isSubmitting()"
+                (click)="submit()"
+              >
                 Crear Cuenta
               </button>
             </div>
+
+            @if (isSubmitting()) {
+              <div class="rv-submit-loading">
+                <clr-spinner clrInline clrSmall></clr-spinner>
+                <span>Creando su cuenta de vecino, por favor espere...</span>
+              </div>
+            }
           </clr-step-content>
         </clr-stepper-panel>
 
