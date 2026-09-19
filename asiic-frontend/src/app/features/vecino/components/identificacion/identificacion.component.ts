@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input, input, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ClarityModule } from '@clr/angular';
@@ -12,45 +12,38 @@ import { forkJoin } from 'rxjs';
   selector: 'app-identificacion',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ClarityModule, OnlyDigitsDirective, CapitalizeWordsDirective],
-  templateUrl: './identificacion.component.html',
+  templateUrl: './identificacion.component.html'
 })
 export class IdentificacionComponent implements OnInit {
-
   @Input({ required: true }) stepForm!: FormGroup;
 
-  catalogosService = inject(CatalogosService)
-  destroyRef = inject(DestroyRef)
+  private catalogosService = inject(CatalogosService);
+  private destroyRef = inject(DestroyRef);
 
-  estadoCivil = signal<CatalogoItemModel[]>([])
-  profesiones = signal<CatalogoItemModel[]>([])
+  estadoCivil = signal<CatalogoItemModel[]>([]);
+  profesiones = signal<CatalogoItemModel[]>([]);
+  loadingCatalogos = signal<boolean>(true);
 
   generos = [
-    {
-      id: "M",
-      value: "Masculino"
-    }, {
-      id: "F",
-      value: "Femenino"
-    }, {
-      id: "G",
-      value: "99 Tipos de Gays"
-    }
-  ]
+    { id: 'M', value: 'Masculino' },
+    { id: 'F', value: 'Femenino' }
+  ];
 
   ngOnInit(): void {
-    console.log(this.stepForm)
-    const subscribe = forkJoin({
+    const sub = forkJoin({
       ec: this.catalogosService.getCatalogoEstadoCivil(),
       pr: this.catalogosService.getProfesiones()
     }).subscribe({
       next: ({ ec, pr }) => {
-        this.estadoCivil.set(ec)
-        this.profesiones.set(pr)
+        this.estadoCivil.set(ec);
+        this.profesiones.set(pr);
+        this.loadingCatalogos.set(false);
       },
-      error: (err) => {
-        // handle error
+      error: () => {
+        this.loadingCatalogos.set(false);
       }
-    })
-    this.destroyRef.onDestroy(() => subscribe.unsubscribe())
+    });
+
+    this.destroyRef.onDestroy(() => sub.unsubscribe());
   }
 }
