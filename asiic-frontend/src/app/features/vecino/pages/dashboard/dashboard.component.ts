@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ClarityModule } from '@clr/angular';
 import { AuthService } from '../../../../core/services/auth.service';
-import { MetricCardComponent } from '../../components/metric-card/metric-card.component';
-import { QuickActionCardComponent } from '../../components/quick-action-card/quick-action-card.component';
+import { MetricCardComponent } from '../../../../shared/components/metric-card/metric-card.component';
+import { QuickActionCardComponent } from '../../../../shared/components/quick-action-card/quick-action-card.component';
 
 export interface TramiteReciente {
   id: string;
