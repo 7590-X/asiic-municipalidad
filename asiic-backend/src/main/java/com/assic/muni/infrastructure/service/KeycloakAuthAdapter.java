@@ -57,4 +57,26 @@ public class KeycloakAuthAdapter implements AuthenticationPort {
             throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado al procesar la autenticación.");
         }
     }
+
+    @Override
+    public void logout(String refreshToken) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("client_id", clientId);
+        formData.add("client_secret", clientSecret);
+        formData.add("refresh_token", refreshToken);
+
+        try {
+            keycloakAuthClient.logout(formData);
+            log.info("[KEYCLOAK_LOGOUT_SUCCESS] Cierre de sesión exitoso en Keycloak");
+        } catch (FeignException.BadRequest e) {
+            // El token ya puede haber expirado o haber sido invalidado previamente; tratamos el logout de manera idempotente
+            log.warn("[KEYCLOAK_LOGOUT_TOKEN_INVALID] El refresh token es inválido o ya expiró: {}", e.getMessage());
+        } catch (FeignException e) {
+            log.error("[KEYCLOAK_LOGOUT_ERROR] Error de comunicación con Keycloak durante logout: {}", e.getMessage(), e);
+            throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE, "El servicio de autenticación no está disponible en este momento.");
+        } catch (Exception e) {
+            log.error("[KEYCLOAK_LOGOUT_UNEXPECTED_ERROR] Error inesperado durante el cierre de sesión", e);
+            throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado al procesar el cierre de sesión.");
+        }
+    }
 }
