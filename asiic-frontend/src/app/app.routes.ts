@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -24,11 +25,31 @@ export const routes: Routes = [
       import('./features/auth/pages/login/login.component')
         .then((m) => m.LoginComponent),
   },
-  // Ruta protegida con authGuard:
-  // {
-  //   path: 'vecino/dashboard',
-  //   canActivate: [authGuard],
-  //   loadComponent: () => import('...').then((m) => m.DashboardComponent),
-  // },
+  {
+    path: 'vecino',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./shared/layouts/portal-layout/portal-layout.component')
+        .then((m) => m.PortalLayoutComponent),
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/vecino/pages/dashboard/dashboard.component')
+            .then((m) => m.DashboardComponent),
+      },
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+    ],
+  },
+  {
+    path: 'dashboard',
+    redirectTo: 'vecino/dashboard',
+    pathMatch: 'full',
+  },
   { path: '**', redirectTo: '' },
 ];
+

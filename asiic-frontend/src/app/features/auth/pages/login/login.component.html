@@ -1,10 +1,10 @@
 <section class="rv-page">
   <div class="rv-shell">
-    
-    <!-- Panel izquierdo: marca -->
+
+    <!-- Panel izquierdo: marca institucional -->
     <aside class="rv-aside">
       <div class="rv-aside__brand">
-        <img src="muni-emblem-white.svg" alt="" />
+        <img src="muni-emblem-white.svg" alt="Municipalidad de Guatemala" />
         <div>
           <strong>MUNICIPALIDAD</strong>
           <span>DE GUATEMALA</span>
@@ -14,48 +14,71 @@
       <div class="rv-aside__body">
         <h1>Iniciar Sesión</h1>
         <p>
-          Bienvenido al portal municipal. Ingrese con sus credenciales para acceder a su cuenta.
+          Bienvenido al portal institucional ASIIC. Ingrese con sus credenciales autorizadas para acceder al sistema.
         </p>
       </div>
 
       <p class="rv-aside__foot">
-        ¿Aún no tiene cuenta? <a routerLink="/registro" style="color: #fff; text-decoration: underline;">Regístrese aquí</a>
+        ¿Aún no tiene cuenta? <a routerLink="/registro" class="foot-link">Regístrese aquí</a>
       </p>
     </aside>
 
-    <!-- Panel derecho: formulario -->
+    <!-- Panel derecho: formulario con componentes prefabricados Clarity -->
     <div class="rv-main">
-      <div style="padding-top: 1rem;">
-        <h2 style="margin-top: 0; margin-bottom: 2rem;">Acceso</h2>
-        <form [formGroup]="form" (ngSubmit)="submit()" class="clr-form">
-            
-          <div class="clr-form-control clr-row">
-            <label class="clr-control-label clr-col-12 clr-col-md-4">Correo electrónico</label>
-            <div class="clr-control-container clr-col-12 clr-col-md-8">
-              <div class="clr-input-wrapper" style="width: 100%; max-width: 100%;">
-                <input type="email" class="clr-input" formControlName="correo" placeholder="ejemplo@correo.com" style="width: 100%;">
-              </div>
-              <span class="clr-subtext" *ngIf="form.controls.correo.touched && form.controls.correo.hasError('required')">Este campo es requerido.</span>
-              <span class="clr-subtext" *ngIf="form.controls.correo.touched && form.controls.correo.hasError('email')">Ingrese un correo válido.</span>
-            </div>
+      <div class="form-container">
+        <h2 class="form-title">Acceso al Sistema</h2>
+        <p class="form-subtitle">Ingrese sus credenciales para continuar</p>
+
+        <!-- Alerta nativa de Clarity para errores del servidor -->
+        @if (errorMessage()) {
+        <clr-alert clrAlertType="danger" [clrAlertClosable]="true" (clrAlertClosedChange)="errorMessage.set(null)"
+          class="login-alert">
+          <clr-alert-item>
+            <span class="alert-text">{{ errorMessage() }}</span>
+          </clr-alert-item>
+        </clr-alert>
+        }
+
+        <form clrLayout="vertical" [formGroup]="form" (ngSubmit)="submit()" class="clr-form">
+          <div class="form-grid">
+            <!-- Campo Correo / Usuario -->
+            <clr-input-container class="col-span-2">
+              <label class="clr-required-mark">Correo electrónico</label>
+              <input clrInput type="email" formControlName="username" placeholder="ejemplo@correo.com"
+                autocomplete="username" />
+              <clr-control-error *clrIfError="'required'">El correo electrónico es requerido.</clr-control-error>
+              <clr-control-error *clrIfError="'email'">Ingrese un correo electrónico válido.</clr-control-error>
+            </clr-input-container>
+
+            <!-- Campo Contraseña con toggle nativo de visibilidad de Clarity -->
+            <clr-password-container class="col-span-2">
+              <label class="clr-required-mark">Contraseña</label>
+              <input clrPassword type="password" formControlName="password" placeholder="Su contraseña"
+                autocomplete="current-password" />
+              <clr-control-error *clrIfError="'required'">La contraseña es requerida.</clr-control-error>
+            </clr-password-container>
+
+            <!-- Checkbox Recordarme nativo de Clarity -->
+            <clr-checkbox-wrapper class="col-span-2 remember-wrapper">
+              <input type="checkbox" clrCheckbox formControlName="recordar" />
+              <label>Mantener la sesión iniciada</label>
+            </clr-checkbox-wrapper>
           </div>
-          
-          <div class="clr-form-control clr-row" style="margin-top: 1.5rem;">
-            <label class="clr-control-label clr-col-12 clr-col-md-4">Contraseña</label>
-            <div class="clr-control-container clr-col-12 clr-col-md-8">
-              <div class="clr-input-wrapper" style="width: 100%; max-width: 100%;">
-                <input type="password" class="clr-input" formControlName="password" placeholder="Su contraseña" style="width: 100%;">
-              </div>
-              <span class="clr-subtext" *ngIf="form.controls.password.touched && form.controls.password.hasError('required')">Este campo es requerido.</span>
-            </div>
-          </div>
-          
-          <div style="margin-top: 2.5rem;">
-            <button type="submit" [clrLoading]="submitBtnState" class="btn btn-primary" style="width: 100%;">
+
+          <div class="submit-container">
+            <button type="submit" [clrLoading]="submitBtnState" class="btn btn-primary btn-block">
               Ingresar
             </button>
           </div>
         </form>
+
+        <div class="form-footer">
+          <p>
+            ¿Olvidó su contraseña o necesita ayuda?
+            <br />
+            <a routerLink="/registro" class="register-link">¿No tiene una cuenta? Regístrese como vecino</a>
+          </p>
+        </div>
       </div>
     </div>
 

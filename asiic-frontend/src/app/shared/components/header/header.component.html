@@ -1,0 +1,111 @@
+<header class="header header-6 app-header">
+  <div class="branding">
+    <button
+      type="button"
+      class="header-toggle-btn"
+      (click)="toggleSidebar.emit()"
+      aria-label="Alternar menú de navegación"
+      title="Alternar menú lateral"
+    >
+      <cds-icon shape="bars"></cds-icon>
+    </button>
+
+    <a routerLink="/vecino/dashboard" class="nav-link brand-link">
+      <img src="muni-emblem-white.svg" alt="Escudo Municipal" class="brand-logo" />
+      <div class="brand-text">
+        <span class="title">MUNICIPALIDAD DE GUATEMALA</span>
+        <span class="subtitle">PORTAL VECINAL ASIIC</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="header-nav">
+    <a routerLink="/vecino/dashboard" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <span class="nav-text">Dashboard</span>
+    </a>
+  </div>
+
+  <div class="search">
+    <label for="header-search">
+      <input
+        id="header-search"
+        type="text"
+        placeholder="Buscar trámites, quejas, servicios..."
+        aria-label="Buscar en el portal municipal"
+      />
+    </label>
+  </div>
+
+  <div class="header-actions">
+    <!-- Centro de Notificaciones -->
+    <a
+      href="javascript:void(0)"
+      class="nav-link nav-icon notification-trigger"
+      aria-label="Notificaciones del portal"
+      title="3 notificaciones nuevas"
+    >
+      <cds-icon shape="bell"></cds-icon>
+      <span class="badge badge-warning notification-badge">3</span>
+    </a>
+
+    <!-- Dropdown de Usuario Clarity -->
+    <clr-dropdown [clrCloseMenuOnItemClick]="false">
+      <button
+        class="nav-text user-profile-trigger"
+        clrDropdownTrigger
+        aria-label="Menú de perfil de usuario"
+      >
+        <div class="user-avatar" [title]="userName()">
+          {{ userInitials() }}
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ userName() }}</span>
+          <span class="user-role">{{ userRole() }}</span>
+        </div>
+        <cds-icon shape="angle" direction="down" class="dropdown-arrow"></cds-icon>
+      </button>
+
+      <clr-dropdown-menu clrPosition="bottom-right" *clrIfOpen class="user-menu">
+        <div class="dropdown-header">Sesión Iniciada</div>
+        
+        <div class="dropdown-item user-info-card">
+          <div class="info-avatar">{{ userInitials() }}</div>
+          <div class="info-content">
+            <span class="info-name">{{ userName() }}</span>
+            <span class="info-email" *ngIf="userEmail()">{{ userEmail() }}</span>
+            <span class="badge badge-info info-role-tag">{{ userRole() }}</span>
+          </div>
+        </div>
+
+        <div class="dropdown-divider"></div>
+
+        <a clrDropdownItem routerLink="/vecino/dashboard">
+          <cds-icon shape="user"></cds-icon>
+          <span class="item-text">Mi Perfil Vecinal</span>
+        </a>
+
+        <a clrDropdownItem routerLink="/vecino/dashboard">
+          <cds-icon shape="cog"></cds-icon>
+          <span class="item-text">Seguridad y Ajustes</span>
+        </a>
+
+        <a clrDropdownItem href="javascript:void(0)">
+          <cds-icon shape="help-info"></cds-icon>
+          <span class="item-text">Centro de Ayuda</span>
+        </a>
+
+        <div class="dropdown-divider"></div>
+
+        <button
+          type="button"
+          clrDropdownItem
+          (click)="onLogout()"
+          class="logout-button"
+        >
+          <cds-icon shape="logout"></cds-icon>
+          <span class="item-text">Cerrar Sesión</span>
+        </button>
+      </clr-dropdown-menu>
+    </clr-dropdown>
+  </div>
+</header>

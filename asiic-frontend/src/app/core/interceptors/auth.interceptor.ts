@@ -1,21 +1,31 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth.service';
 import { NotificationService } from '../services/notification.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  const router = inject(Router);
   const notification = inject(NotificationService);
 
-  const token = authService.getToken();
+  // Rutas públicas que no deben llevar el header Authorization
+  const isAuthOrPublicEndpoint =
+    req.url.includes('/auth/login') ||
+    req.url.includes('/auth/confirmar') ||
+    req.url.includes('/public/');
+
+  // Validar si la petición es a nuestra API interna
+  const isInternalApi =
+    req.url.startsWith(environment.apiBaseUrl) ||
+    req.url.startsWith('/api/') ||
+    !req.url.startsWith('http');
 
   let authReq = req;
+  const token = authService.getToken();
 
-  // Agregar el token a los headers si existe
-  if (token) {
+  // Adjuntar Bearer token únicamente a peticiones internas no exentas
+  if (token && isInternalApi && !isAuthOrPublicEndpoint && !req.headers.has('Authorization')) {
     authReq = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
@@ -25,21 +35,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Ignorar errores de autenticación/autorización en rutas públicas o de login
-      const isPublicRoute = req.url.includes('/auth/') || req.url.includes('/public/');
-
       if (error.status === 401) {
-        if (!isPublicRoute) {
-          // No autorizado o token expirado
+        // En peticiones protegidas (no login), un 401 significa expiración o token inválido
+        if (!isAuthOrPublicEndpoint) {
           authService.logout();
-          notification.error('Sesión expirada. Por favor, inicie sesión nuevamente.');
+          notification.error('Su sesión ha expirado o no está autorizado. Inicie sesión nuevamente.');
         }
       } else if (error.status === 403) {
-        if (!isPublicRoute) {
-          // Prohibido (no tiene permisos)
-          notification.error('Acceso denegado: No tiene permisos para realizar esta acción.');
+        if (!isAuthOrPublicEndpoint) {
+          notification.error('Acceso denegado: No cuenta con permisos para realizar esta acción.');
         }
       }
+
       return throwError(() => error);
     })
   );

@@ -1,0 +1,17 @@
+<div class="card metric-card card-{{ color }}">
+  <div class="card-block">
+    <div class="metric-header">
+      <span class="metric-label">{{ label }}</span>
+      <div class="metric-icon-box {{ color }}">
+        <cds-icon [attr.shape]="icon"></cds-icon>
+      </div>
+    </div>
+    <div class="metric-body">
+      <h2 class="metric-number" [ngClass]="valueClass || ''">{{ value }}</h2>
+      <span class="metric-detail">{{ detail }}</span>
+    </div>
+    <div class="metric-footer">
+      <span class="badge {{ badgeClass }}">{{ badgeText }}</span>
+    </div>
+  </div>
+</div>
