@@ -79,4 +79,33 @@ public class KeycloakAuthAdapter implements AuthenticationPort {
             throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado al procesar el cierre de sesión.");
         }
     }
+
+    @Override
+    public TokenDto refreshToken(String refreshToken) {
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("grant_type", "refresh_token");
+        formData.add("client_id", clientId);
+        formData.add("client_secret", clientSecret);
+        formData.add("refresh_token", refreshToken);
+
+        try {
+            TokenDto tokenResponse = keycloakAuthClient.authenticate(formData);
+            if (tokenResponse == null || tokenResponse.accessToken() == null) {
+                log.warn("[REFRESH_EMPTY_RESPONSE] Respuesta vacía de Keycloak al renovar token");
+                throw new ServiceException(HttpStatus.UNAUTHORIZED, "La sesión ha expirado o el token es inválido. Por favor, inicie sesión nuevamente.");
+            }
+            return tokenResponse;
+        } catch (FeignException.BadRequest | FeignException.Unauthorized e) {
+            log.warn("[KEYCLOAK_REFRESH_FAILED] Falló refresco de token: {}", e.getMessage());
+            throw new ServiceException(HttpStatus.UNAUTHORIZED, "La sesión ha expirado o el token es inválido. Por favor, inicie sesión nuevamente.");
+        } catch (FeignException e) {
+            log.error("[KEYCLOAK_REFRESH_ERROR] Error de comunicación con Keycloak durante refresh token", e);
+            throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE, "El servicio de autenticación no está disponible en este momento.");
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[KEYCLOAK_REFRESH_UNEXPECTED_ERROR] Error inesperado durante el refresco de token", e);
+            throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado al renovar el token de sesión.");
+        }
+    }
 }

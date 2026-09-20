@@ -19,4 +19,12 @@ public interface AuthenticationPort {
      * @param refreshToken Token de refresco de la sesión a invalidar
      */
     void logout(String refreshToken);
+
+    /**
+     * Renueva el token de acceso utilizando un token de refresco válido
+     *
+     * @param refreshToken Token de refresco emitido previamente
+     * @return DTO con los nuevos tokens de acceso y refresco
+     */
+    TokenDto refreshToken(String refreshToken);
 }

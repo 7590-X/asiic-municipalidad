@@ -14,10 +14,11 @@ import lombok.RequiredArgsConstructor;
 import java.time.ZonedDateTime;
 
 import com.assic.muni.application.cqrs.cmd.LoginCmd;
-import com.assic.muni.application.cqrs.cmd.LogoutCmd;
+import com.assic.muni.application.cqrs.cmd.SessionTokenCmd;
 import com.assic.muni.application.cqrs.dto.TokenDto;
 import com.assic.muni.application.cqrs.handler.LoginCmdHandler;
 import com.assic.muni.application.cqrs.handler.LogoutCmdHandler;
+import com.assic.muni.application.cqrs.handler.RefreshTokenCmdHandler;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,6 +31,7 @@ public class AuthController {
     private final ConfirmarCuentaCmdHandler confirmarCuentaCmdHandler;
     private final LoginCmdHandler loginCmdHandler;
     private final LogoutCmdHandler logoutCmdHandler;
+    private final RefreshTokenCmdHandler refreshTokenCmdHandler;
 
     @PostMapping("/login")
     @Operation(summary = "Inicio de sesión para los usuarios")
@@ -45,7 +47,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "Cierre de sesión para los usuarios")
-    public ResponseEntity<ApiResponseDto<Void>> logout(@Valid @RequestBody LogoutCmd cmd) {
+    public ResponseEntity<ApiResponseDto<Void>> logout(@Valid @RequestBody SessionTokenCmd cmd) {
         logoutCmdHandler.handle(cmd);
         return ResponseEntity.ok(new ApiResponseDto<>(
                 HttpStatus.OK.value(),
@@ -57,10 +59,14 @@ public class AuthController {
 
     @PostMapping("/refresh")
     @Operation(summary = "Refresco de token de sesión")
-    public ResponseEntity<Object> refresh() {
-        return null;
-        // TODO: investigar sobre refresco de token con keycloak, no codificar,
-        // presentar un informe técnico de alcance
+    public ResponseEntity<ApiResponseDto<TokenDto>> refresh(@Valid @RequestBody SessionTokenCmd cmd) {
+        TokenDto token = refreshTokenCmdHandler.handle(cmd);
+        return ResponseEntity.ok(new ApiResponseDto<>(
+                HttpStatus.OK.value(),
+                "/api/v1/asiic/auth/refresh",
+                ZonedDateTime.now(),
+                "Token renovado exitosamente",
+                token));
     }
 
     @PostMapping("/confirmar")
