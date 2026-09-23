@@ -4,35 +4,47 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+
 @Table(name = "as_insidencias")
-public class AsInsidencia {
+public class AsIncidencia {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "in_id", nullable = false)
     private Integer id;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "in_privacidad", nullable = false)
-    private AsCatalogo inPrivacidad;
+    @JoinColumn(name = "in_privacidad", insertable = false, updatable = false)
+    private AsCatalogo inPrivacidadObj;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "in_vecino", nullable = false)
-    private AsVecino inVecino;
+    @Column(name = "in_privacidad", insertable = true, updatable = false, nullable = false)
+    private Short inPrivacidad;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "in_contador", nullable = false)
-    private AsDomicilio inContador;
+    @JoinColumn(name = "in_vecino", insertable = false, updatable = false)
+    private AsVecino inVecinoObj;
+
+    @Column(name = "in_vecino", insertable = true, updatable = false)
+    private Integer inVecino;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "in_contador", nullable = false, insertable = false, updatable = false)
+    private AsDomicilio inContadorObj;
+
+    @Column(name = "in_contador", insertable = true, updatable = false)
+    private String inContador;
 
     @Size(max = 100)
     @NotNull
@@ -40,8 +52,11 @@ public class AsInsidencia {
     private String inDireccion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "in_unidad")
-    private AsCatalogo inUnidad;
+    @JoinColumn(name = "in_unidad", insertable = false, updatable = false)
+    private AsCatalogo inUnidadObj;
+
+    @Column(name = "in_unidad")
+    private Short inUnidad;
 
     @Size(max = 100)
     @Column(name = "in_empleado", length = 100)
@@ -68,9 +83,8 @@ public class AsInsidencia {
     private String inLongitud;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "in_estado", nullable = false)
-    private AsInsidenciaEstado inEstado;
+    @Column(name = "in_estado", nullable = false)
+    private String inEstado;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -115,5 +129,7 @@ public class AsInsidencia {
     @JoinColumn(name = "in_analista")
     private AsUsuario inAnalista;
 
-
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "in_jsons", columnDefinition = "jsonb")
+    private Map<String, Object> inJsons;
 }

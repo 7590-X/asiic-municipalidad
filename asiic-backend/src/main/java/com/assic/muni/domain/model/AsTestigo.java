@@ -21,7 +21,7 @@ public class AsTestigo {
     @MapsId("teInsidencia")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "te_insidencia", nullable = false)
-    private AsInsidencia teInsidencia;
+    private AsIncidencia teInsidencia;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "te_correo")

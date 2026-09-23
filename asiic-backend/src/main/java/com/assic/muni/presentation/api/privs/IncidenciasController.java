@@ -1,79 +1,38 @@
 package com.assic.muni.presentation.api.privs;
 
-import com.assic.muni.application.cqrs.cmd.CrearIncidenciaCmd;
-import com.assic.muni.application.cqrs.cmd.GetMisIncidenciasQuery;
-import com.assic.muni.application.cqrs.dto.IncidenciaPayloadDto;
-import com.assic.muni.application.cqrs.dto.IncidenciaResumenDto;
-import com.assic.muni.application.cqrs.handler.CrearIncidenciaCmdHandler;
-import com.assic.muni.application.cqrs.handler.GetMisIncidenciasQueryHandler;
+import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
+import com.assic.muni.application.cqrs.dto.ApiResponseDto;
+import com.assic.muni.application.cqrs.handler.UpsertIncidenciaCmdHandler;
+import com.assic.muni.presentation.api.util.UriBuilder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.net.URI;
+import java.time.ZonedDateTime;
 
 @RestController
-@RequestMapping("/api/v1/incidencias")
+@RequestMapping(IncidenciasController.URI)
 @RequiredArgsConstructor
-@Tag(name = "Incidencias Privadas")
+@Tag(name = "Administración de insidencias")
 public class IncidenciasController {
 
-    private final CrearIncidenciaCmdHandler crearIncidenciaCmdHandler;
-    private final GetMisIncidenciasQueryHandler getMisIncidenciasQueryHandler;
-    private final com.assic.muni.application.cqrs.handler.GetIncidenciaByIdQueryHandler getIncidenciaByIdQueryHandler;
-    private final com.assic.muni.application.cqrs.handler.ActualizarIncidenciaCmdHandler actualizarIncidenciaCmdHandler;
+    protected static final String URI = "/api/v1/asiic/incidencias";
+    private final UpsertIncidenciaCmdHandler upsertIncidenciaCmdHandler;
 
     @PostMapping
     @Operation(summary = "Crear una nueva incidencia con evidencias")
-    public ResponseEntity<Map<String, String>> crearIncidencia(
-            @RequestPart("datos") IncidenciaPayloadDto payload,
-            @RequestPart(value = "evidencias", required = false) List<MultipartFile> evidencias,
-            JwtAuthenticationToken principal) throws Exception {
-
-        String userId = principal.getToken().getSubject();
-        
-        CrearIncidenciaCmd cmd = new CrearIncidenciaCmd(userId, payload, evidencias);
-        String trackingCode = crearIncidenciaCmdHandler.handle(cmd);
-        
-        return ResponseEntity.ok(Collections.singletonMap("codigo", trackingCode));
-    }
-
-    @GetMapping
-    @Operation(summary = "Obtener listado de incidencias del vecino")
-    public ResponseEntity<List<IncidenciaResumenDto>> obtenerMisIncidencias(JwtAuthenticationToken principal) {
-        String userId = principal.getToken().getSubject();
-        List<IncidenciaResumenDto> list = getMisIncidenciasQueryHandler.handle(new GetMisIncidenciasQuery(userId));
-        return ResponseEntity.ok(list);
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Obtener el detalle de una incidencia")
-    public ResponseEntity<com.assic.muni.application.cqrs.dto.IncidenciaDetalleDto> obtenerIncidenciaPorId(
-            @PathVariable String id,
-            JwtAuthenticationToken principal) {
-        String userId = principal.getToken().getSubject();
-        com.assic.muni.application.cqrs.dto.IncidenciaDetalleDto dto = getIncidenciaByIdQueryHandler.handle(
-                new com.assic.muni.application.cqrs.query.GetIncidenciaByIdQuery(id, userId));
-        return ResponseEntity.ok(dto);
-    }
-
-    @PutMapping("/{id}")
-    @Operation(summary = "Actualizar un borrador de incidencia")
-    public ResponseEntity<Map<String, String>> actualizarIncidencia(
-            @PathVariable String id,
-            @RequestPart("datos") IncidenciaPayloadDto payload,
-            @RequestPart(value = "evidencias", required = false) List<MultipartFile> evidencias,
-            JwtAuthenticationToken principal) {
-        String userId = principal.getToken().getSubject();
-        com.assic.muni.application.cqrs.cmd.ActualizarIncidenciaCmd cmd = 
-                new com.assic.muni.application.cqrs.cmd.ActualizarIncidenciaCmd(id, userId, payload, evidencias);
-        String trackingCode = actualizarIncidenciaCmdHandler.handle(cmd);
-        return ResponseEntity.ok(Collections.singletonMap("codigo", trackingCode));
+    public ResponseEntity<ApiResponseDto> crearIncidencia(
+            @RequestPart("insidencia_json") IncidenciaPayloadCmd payload,
+            @RequestPart(value = "insidencia_bin", required = false) List<MultipartFile> evidencias) {
+        int resourceId = upsertIncidenciaCmdHandler.handle(payload, evidencias);
+        URI resourceUri = UriBuilder.build(resourceId);
+        return ResponseEntity.created(resourceUri)
+                .body(new ApiResponseDto(HttpStatus.CREATED.value(), null, ZonedDateTime.now(),
+                        "Insidencia registrada exitosamente", null));
     }
 }

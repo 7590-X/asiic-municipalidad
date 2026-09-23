@@ -29,3 +29,5 @@ databaseChangeLog:
       file: db/changelog/260922-1-catalogos-incidencias.sql
   - include:
       file: db/changelog/260922-2-nuevos-estados-incidencias.sql
+  - include:
+      file: db/changelog/260923-1-campos-almacenar-objeto-json.sql

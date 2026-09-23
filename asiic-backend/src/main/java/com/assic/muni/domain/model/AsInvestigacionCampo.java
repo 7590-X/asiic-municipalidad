@@ -20,7 +20,7 @@ public class AsInvestigacionCampo {
     @MapsId("icInsidencia")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ic_insidencia", nullable = false)
-    private AsInsidencia icInsidencia;
+    private AsIncidencia icInsidencia;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
