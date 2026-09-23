@@ -43,6 +43,18 @@ export const routes: Routes = [
         redirectTo: 'dashboard',
         pathMatch: 'full',
       },
+      {
+        path: 'incidencias/nueva',
+        loadComponent: () =>
+          import('./features/incidencias/pages/registro-incidencia/registro-incidencia.component')
+            .then((m) => m.RegistroIncidenciaComponent),
+      },
+      {
+        path: 'incidencias/editar/:id',
+        loadComponent: () =>
+          import('./features/incidencias/pages/registro-incidencia/registro-incidencia.component')
+            .then((m) => m.RegistroIncidenciaComponent),
+      }
     ],
   },
   {

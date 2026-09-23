@@ -1,0 +1,112 @@
+<section class="rv-page">
+  <div class="rv-shell">
+
+    <!-- Panel izquierdo: marca y guía -->
+    <aside class="rv-aside">
+      <div class="rv-aside__brand">
+        <!-- Puedes cambiar el src al logo real si es diferente -->
+        <img src="muni-emblem-white.svg" alt="Logo" onerror="this.style.display='none'" />
+        <div>
+          <strong>MUNICIPALIDAD</strong>
+          <span>DE GUATEMALA</span>
+        </div>
+      </div>
+
+      <div class="rv-aside__body">
+        <h1>Nueva Incidencia</h1>
+        <p>
+          Reporte quejas, reclamos, denuncias o envíenos sus sugerencias para mejorar el municipio.
+        </p>
+
+        <ol class="rv-aside__steps">
+          <li><span>1</span> Tipo y Privacidad</li>
+          <li><span>2</span> Datos del Solicitante</li>
+          <li><span>3</span> Detalle de Incidencia</li>
+          <li><span>4</span> Evidencias</li>
+        </ol>
+      </div>
+
+      <p class="rv-aside__foot">
+        Al finalizar, recibirá un número de gestión para su seguimiento.
+      </p>
+    </aside>
+
+    <!-- Panel derecho: stepper -->
+    <div class="rv-main">
+      
+      <form clrStepper [formGroup]="incidenciaForm" *ngIf="!isSubmitting">
+        
+        <!-- Paso 1: Tipo y Privacidad -->
+        <clr-stepper-panel formGroupName="tipoYPrivacidad">
+          <clr-step-title>Tipo y Privacidad</clr-step-title>
+          <clr-step-description>Clasificación del reporte</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <fieldset [disabled]="isReadOnly" style="border:none; padding:0; margin:0;">
+              <app-tipo-privacidad [stepForm]="tipoYPrivacidadForm"></app-tipo-privacidad>
+            </fieldset>
+            <button clrStepButton="next" type="button" class="btn btn-primary mt-4">Siguiente</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+        <!-- Paso 2: Datos del Solicitante -->
+        <clr-stepper-panel formGroupName="datosSolicitante">
+          <clr-step-title>Solicitante</clr-step-title>
+          <clr-step-description>Información de contacto</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <fieldset [disabled]="isReadOnly" style="border:none; padding:0; margin:0;">
+              <app-datos-solicitante [stepForm]="datosSolicitanteForm"></app-datos-solicitante>
+            </fieldset>
+            <button clrStepButton="next" type="button" class="btn btn-primary mt-4">Siguiente</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+        <!-- Paso 3: Detalle de Incidencia -->
+        <clr-stepper-panel formGroupName="detalleIncidencia">
+          <clr-step-title>Detalles</clr-step-title>
+          <clr-step-description>Descripción de lo sucedido</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <fieldset [disabled]="isReadOnly" style="border:none; padding:0; margin:0;">
+              <app-detalle-incidencia 
+                [stepForm]="detalleIncidenciaForm" 
+                [tipoIncidencia]="tipoSeleccionado">
+              </app-detalle-incidencia>
+            </fieldset>
+            <button clrStepButton="next" type="button" class="btn btn-primary mt-4">Siguiente</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+        <!-- Paso 4: Evidencias -->
+        <clr-stepper-panel formGroupName="evidencias">
+          <clr-step-title>Evidencias</clr-step-title>
+          <clr-step-description>Archivos adjuntos</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <fieldset [disabled]="isReadOnly" style="border:none; padding:0; margin:0;">
+              <app-evidencias 
+                [stepForm]="evidenciasForm"
+                [tipoIncidencia]="tipoSeleccionado"
+                (filesChanged)="onFilesChanged($event)">
+              </app-evidencias>
+            </fieldset>
+
+            <div class="d-flex mt-4" style="gap: 1rem;" *ngIf="!isReadOnly">
+              <button type="button" class="btn btn-outline" (click)="enviarBorrador()">
+                Guardar Borrador
+              </button>
+              <button type="button" class="btn btn-primary" (click)="enviarIncidencia()">
+                Enviar Incidencia
+              </button>
+            </div>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+      </form>
+
+      <!-- Pantalla de Éxito / Loading -->
+      <div *ngIf="isSubmitting" class="rv-loading">
+        <clr-spinner>Enviando...</clr-spinner>
+        <span>Procesando su solicitud...</span>
+      </div>
+
+    </div>
+  </div>
+</section>

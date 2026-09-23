@@ -150,9 +150,9 @@ export class AuthService {
     // Manejo de roles para redirección
     const normalizedRoles = roles.map((r) => r.toLowerCase());
 
-    if (normalizedRoles.includes('vecino')) {
+    if (normalizedRoles.some(r => r.includes('vecino'))) {
       this.router.navigate(['/vecino/dashboard']).catch(() => this.router.navigate(['/']));
-    } else if (normalizedRoles.includes('administrador') || normalizedRoles.includes('admin')) {
+    } else if (normalizedRoles.some(r => r.includes('admin'))) {
       this.router.navigate(['/admin/dashboard']).catch(() => this.router.navigate(['/']));
     } else {
       this.router.navigate(['/']);

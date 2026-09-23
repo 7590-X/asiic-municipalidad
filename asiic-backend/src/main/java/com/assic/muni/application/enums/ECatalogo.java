@@ -5,7 +5,11 @@ import lombok.Getter;
 @Getter
 public enum ECatalogo {
     C_ESTADO_CIVIL("estado-civil"),
-    C_PROFESION("profesion");
+    C_PROFESION("profesion"),
+    C_DEPENDENCIAS("dependencias"),
+    C_TIPOS_SERVICIO("tipos-servicio"),
+    C_TIPOS_DENUNCIA("tipos-denuncia"),
+    C_AREAS_SUGERENCIA("areas-sugerencia");
 
     private final String value;
 
