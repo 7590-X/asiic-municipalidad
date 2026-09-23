@@ -63,7 +63,7 @@
     </label>
     <select clrSelect formControlName="estado_civil_id">
       <option value="">Seleccione…</option>
-      <option *ngFor="let c of estadoCivil()" [value]="c.id">{{ c.valor }}</option>
+      <option *ngFor="let c of estadoCivil()" [value]="c.id">{{ c.nombre }}</option>
     </select>
     <clr-control-error *clrIfError="'required'">Seleccione el estado civil</clr-control-error>
   </clr-select-container>
@@ -76,7 +76,7 @@
     </label>
     <select clrSelect formControlName="profesion_id">
       <option value="">Seleccione…</option>
-      <option *ngFor="let p of profesiones()" [value]="p.id">{{ p.valor }}</option>
+      <option *ngFor="let p of profesiones()" [value]="p.id">{{ p.nombre }}</option>
     </select>
     <clr-control-error *clrIfError="'required'">Seleccione la profesión</clr-control-error>
   </clr-select-container>
