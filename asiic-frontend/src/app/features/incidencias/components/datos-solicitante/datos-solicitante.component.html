@@ -1,0 +1,30 @@
+<div [formGroup]="stepForm">
+  <p class="alert alert-info">Estos datos se extraen automáticamente de su perfil.</p>
+  
+  <div class="rv-grid mt-3">
+    <clr-input-container>
+      <label>Nombres y Apellidos</label>
+      <input clrInput type="text" formControlName="nombresApellidos" readonly />
+    </clr-input-container>
+
+    <clr-input-container>
+      <label>DPI/Pasaporte</label>
+      <input clrInput type="text" formControlName="dpi" readonly />
+    </clr-input-container>
+
+    <clr-input-container>
+      <label>Correo Electrónico</label>
+      <input clrInput type="text" formControlName="correo" readonly />
+    </clr-input-container>
+
+    <clr-input-container>
+      <label>Teléfono</label>
+      <input clrInput type="text" formControlName="telefono" readonly />
+    </clr-input-container>
+
+    <clr-textarea-container class="rv-full">
+      <label>Dirección</label>
+      <textarea clrTextarea formControlName="direccion" readonly></textarea>
+    </clr-textarea-container>
+  </div>
+</div>

@@ -20,7 +20,11 @@ public class CatalogoQueryHandler {
 
     public static final Map<ECatalogo, String> mCatalogos = Map.of(
             ECatalogo.C_ESTADO_CIVIL, "as_estado_civil",
-            ECatalogo.C_PROFESION, "as_profesion"
+            ECatalogo.C_PROFESION, "as_profesion",
+            ECatalogo.C_DEPENDENCIAS, "as_dependencias",
+            ECatalogo.C_TIPOS_SERVICIO, "as_tipos_servicio",
+            ECatalogo.C_TIPOS_DENUNCIA, "as_tipos_denuncia",
+            ECatalogo.C_AREAS_SUGERENCIA, "as_areas"
     );
 
     public List<CatalogoDto> getCatalogoItemsByCatalogoId(ECatalogo catalogo) {

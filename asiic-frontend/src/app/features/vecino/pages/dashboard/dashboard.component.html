@@ -92,7 +92,8 @@
     <div class="clr-row">
       <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
         <app-quick-action-card
-          link="/vecino/dashboard"
+          link="/vecino/incidencias/nueva"
+          [queryParams]="{tipo: 'QUEJA'}"
           actionClass="action-primary"
           icon="file"
           title="Nueva Solicitud"
@@ -102,7 +103,8 @@
 
       <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
         <app-quick-action-card
-          link="/vecino/dashboard"
+          link="/vecino/incidencias/nueva"
+          [queryParams]="{tipo: 'RECLAMO'}"
           actionClass="action-warning"
           icon="exclamation-circle"
           title="Reportar Avería / Queja"
@@ -112,7 +114,8 @@
 
       <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
         <app-quick-action-card
-          link="/vecino/dashboard"
+          link="/vecino/incidencias/nueva"
+          [queryParams]="{tipo: 'DENUNCIA'}"
           actionClass="action-danger"
           icon="shield"
           title="Denuncia Ciudadana"
@@ -122,7 +125,8 @@
 
       <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
         <app-quick-action-card
-          link="/vecino/dashboard"
+          link="/vecino/incidencias/nueva"
+          [queryParams]="{tipo: 'SUGERENCIA'}"
           actionClass="action-info"
           icon="talk-bubbles"
           title="Buzón de Sugerencias"
@@ -150,7 +154,7 @@
       </div>
 
       <div class="card-block">
-        <clr-datagrid>
+        <clr-datagrid [clrDgLoading]="loading()">
           <clr-dg-column [clrDgField]="'id'">Código</clr-dg-column>
           <clr-dg-column [clrDgField]="'tipo'">Tipo</clr-dg-column>
           <clr-dg-column [clrDgField]="'asunto'">Asunto y Descripción</clr-dg-column>
@@ -159,7 +163,7 @@
           <clr-dg-column [clrDgField]="'estado'">Estado</clr-dg-column>
           <clr-dg-column class="actions-column">Acciones</clr-dg-column>
 
-          <clr-dg-row *clrDgItems="let t of tramites()">
+          <clr-dg-row *clrDgItems="let t of tramites()" [clrDgItem]="t">
             <clr-dg-cell class="code-cell">
               <strong>{{ t.id }}</strong>
             </clr-dg-cell>
@@ -187,9 +191,9 @@
             </clr-dg-cell>
             
             <clr-dg-cell class="actions-cell">
-              <button type="button" class="btn btn-sm btn-link" title="Ver detalles del trámite">
+              <a [routerLink]="['/vecino/incidencias/editar', t.id]" class="btn btn-sm btn-link" title="Ver detalles del trámite">
                 Ver detalle
-              </button>
+              </a>
             </clr-dg-cell>
           </clr-dg-row>
 

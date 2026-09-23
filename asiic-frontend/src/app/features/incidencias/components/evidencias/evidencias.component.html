@@ -1,0 +1,45 @@
+<div [formGroup]="stepForm">
+  <p *ngIf="tipoIncidencia === 'RECLAMO' || tipoIncidencia === 'DENUNCIA'" class="alert alert-warning">
+    Debe adjuntar al menos un archivo para este tipo de incidencia.
+  </p>
+  <p *ngIf="tipoIncidencia === 'QUEJA' || tipoIncidencia === 'SUGERENCIA'" class="alert alert-info">
+    Puede adjuntar archivos como evidencia (Opcional).
+  </p>
+
+  <!-- DRAG AND DROP ZONE -->
+  <div class="dropzone mt-3" appDragDrop (fileDropped)="onFilesDropped($event)">
+    <div class="dropzone-content">
+      <clr-icon shape="upload" size="48"></clr-icon>
+      <h3>Arrastre sus archivos aquí</h3>
+      <p>PNG, JPG o PDF. Máximo 10MB.</p>
+      <div class="btn-group">
+        <label for="fileInput" class="btn btn-primary btn-sm">Seleccionar Archivo</label>
+        <input type="file" id="fileInput" hidden multiple accept=".png, .jpg, .jpeg, .pdf" (change)="onFileSelected($event)">
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="fileError" class="alert alert-danger" role="alert">
+    <div class="alert-items">
+      <div class="alert-item static">
+        <div class="alert-icon-wrapper">
+          <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+        </div>
+        <span class="alert-text">{{ fileError }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTA DE ARCHIVOS -->
+  <div class="files-list mt-3" *ngIf="files.length > 0">
+    <h4>Archivos Seleccionados</h4>
+    <ul class="list">
+      <li *ngFor="let f of files; let i = index" class="file-item">
+        <clr-icon shape="file" size="24"></clr-icon>
+        <span class="file-name">{{ f.name }}</span>
+        <span class="file-size">({{ (f.size / 1024 / 1024).toFixed(2) }} MB)</span>
+        <button type="button" class="btn btn-sm btn-link btn-danger" (click)="removeFile(i)">Eliminar</button>
+      </li>
+    </ul>
+  </div>
+</div>

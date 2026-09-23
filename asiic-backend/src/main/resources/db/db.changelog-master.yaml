@@ -25,3 +25,7 @@ databaseChangeLog:
       file: db/changelog/260909-1-modificacion-sp_agregar_catalogo.sql
   - include:
       file: db/changelog/260909-2-agregar-nuevos-catalogos.sql
+  - include:
+      file: db/changelog/260922-1-catalogos-incidencias.sql
+  - include:
+      file: db/changelog/260922-2-nuevos-estados-incidencias.sql

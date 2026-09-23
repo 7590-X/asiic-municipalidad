@@ -12,6 +12,7 @@ import { ClarityModule } from '@clr/angular';
 })
 export class QuickActionCardComponent {
   @Input() link: string = '';
+  @Input() queryParams: any = null;
   @Input() actionClass: string = 'action-primary';
   @Input() icon: string = '';
   @Input() title: string = '';
