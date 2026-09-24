@@ -7,7 +7,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 // Subcomponentes
 import { TipoPrivacidadComponent } from '../../components/tipo-privacidad/tipo-privacidad.component';
-import { DatosSolicitanteComponent } from '../../components/datos-solicitante/datos-solicitante.component';
 import { DetalleIncidenciaComponent } from '../../components/detalle-incidencia/detalle-incidencia.component';
 import { EvidenciasComponent } from '../../components/evidencias/evidencias.component';
 
@@ -19,7 +18,6 @@ import { EvidenciasComponent } from '../../components/evidencias/evidencias.comp
     ReactiveFormsModule, 
     ClarityModule,
     TipoPrivacidadComponent,
-    DatosSolicitanteComponent,
     DetalleIncidenciaComponent,
     EvidenciasComponent
   ],
@@ -132,13 +130,6 @@ export class RegistroIncidenciaComponent implements OnInit {
         tipoIncidencia: ['', Validators.required],
         privacidad: ['PUBLICO', Validators.required]
       }),
-      datosSolicitante: this.fb.group({
-        dpi: [''],
-        nombresApellidos: [''],
-        correo: [''],
-        telefono: [''],
-        direccion: ['']
-      }),
       detalleIncidencia: this.fb.group({
         // Queja
         dependenciaId: [''],
@@ -170,7 +161,6 @@ export class RegistroIncidenciaComponent implements OnInit {
 
   // Getters para enviar al @Input de los subcomponentes
   get tipoYPrivacidadForm(): FormGroup { return this.incidenciaForm.get('tipoYPrivacidad') as FormGroup; }
-  get datosSolicitanteForm(): FormGroup { return this.incidenciaForm.get('datosSolicitante') as FormGroup; }
   get detalleIncidenciaForm(): FormGroup { return this.incidenciaForm.get('detalleIncidencia') as FormGroup; }
   get evidenciasForm(): FormGroup { return this.incidenciaForm.get('evidencias') as FormGroup; }
 
@@ -209,44 +199,75 @@ export class RegistroIncidenciaComponent implements OnInit {
     this.isSubmitting = true;
     const formValue = this.incidenciaForm.getRawValue();
 
-    const payload: any = {
-      tipoIncidencia: formValue.tipoYPrivacidad.tipoIncidencia,
-      privacidad: formValue.tipoYPrivacidad.privacidad,
-      esBorrador: esBorrador,
-      solicitante: formValue.datosSolicitante
+    let tipoIncidenciaId = 0;
+    switch(formValue.tipoYPrivacidad.tipoIncidencia) {
+      case 'QUEJA': tipoIncidenciaId = 1; break;
+      case 'RECLAMO': tipoIncidenciaId = 2; break;
+      case 'DENUNCIA': tipoIncidenciaId = 3; break;
+      case 'SUGERENCIA': tipoIncidenciaId = 4; break;
+    }
+
+    const privacidadMap: any = {
+      'PUBLICO': 'PUB',
+      'PRIVADO': 'PRIV'
     };
+    const privacidadVal = privacidadMap[formValue.tipoYPrivacidad.privacidad] || 'PUB';
 
     const detalle = formValue.detalleIncidencia;
-    if (payload.tipoIncidencia === 'QUEJA') {
+
+    const payload: any = {
+      incidenciaId: this.incidenciaId ? Number(this.incidenciaId) : 0,
+      tipoIncidencia: tipoIncidenciaId,
+      privacidad: privacidadVal,
+      contador: detalle.noContador || '' 
+    };
+
+    if (formValue.tipoYPrivacidad.tipoIncidencia === 'QUEJA') {
       payload.detalleQueja = {
-        dependenciaId: detalle.dependenciaId,
-        empleadoId: detalle.empleadoId,
-        fechaIncidencia: detalle.fechaIncidencia,
-        lugar: detalle.lugar,
-        descripcion: detalle.descripcion,
-        testigo: { nombre: detalle.testigoNombre, telefono: detalle.testigoTelefono, correo: detalle.testigoCorreo }
+        dependenciaId: detalle.dependenciaId ? Number(detalle.dependenciaId) : null,
+        nombreEmpleado: detalle.empleadoId || '',
+        fechaIncidencia: detalle.fechaIncidencia ? new Date(detalle.fechaIncidencia).toISOString() : null,
+        direccionReferencial: detalle.lugar || '',
+        descripcion: detalle.descripcion || '',
+        testigo: detalle.testigoNombre ? [
+          {
+            nombre: detalle.testigoNombre,
+            telefono: detalle.testigoTelefono || '',
+            correo: detalle.testigoCorreo || ''
+          }
+        ] : [],
+        latitudGps: '',
+        longitudGps: ''
       };
-    } else if (payload.tipoIncidencia === 'RECLAMO') {
+    } else if (formValue.tipoYPrivacidad.tipoIncidencia === 'RECLAMO') {
       payload.detalleReclamo = {
-        tipoServicioId: detalle.tipoServicioId,
-        ubicacionGps: detalle.ubicacionGps,
-        direccion: detalle.direccion,
-        noContador: detalle.noContador,
-        descripcion: detalle.descripcion
+        tipoServicioId: detalle.tipoServicioId ? Number(detalle.tipoServicioId) : null,
+        latitudGps: '',
+        longitudGps: '',
+        direccion: detalle.direccion || '',
+        noContador: detalle.noContador || '',
+        descripcion: detalle.descripcion || ''
       };
-    } else if (payload.tipoIncidencia === 'DENUNCIA') {
+      if (detalle.ubicacionGps) {
+        const parts = detalle.ubicacionGps.split(',');
+        if (parts.length === 2) {
+          payload.detalleReclamo.latitudGps = parts[0].trim();
+          payload.detalleReclamo.longitudGps = parts[1].trim();
+        }
+      }
+    } else if (formValue.tipoYPrivacidad.tipoIncidencia === 'DENUNCIA') {
       payload.detalleDenuncia = {
-        tipoDenunciaId: detalle.tipoDenunciaId,
-        denunciados: detalle.denunciados,
-        fechaHoraHechos: detalle.fechaHoraHechos,
-        direccion: detalle.direccion,
-        relato: detalle.relato
+        tipoDenunciaId: detalle.tipoDenunciaId ? Number(detalle.tipoDenunciaId) : null,
+        denunciados: detalle.denunciados ? [{ nombre: detalle.denunciados }] : [],
+        fechaHoraHechos: detalle.fechaHoraHechos ? new Date(detalle.fechaHoraHechos).toISOString() : null,
+        direccion: detalle.direccion || '',
+        relato: detalle.relato || ''
       };
-    } else if (payload.tipoIncidencia === 'SUGERENCIA') {
+    } else if (formValue.tipoYPrivacidad.tipoIncidencia === 'SUGERENCIA') {
       payload.detalleSugerencia = {
-        areaId: detalle.areaId,
-        descripcionActual: detalle.descripcionActual,
-        propuestaMejora: detalle.propuestaMejora
+        areaId: detalle.areaId ? Number(detalle.areaId) : null,
+        descripcionActual: detalle.descripcionActual || '',
+        propuestaMejora: detalle.propuestaMejora || ''
       };
     }
 
@@ -262,7 +283,15 @@ export class RegistroIncidenciaComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error enviando', err);
-        alert('Ocurrió un error al enviar la incidencia.');
+        let errorMsg = 'Ocurrió un error al enviar la incidencia.';
+        if (err.error && err.error.message) {
+          errorMsg = err.error.message;
+          // If there are field validation errors, show them
+          if (err.error.errors && Array.isArray(err.error.errors)) {
+            errorMsg += '\n' + err.error.errors.join('\n');
+          }
+        }
+        alert(errorMsg);
         this.isSubmitting = false;
       }
     });

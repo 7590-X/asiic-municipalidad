@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClarityModule } from '@clr/angular';
 import { forkJoin } from 'rxjs';
-import { IncidenciasService } from '../../services/incidencias.service';
+import { IncidenciasService, ContadorVecino } from '../../services/incidencias.service';
 import { CatalogoItem } from '../../../../core/models/catalogo.model';
 
 @Component({
@@ -23,6 +23,7 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
   tiposServicio = signal<CatalogoItem[]>([]);
   tiposDenuncia = signal<CatalogoItem[]>([]);
   areasSugerencia = signal<CatalogoItem[]>([]);
+  contadores = signal<ContadorVecino[]>([]);
   loadingCatalogos = signal<boolean>(true);
 
   ngOnInit(): void {
@@ -30,13 +31,20 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
       dep: this.incidenciasService.getCatalogosDependencias(),
       serv: this.incidenciasService.getCatalogosTiposServicio(),
       den: this.incidenciasService.getCatalogosTiposDenuncia(),
-      sug: this.incidenciasService.getCatalogosAreasSugerencia()
+      sug: this.incidenciasService.getCatalogosAreasSugerencia(),
+      contadores: this.incidenciasService.getMisContadores()
     }).subscribe({
       next: (data) => {
         this.dependencias.set(data.dep);
         this.tiposServicio.set(data.serv);
         this.tiposDenuncia.set(data.den);
         this.areasSugerencia.set(data.sug);
+        this.contadores.set(data.contadores);
+
+        if (data.contadores.length === 1) {
+          this.stepForm.get('noContador')?.setValue(data.contadores[0].do_contador);
+        }
+
         this.loadingCatalogos.set(false);
       },
       error: () => {
@@ -67,7 +75,7 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
 
   updateDynamicValidators(tipo: string): void {
     const detalle = this.stepForm;
-    
+
     // Limpiar todos los validadores
     Object.keys(detalle.controls).forEach(key => {
       detalle.get(key)?.clearValidators();

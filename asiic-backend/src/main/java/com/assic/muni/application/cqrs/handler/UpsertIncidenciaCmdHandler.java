@@ -21,7 +21,6 @@ import com.assic.muni.domain.repository.AsUsuarioRepository;
 import com.assic.muni.domain.repository.AsVecinoDomicilioRepository;
 import lombok.RequiredArgsConstructor;
 
-
 /**
  * Clase para la ejecución de comando UPSERT para el registro de una insidencia
  * en estado de borrador
@@ -51,7 +50,7 @@ public class UpsertIncidenciaCmdHandler {
             case 3 -> registrarSolicitudDenuncia(payload, subject);
             case 4 -> registrarSolicitudSujerencia(payload, subject);
             default ->
-                    throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo identificare el tipo de insidencia");
+                throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo identificare el tipo de insidencia");
         };
     }
 
@@ -77,8 +76,7 @@ public class UpsertIncidenciaCmdHandler {
         // Construcción Template
         JsonNode evidenciasJson = objectMapper.valueToTree(payload.getDetalleQueja().getTestigo());
         final AsIncidencia toPersist = IncidenciaMapper.frontDtoToQueja(
-                privacidad, vecinoId, unidadId, payload, insidencia, evidenciasJson
-        );
+                privacidad, vecinoId, unidadId, payload, insidencia, evidenciasJson);
 
         // Persistencia
         AsIncidencia persisted = incidenciaRepository.save(toPersist);

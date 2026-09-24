@@ -5,6 +5,19 @@
   </div>
 
   <ng-container *ngIf="!loadingCatalogos()">
+    
+    <!-- === SIEMPRE REQUERIDO === -->
+    <clr-select-container class="rv-full mb-3" style="margin-bottom: 1rem;">
+      <label>No. de Contador (Domicilio vinculado)</label>
+      <select clrSelect formControlName="noContador">
+        <option value="">Seleccione un contador...</option>
+        <option *ngFor="let c of contadores()" [value]="c.do_contador">
+          {{ c.do_contador }} - {{ c.do_direccion.di_direccion }}, {{ c.do_direccion.di_locacion?.lo_descripcion || '' }}
+        </option>
+      </select>
+      <clr-control-helper>Elija la locación relacionada a esta solicitud</clr-control-helper>
+    </clr-select-container>
+
     <!-- === QUEJA === -->
     <ng-container *ngIf="tipoIncidencia === 'QUEJA'">
       <clr-select-container>
@@ -68,12 +81,6 @@
       <clr-input-container class="rv-full">
         <label>Dirección (Opcional)</label>
         <input clrInput type="text" formControlName="direccion" />
-      </clr-input-container>
-
-      <clr-input-container class="rv-full">
-        <label>No. de Contador</label>
-        <input clrInput type="text" formControlName="noContador" />
-        <clr-control-helper>Obligatorio para Agua o IUSI</clr-control-helper>
       </clr-input-container>
 
       <clr-textarea-container class="rv-full">
