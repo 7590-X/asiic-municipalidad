@@ -26,7 +26,7 @@ public class AsInsidenciaArchivo {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ia_insidencia", nullable = false)
-    private AsInsidencia iaInsidencia;
+    private AsIncidencia iaInsidencia;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")

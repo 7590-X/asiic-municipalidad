@@ -34,7 +34,7 @@ public class AsDenunciado {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "de_insidencia", nullable = false)
-    private AsInsidencia deInsidencia;
+    private AsIncidencia deInsidencia;
 
 
 }

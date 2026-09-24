@@ -1,3 +1,4 @@
+# Configuración Aplicación
 app:
   frontend:
     domain: ${FRONT_DOMAIN:http://localhost:4200}
@@ -8,6 +9,7 @@ app:
         reset-password: 900000  # 15 mins
         verity-email: 86400000  # 24 horas
 
+# Configuración OID
 keycloak:
   client: ${KC_CLIENT}
   realm: ${KC_REALM}
@@ -31,6 +33,7 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${keycloak.server}/realms/${keycloak.realm}
+          jwk-set-uri: ${keycloak.server}/realms/${keycloak.realm}/protocol/openid-connect/certs
 
   datasource:
     url: ${DB_URL}
@@ -46,6 +49,8 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
+
+  # Configuración para servidor de correo electrónico
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
@@ -58,9 +63,27 @@ spring:
           auth: true
           starttls:
             enable: true
-
+  # Configuración Liquibase Migraciones
   liquibase:
     change-log: classpath:db/db.changelog-master.yaml
     enabled: true
+
+# Configuración Tomcat Server
 server:
   port: 8888
+
+# Configuración Swagger Open API
+openapi:
+  service:
+    title: ASIIC Backend
+    version: @project.version@
+    description: Documentación API Web Service
+
+# Configuración para servidor SFTP de archivos
+sftp:
+  host: 100.80.51.41
+  port: 22
+  user: sftpuser
+  remote-directory: /archivos/asiic
+  private-key-path: classpath:keys/id_rsa
+  private-key-passphrase: ""

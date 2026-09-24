@@ -1,5 +1,6 @@
 package com.assic.muni.infrastructure.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,14 +12,16 @@ import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
+@Slf4j
 @Configuration
 public class SslBypassConfig {
 
-    @Value("${keycloak.ssl.disable-trust-manager:false}")
+    @Value("${keycloak.ssl.disable-trust-manager}")
     private boolean disableTrustManager;
 
     @PostConstruct
     public void disableSsl() {
+        log.info("[SSL] Trust manager disabled: {}", disableTrustManager);
         if (disableTrustManager) {
             try {
                 TrustManager[] trustAllCerts = new TrustManager[]{
