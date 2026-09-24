@@ -2,7 +2,7 @@ package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
-import com.assic.muni.application.cqrs.dto.IncidenciaQuejaDto;
+import com.assic.muni.application.cqrs.dto.IncidenciaDto;
 import com.assic.muni.application.cqrs.handler.UpsertIncidenciaCmdHandler;
 import com.assic.muni.infrastructure.config.SwaggerConfig;
 import com.assic.muni.presentation.api.util.UriBuilder;
@@ -57,17 +57,19 @@ public class IncidenciasController {
                         "Insidencia registrada exitosamente", null));
     }
 
-    @GetMapping("/quejas/{id}")
+    @GetMapping("/{id}")
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
     @Operation(summary = "Obtener el detalle estructurado de una queja por su ID")
-    public ResponseEntity<ApiResponseDto<IncidenciaQuejaDto>> obtenerQuejaPorId(@PathVariable Integer id) {
-        IncidenciaQuejaDto dto = incidenciaQueryHandler.obtenerQuejaPorId(id);
-        return ResponseEntity.ok(new ApiResponseDto<>(
-                HttpStatus.OK.value(),
-                null,
-                ZonedDateTime.now(),
-                "Queja obtenida exitosamente",
-                dto
-        ));
+    public ResponseEntity<IncidenciaDto> obtenerMiInscidenciaPorId(@PathVariable Integer id) {
+        IncidenciaDto dto = incidenciaQueryHandler.obtenerMiIncidenciaPorId(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping
+    @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
+    @Operation(summary = "Obtener el detalle estructurado de una queja por su ID")
+    public ResponseEntity<List<IncidenciaDto>> obtenerMisIncidenciasPorId() {
+        List<IncidenciaDto> dtos = incidenciaQueryHandler.obtenerMisIncidencias();
+        return ResponseEntity.ok(dtos);
     }
 }

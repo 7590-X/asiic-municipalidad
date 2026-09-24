@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class IncidenciaQuejaDto {
+public class IncidenciaDto {
     private Integer id;
     private TipoIncidenciaDto tipoIncidencia;
     private CatalogoItemDto privacidad;

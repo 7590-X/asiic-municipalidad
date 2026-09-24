@@ -40,7 +40,7 @@ public final class IncidenciaMapper {
         return toUpsert;
     }
 
-    public static IncidenciaQuejaDto entityToQuejaDto(AsIncidencia entity, ObjectMapper objectMapper) {
+    public static IncidenciaDto entityToQuejaDto(AsIncidencia entity, ObjectMapper objectMapper) {
         if (entity == null) {
             return null;
         }
@@ -106,7 +106,7 @@ public final class IncidenciaMapper {
             }
         }
 
-        return IncidenciaQuejaDto.builder()
+        return IncidenciaDto.builder()
                 .id(entity.getId())
                 .tipoIncidencia(tipoIncidencia)
                 .privacidad(privacidad)
