@@ -16,27 +16,26 @@ import lombok.Data;
 public class IncidenciaPayloadCmd {
 
     /**
-     * Código de insidencia, requerido solamentente cuando se actualiza la
-     * insidencia
+     * Código de incidencia, requerido cuando se actualiza la incidencia
      */
-    private Integer insidenciaId;
+    private Integer incidenciaId;
 
     /**
      * QUEJA, RECLAMO, DENUNCIA, SUGERENCIA
      */
-    @NotNull(message = "El código de insidencia es requerido", groups = { GrpQueja.class })
-    private Integer tipoIncidencia;
+    @NotNull(message = "El código de insidencia es requerido", groups = {GrpQueja.class})
+    private Short tipoIncidencia;
 
     /**
      * Debe de almacenar el pseudonimo del tipo de privacidad
      */
-    @NotBlank(message = "El pseudonimo de privacidad es requerido", groups = { GrpQueja.class })
+    @NotBlank(message = "El pseudonimo de privacidad es requerido", groups = {GrpQueja.class})
     private String privacidad;
 
     /**
      * Número de contador
      */
-    @NotBlank(message = "El número de contador del domicilio es requerido", groups = { GrpQueja.class })
+    @NotBlank(message = "El número de contador del domicilio es requerido", groups = {GrpQueja.class})
     private String contador;
 
     /**

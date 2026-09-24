@@ -19,7 +19,7 @@ public interface AsCatalogoRepository extends JpaRepository<AsCatalogo, Short> {
     Optional<Short> findIdByCaSeudo(@Param("caSeudo") String caSeudo);
 
     @Query("""
-            select 1 from AsCatalogo c where c.caTabla.id = :tabla and c.id = :id
+            select count(c) > 0 from AsCatalogo c where c.caTabla.id = :tabla and c.id = :id
                 """)
     boolean existsByTableAndId(@Param("tabla") short tabla, @Param("id") short id);
 

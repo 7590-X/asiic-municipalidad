@@ -20,6 +20,11 @@ public class CatalogoQueryHandler {
 
     public static final Map<ECatalogo, String> mCatalogos = Map.of(
             ECatalogo.C_ESTADO_CIVIL, "as_estado_civil",
+            ECatalogo.C_PROFESION, "as_profesion"
+    );
+
+    public static final Map<ECatalogo, String> mCatalogosPrivs = Map.of(
+            ECatalogo.C_ESTADO_CIVIL, "as_estado_civil",
             ECatalogo.C_PROFESION, "as_profesion",
             ECatalogo.C_DEPENDENCIAS, "as_dependencias",
             ECatalogo.C_TIPOS_SERVICIO, "as_tipos_servicio",
@@ -27,11 +32,21 @@ public class CatalogoQueryHandler {
             ECatalogo.C_AREAS_SUGERENCIA, "as_areas"
     );
 
+
     public List<CatalogoDto> getCatalogoItemsByCatalogoId(ECatalogo catalogo) {
         String table = mCatalogos.get(catalogo);
-        List<AsCatalogo> list = asCatalogoRepository.findByCaTabla_TaNombreOrderByIdAsc(table);
+        return getCatalogo(table);
+    }
+
+    public List<CatalogoDto> getCatalogoItemsPrivados(ECatalogo catalogo) {
+        String table = mCatalogosPrivs.get(catalogo);
+        return getCatalogo(table);
+    }
+
+    private List<CatalogoDto> getCatalogo(String tabla){
+        List<AsCatalogo> list = asCatalogoRepository.findByCaTabla_TaNombreOrderByIdAsc(tabla);
         if (list.isEmpty()) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, "No existen items para el catalogo " + catalogo.getValue());
+            throw new ServiceException(HttpStatus.NOT_FOUND, "No existen items para el catalogo");
         }
         return list.stream()
                 .map(c -> new CatalogoDto(c.getId(), c.getCaValor()))

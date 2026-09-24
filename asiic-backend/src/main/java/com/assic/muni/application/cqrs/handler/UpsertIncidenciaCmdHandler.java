@@ -1,9 +1,9 @@
 package com.assic.muni.application.cqrs.handler;
 
 import java.util.List;
-import java.util.Map;
 
-import com.assic.muni.application.util.JsonbConverter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +21,7 @@ import com.assic.muni.domain.repository.AsUsuarioRepository;
 import com.assic.muni.domain.repository.AsVecinoDomicilioRepository;
 import lombok.RequiredArgsConstructor;
 
+
 /**
  * Clase para la ejecución de comando UPSERT para el registro de una insidencia
  * en estado de borrador
@@ -37,7 +38,7 @@ public class UpsertIncidenciaCmdHandler {
 
     // Utils
     private final PayloadValidator payloadValidator;
-    private final JsonbConverter jsonbConverter;
+    private final ObjectMapper objectMapper;
 
     public Integer handle(IncidenciaPayloadCmd payload, List<MultipartFile> evidencias) {
         final String subject = JwtExtractor.extrarJwtSubject();
@@ -56,8 +57,8 @@ public class UpsertIncidenciaCmdHandler {
 
     private Integer registrarSolicitudQueja(IncidenciaPayloadCmd payload, String subject) {
         // Validaciones
-        Integer vecinoId = verificacionExistenciaVecino(subject);
-        validarPerteneciaDomicilio(payload.getContador(), vecinoId);
+        int vecinoId = verificacionExistenciaVecino(subject);
+        validarPertenenciaDomicilio(payload.getContador(), vecinoId);
         Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
         final short unidadId = payload.getDetalleQueja().getDependenciaId();
         boolean existsUnidad = catalogoRepository.existsByTableAndId((short) 9, unidadId); // 9 = as_areas
@@ -67,16 +68,16 @@ public class UpsertIncidenciaCmdHandler {
         }
         // Validar UPSERT
         AsIncidencia insidencia = null;
-        if (payload.getInsidenciaId() != null) {
-            insidencia = incidenciaRepository.findByIdAndInVecino(payload.getInsidenciaId(), vecinoId)
+        if (payload.getIncidenciaId() != null) {
+            insidencia = incidenciaRepository.findByIdAndInVecino(payload.getIncidenciaId(), vecinoId)
                     .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
                             "La insidencia no fue encontrada para su actualización"));
         }
 
         // Construcción Template
-        Map<String, Object> evidencias = jsonbConverter.convertPojoToMap(payload.getDetalleQueja().getTestigo());
+        JsonNode evidenciasJson = objectMapper.valueToTree(payload.getDetalleQueja().getTestigo());
         final AsIncidencia toPersist = IncidenciaMapper.frontDtoToQueja(
-                privacidad, vecinoId, unidadId, payload, insidencia, evidencias
+                privacidad, vecinoId, unidadId, payload, insidencia, evidenciasJson
         );
 
         // Persistencia
@@ -114,20 +115,19 @@ public class UpsertIncidenciaCmdHandler {
      * @return ID del vecino
      */
     private Integer verificacionExistenciaVecino(String uuid) {
-        Integer vecinoId = usuarioRepository.findUsPersonaByUsId(uuid)
+        return usuarioRepository.findUsPersonaByUsId(uuid)
                 .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
                         "No se pudo obtener información de la cuenta"));
-        return vecinoId;
     }
 
     /**
      * Verificar la privacidad de la solicitud
      *
-     * @param pseudo Pseudonimo de privacidad
-     * @return ID de privacidad en catalogo
+     * @param pseudo Pseudónimo de privacidad
+     * @return ID de privacidad en catálogo
      */
     private Short verificacionExistenciaPrivacidad(String pseudo) {
-        if (pseudo == "PUB" || pseudo == "PRIV") {
+        if (pseudo.equals("PUB") || pseudo.equals("PRIV")) {
             return catalogoRepository.findIdByCaSeudo(pseudo)
                     .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND,
                             "No se encontró el catalogo para el tipo de privacidad"));
@@ -141,7 +141,7 @@ public class UpsertIncidenciaCmdHandler {
      * @param contador Número de contador
      * @param vecinoId Código de vecino
      */
-    private void validarPerteneciaDomicilio(String contador, int vecinoId) {
+    private void validarPertenenciaDomicilio(String contador, int vecinoId) {
         boolean exists = vecinoDomicilioRepository.existsRelationByContadorAndVecino(contador, vecinoId);
         if (!exists) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar la pertenencia de la residencia");

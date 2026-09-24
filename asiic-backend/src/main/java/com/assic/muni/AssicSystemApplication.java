@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
 import jakarta.annotation.PostConstruct;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @EnableAsync
 @SpringBootApplication
@@ -20,5 +21,8 @@ public class AssicSystemApplication {
     @PostConstruct
     public void setup() {
         TimeZone.setDefault(TimeZone.getTimeZone("America/Guatemala"));
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
     }
+
+
 }
