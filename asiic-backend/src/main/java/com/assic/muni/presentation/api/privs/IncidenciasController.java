@@ -2,6 +2,7 @@ package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
+import com.assic.muni.application.cqrs.dto.IncidenciaQuejaDto;
 import com.assic.muni.application.cqrs.handler.UpsertIncidenciaCmdHandler;
 import com.assic.muni.infrastructure.config.SwaggerConfig;
 import com.assic.muni.presentation.api.util.UriBuilder;
@@ -30,6 +31,7 @@ public class IncidenciasController {
 
     protected static final String URI = "/api/v1/asiic/incidencias";
     private final UpsertIncidenciaCmdHandler upsertIncidenciaCmdHandler;
+    private final com.assic.muni.application.cqrs.handler.IncidenciaQueryHandler incidenciaQueryHandler;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
@@ -53,5 +55,19 @@ public class IncidenciasController {
         return ResponseEntity.created(resourceUri)
                 .body(new ApiResponseDto(HttpStatus.CREATED.value(), null, ZonedDateTime.now(),
                         "Insidencia registrada exitosamente", null));
+    }
+
+    @GetMapping("/quejas/{id}")
+    @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
+    @Operation(summary = "Obtener el detalle estructurado de una queja por su ID")
+    public ResponseEntity<ApiResponseDto<IncidenciaQuejaDto>> obtenerQuejaPorId(@PathVariable Integer id) {
+        IncidenciaQuejaDto dto = incidenciaQueryHandler.obtenerQuejaPorId(id);
+        return ResponseEntity.ok(new ApiResponseDto<>(
+                HttpStatus.OK.value(),
+                null,
+                ZonedDateTime.now(),
+                "Queja obtenida exitosamente",
+                dto
+        ));
     }
 }
