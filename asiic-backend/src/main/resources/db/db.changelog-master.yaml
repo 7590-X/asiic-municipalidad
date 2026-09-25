@@ -33,3 +33,5 @@ databaseChangeLog:
       file: db/changelog/260923-1-campos-almacenar-objeto-json.sql
   - include:
       file: db/changelog/260923-2-eliminar-not-null.sql
+  - include:
+      file: db/changelog/260925-1-alteracion-pk-incidencias-archivos.sql
