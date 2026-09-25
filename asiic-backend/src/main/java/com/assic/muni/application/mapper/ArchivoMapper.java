@@ -10,8 +10,18 @@ public final class ArchivoMapper {
                 archivo.getId(),
                 archivo.getArNombre(),
                 archivo.getArFormato(),
-                archivo.getArFecRegistro()
+                archivo.getArFecRegistro(),
+                null
         );
     }
 
+    public static ArchivoDto frontEntityToDto(AsArchivo archivo, byte[] contenido) {
+        return new ArchivoDto(
+                archivo.getId(),
+                archivo.getArNombre(),
+                archivo.getArFormato(),
+                archivo.getArFecRegistro(),
+                contenido
+        );
+    }
 }

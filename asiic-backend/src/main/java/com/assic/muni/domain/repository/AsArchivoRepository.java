@@ -27,4 +27,15 @@ public interface AsArchivoRepository extends JpaRepository<AsArchivo, Integer> {
                 and ia.id.aiIncidencia  = :incidenciaId
             """)
     List<AsArchivo> findByIncidenciaId(Integer incidenciaId);
+
+
+    @Query("""
+            select a from AsArchivo a
+            inner join AsIncidenciaArchivo ia
+                on a.id                 = ia.id.aiArchivo
+                and ia.id.aiIncidencia  = :incidenciaId
+                and ia.aiUsrRegistro    = :user
+            where a.id = :archivoId
+            """)
+    Optional<AsArchivo> findByIncidenciaAndArchivoAndUserUUID(Integer incidenciaId, Integer archivoId, String user);
 }
