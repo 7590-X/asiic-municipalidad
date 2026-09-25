@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/asiic/public/catalogos")
 @RequiredArgsConstructor
-@Tag(name = "Catálogos públicos")
+@Tag(name = "Catálogos Públicos", description = "Listado de catálogos públicos")
 public class PubCatalogoController {
 
     private final CatalogoQueryHandler catalogoQueryHandler;

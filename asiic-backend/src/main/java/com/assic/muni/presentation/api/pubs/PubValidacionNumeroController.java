@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/asiic/public/validacion-numeros")
-@Tag(name = "Validaciones de valores de identidad personal")
+@Tag(name = "Validaciones", description = "Validaciones de diferentes tipo de valores numéricos")
 public class PubValidacionNumeroController {
 
     private final NumerosQueryHandler numerosQueryHandler;

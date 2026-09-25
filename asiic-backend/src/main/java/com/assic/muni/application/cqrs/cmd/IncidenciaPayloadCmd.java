@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.assic.muni.application.cqrs.dto.TestigoDto;
 import com.assic.muni.application.group.GrpQueja;
 
 import jakarta.validation.Valid;
@@ -109,17 +110,6 @@ public class IncidenciaPayloadCmd {
         private Short areaId;
         private String descripcionActual;
         private String propuestaMejora;
-    }
-
-    /**
-     * Estructura para agregar testigos a solicitudes de reclamos
-     */
-    @Data
-    public static class TestigoDto {
-        @NotBlank(message = "El nombre del testigo es requerido", groups = GrpQueja.class)
-        private String nombre;
-        private String telefono;
-        private String correo;
     }
 
     /**

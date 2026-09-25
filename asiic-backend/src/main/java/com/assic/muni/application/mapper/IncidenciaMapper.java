@@ -11,13 +11,13 @@ import com.assic.muni.domain.model.AsIncidencia;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 
 
+@Slf4j
 public final class IncidenciaMapper {
 
-    public static AsIncidencia frontDtoToQueja(short privacidad, int vecinoId, short unidadId,
-                                               IncidenciaPayloadCmd payload, AsIncidencia toUpsert,
-                                               JsonNode evidencias) {
+    public static AsIncidencia frontDtoToQueja(short privacidad, int vecinoId, short unidadId, IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode evidencias) {
 
         if (null == toUpsert) {
             toUpsert = new AsIncidencia();
@@ -41,71 +41,26 @@ public final class IncidenciaMapper {
     }
 
     public static IncidenciaDto entityToQuejaDto(AsIncidencia entity, ObjectMapper objectMapper) {
-        if (entity == null) {
-            return null;
-        }
-
-        TipoIncidenciaDto tipoIncidencia = null;
-        if (entity.getInTipoIncidenciaObj() != null) {
-            tipoIncidencia = new TipoIncidenciaDto(
-                    entity.getInTipoIncidenciaObj().getId(),
-                    entity.getInTipoIncidenciaObj().getTiNombre(),
-                    entity.getInTipoIncidenciaObj().getTiDescripcion()
-            );
-        }
-
-        CatalogoItemDto privacidad = null;
-        if (entity.getInPrivacidadObj() != null) {
-            privacidad = new CatalogoItemDto(
-                    entity.getInPrivacidadObj().getId(),
-                    entity.getInPrivacidadObj().getCaValor(),
-                    entity.getInPrivacidadObj().getCaSeudo()
-            );
-        }
+        // Mandatorio en todas las solicitudes
+        TipoIncidenciaDto tipoIncidencia = TipoIncidenciaMapper.fronEntityToDto(entity.getInTipoIncidenciaObj());
+        CatalogoItemDto privacidad = CatalogoMapper.fromEntityToDto(entity.getInPrivacidadObj());
 
         CatalogoItemDto dependencia = null;
         if (entity.getInUnidadObj() != null) {
-            dependencia = new CatalogoItemDto(
-                    entity.getInUnidadObj().getId(),
-                    entity.getInUnidadObj().getCaValor(),
-                    entity.getInUnidadObj().getCaSeudo()
-            );
+            dependencia = CatalogoMapper.fromEntityToDto(entity.getInUnidadObj());
         }
+        VecinoDto vecino = VecinoMapper.fronEntityToDto(entity.getInVecinoObj());
+        DomicilioDto domicilio = DomicilioMapper.frontEntityToDto(entity.getInContadorObj());
 
-        VecinoDto vecino = null;
-        if (entity.getInVecinoObj() != null) {
-            var v = entity.getInVecinoObj();
-            String cui = null;
-            String nombreCompleto = null;
-            if (v.getVePersona() != null) {
-                cui = v.getVePersona().getPeCui();
-                nombreCompleto = (v.getVePersona().getPeNombre() + " " + v.getVePersona().getPeApellido()).trim();
-            }
-            String correo = v.getVeCorreo() != null ? v.getVeCorreo().getCoCorreo() : null;
-            String telefono = v.getVeTelefono() != null ? v.getVeTelefono().getTeTelefono() : null;
-            vecino = new VecinoDto(v.getId(), cui, nombreCompleto, correo, telefono);
-        }
-
-        DomicilioDto domicilio = null;
-        if (entity.getInContadorObj() != null) {
-            var d = entity.getInContadorObj();
-            String direccion = d.getDoDireccion() != null ? d.getDoDireccion().getDiDireccion() : null;
-            domicilio = new DomicilioDto(d.getDoContador(), direccion, d.getDoLatitud(), d.getDoLongitud());
-        }
-
-        List<TestigoResumenDto> testigos = Collections.emptyList();
+        List<TestigoDto> testigos = Collections.emptyList();
         if (entity.getInJsons() != null && !entity.getInJsons().isNull() && !entity.getInJsons().isEmpty()) {
             try {
-                testigos = objectMapper.convertValue(
-                        entity.getInJsons(),
-                        new TypeReference<List<TestigoResumenDto>>() {
-                        }
-                );
+                testigos = objectMapper.convertValue(entity.getInJsons(), new TypeReference<List<TestigoDto>>() {
+                });
             } catch (Exception ignored) {
-                testigos = Collections.emptyList();
+                log.error("[JSON_MAPPER] No se pudo convertir testigos", ignored);
             }
         }
-
         return IncidenciaDto.builder()
                 .id(entity.getId())
                 .tipoIncidencia(tipoIncidencia)
@@ -122,9 +77,7 @@ public final class IncidenciaMapper {
                 .estado(entity.getInEstado())
                 .testigos(testigos)
                 .fechaRegistro(entity.getInFecRegistro())
-                .usuarioRegistro(entity.getInUsrRegistro())
                 .fechaModifico(entity.getInFecModifico())
-                .usuarioModifico(entity.getInUsrModifico())
                 .build();
     }
 }

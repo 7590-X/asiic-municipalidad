@@ -46,6 +46,9 @@ public class AsDireccion {
     @Column(name = "di_fec_modifico")
     private Instant diFecModifico;
 
+    /**
+     * Valor para almacenar la comuna
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "di_locacion", insertable = false, updatable = false)
     private AsLocacion diLocacionObj;

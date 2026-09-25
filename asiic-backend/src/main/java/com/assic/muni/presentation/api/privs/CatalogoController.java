@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/asiic/catalogos")
-@Tag(name = "Catálogos Privados", description = "Listado de catálogos privados solo para usuario autenticados")
+@Tag(name = "Catálogos", description = "Listado de catálogos privados solo para usuario autenticados")
 public class CatalogoController {
 
     private final CatalogoQueryHandler catalogoQueryHandler;

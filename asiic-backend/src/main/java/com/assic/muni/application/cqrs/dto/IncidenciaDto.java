@@ -26,7 +26,7 @@ public class IncidenciaDto {
     private String latitud;
     private String longitud;
     private String estado;
-    private List<TestigoResumenDto> testigos;
+    private List<TestigoDto> testigos;
     private Instant fechaRegistro;
     private String usuarioRegistro;
     private Instant fechaModifico;

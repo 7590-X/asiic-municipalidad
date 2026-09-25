@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/asiic/auth")
-@Tag(name = "Auth")
+@Tag(name = "Autenticación", description = "Gestión de seguridad de usuarios")
 public class AuthController {
 
     private final ConfirmarCuentaCmdHandler confirmarCuentaCmdHandler;
