@@ -2,10 +2,17 @@ package com.assic.muni.application.cqrs.handler;
 
 import java.util.List;
 
+import com.assic.muni.application.port.out.FileStoragePort;
+import com.assic.muni.application.port.out.SftpStoragePort;
+import com.assic.muni.domain.model.AsArchivo;
+import com.assic.muni.domain.model.AsIncidenciaArchivo;
+import com.assic.muni.domain.model.AsIncidenciaArchivoId;
+import com.assic.muni.domain.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
@@ -15,10 +22,6 @@ import com.assic.muni.application.mapper.IncidenciaMapper;
 import com.assic.muni.application.util.JwtExtractor;
 import com.assic.muni.application.util.PayloadValidator;
 import com.assic.muni.domain.model.AsIncidencia;
-import com.assic.muni.domain.repository.AsCatalogoRepository;
-import com.assic.muni.domain.repository.AsIncidenciaRepository;
-import com.assic.muni.domain.repository.AsUsuarioRepository;
-import com.assic.muni.domain.repository.AsVecinoDomicilioRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -34,14 +37,20 @@ public class UpsertIncidenciaCmdHandler {
     private final AsCatalogoRepository catalogoRepository;
     private final AsVecinoDomicilioRepository vecinoDomicilioRepository;
     private final AsIncidenciaRepository incidenciaRepository;
+    private final AsIncidenciaArchivoRepository incidenciaArchivoRepository;
+
+    // Puertos
+    private final FileStoragePort fileStoragePort;
 
     // Utils
     private final PayloadValidator payloadValidator;
     private final ObjectMapper objectMapper;
 
+    @Transactional
     public Integer handle(IncidenciaPayloadCmd payload, List<MultipartFile> evidencias) {
         final String subject = JwtExtractor.extrarJwtSubject();
-        return switch (payload.getTipoIncidencia()) {
+        // Persistir incidencias
+        int incidencia = switch (payload.getTipoIncidencia()) {
             case 1 -> {
                 payloadValidator.validate(payload, GrpQueja.class);
                 yield registrarSolicitudQueja(payload, subject);
@@ -50,8 +59,14 @@ public class UpsertIncidenciaCmdHandler {
             case 3 -> registrarSolicitudDenuncia(payload, subject);
             case 4 -> registrarSolicitudSujerencia(payload, subject);
             default ->
-                throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo identificare el tipo de insidencia");
+                    throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo identificare el tipo de insidencia");
         };
+
+        // Persistir evidencias
+        if (evidencias != null && !evidencias.isEmpty()) {
+            almacenarEvidencias(evidencias, incidencia);
+        }
+        return incidencia;
     }
 
     private Integer registrarSolicitudQueja(IncidenciaPayloadCmd payload, String subject) {
@@ -82,9 +97,6 @@ public class UpsertIncidenciaCmdHandler {
         AsIncidencia persisted = incidenciaRepository.save(toPersist);
 
         // Guardado de archivos en SFTP
-
-        // Eventos
-
         return persisted.getId();
     }
 
@@ -143,6 +155,22 @@ public class UpsertIncidenciaCmdHandler {
         boolean exists = vecinoDomicilioRepository.existsRelationByContadorAndVecino(contador, vecinoId);
         if (!exists) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar la pertenencia de la residencia");
+        }
+    }
+
+    private void almacenarEvidencias(List<MultipartFile> evidencias, int incidenciaId) {
+        if (evidencias != null && !evidencias.isEmpty()) {
+            for (MultipartFile mf : evidencias) {
+                AsArchivo archivo = fileStoragePort.storeFile(mf);
+
+                incidenciaArchivoRepository.save(
+                        AsIncidenciaArchivo.builder()
+                                .id(new AsIncidenciaArchivoId(archivo.getId(), incidenciaId))
+                                .aiEstado("A")
+                                .build()
+                );
+
+            }
         }
     }
 }

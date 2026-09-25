@@ -67,4 +67,35 @@ public class LocalFileStorageAdapter implements FileStoragePort {
             throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al procesar el archivo adjunto");
         }
     }
+
+    @Override
+    public byte[] getFile(Integer archivoId) {
+        AsArchivo archivo = asArchivoRepository.findById(archivoId)
+                .orElseThrow(() -> new InfrastructureException(HttpStatus.NOT_FOUND, "Archivo no encontrado"));
+        try {
+            Path path = Paths.get(archivo.getArPath());
+            if (!Files.exists(path)) {
+                throw new InfrastructureException(HttpStatus.NOT_FOUND, "El archivo físico local no existe");
+            }
+            return Files.readAllBytes(path);
+        } catch (IOException e) {
+            log.error("Error al leer archivo local: {}", e.getMessage(), e);
+            throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al recuperar archivo local");
+        }
+    }
+
+    @Override
+    public boolean deleteFile(Integer archivoId) {
+        return asArchivoRepository.findById(archivoId).map(archivo -> {
+            try {
+                Path path = Paths.get(archivo.getArPath());
+                Files.deleteIfExists(path);
+                asArchivoRepository.delete(archivo);
+                return true;
+            } catch (IOException e) {
+                log.error("Error al eliminar archivo local: {}", e.getMessage(), e);
+                throw new InfrastructureException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al eliminar archivo local");
+            }
+        }).orElse(false);
+    }
 }

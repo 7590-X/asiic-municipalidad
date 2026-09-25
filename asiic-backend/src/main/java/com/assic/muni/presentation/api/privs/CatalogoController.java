@@ -30,5 +30,4 @@ public class CatalogoController {
     public ResponseEntity<List<CatalogoDto>> obtener(@PathVariable ECatalogo catalogo) {
         return ResponseEntity.ok(catalogoQueryHandler.getCatalogoItemsPrivados(catalogo));
     }
-
 }

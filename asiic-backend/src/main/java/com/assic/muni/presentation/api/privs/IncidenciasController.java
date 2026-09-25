@@ -2,7 +2,10 @@ package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
+import com.assic.muni.application.cqrs.dto.ArchivoDto;
 import com.assic.muni.application.cqrs.dto.IncidenciaDto;
+import com.assic.muni.application.cqrs.handler.ArchivosQueryHandler;
+import com.assic.muni.application.cqrs.handler.IncidenciaQueryHandler;
 import com.assic.muni.application.cqrs.handler.UpsertIncidenciaCmdHandler;
 import com.assic.muni.infrastructure.config.SwaggerConfig;
 import com.assic.muni.presentation.api.util.UriBuilder;
@@ -31,7 +34,8 @@ public class IncidenciasController {
 
     protected static final String URI = "/api/v1/asiic/incidencias";
     private final UpsertIncidenciaCmdHandler upsertIncidenciaCmdHandler;
-    private final com.assic.muni.application.cqrs.handler.IncidenciaQueryHandler incidenciaQueryHandler;
+    private final IncidenciaQueryHandler incidenciaQueryHandler;
+    private final ArchivosQueryHandler archivosQueryHandler;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
@@ -71,5 +75,12 @@ public class IncidenciasController {
     public ResponseEntity<List<IncidenciaDto>> obtenerMisIncidenciasPorId() {
         List<IncidenciaDto> dtos = incidenciaQueryHandler.obtenerMisIncidencias();
         return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("me/{incidenciaId}/archivos")
+    @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
+    @Operation(summary = "Obtener mis archivos de una incidencia por su ID")
+    public ResponseEntity<List<ArchivoDto>> obtenerArchivosDeIncidenciaPorId(@PathVariable Integer incidenciaId) {
+        return ResponseEntity.ok(archivosQueryHandler.obtenerMisArchivosDeIncidencia(incidenciaId));
     }
 }

@@ -81,9 +81,13 @@ openapi:
 
 # Configuración para servidor SFTP de archivos
 sftp:
-  host: 100.80.51.41
-  port: 22
-  user: sftpuser
-  remote-directory: /archivos/asiic
-  private-key-path: classpath:keys/id_rsa
-  private-key-passphrase: ""
+  host: ${SFTP_HOST}
+  port: ${SFTP_PORT:22}
+  user: ${SFTP_USER}
+  password: ${SFTP_PASSWORD:}
+  remote-directory: ${SFTP_REMOTE_DIRECTORY:/archivos/asiic}
+  private-key-path: "file:${user.home}/.ssh/sftp_key"
+  private-key-passphrase: ${SFTP_PRIVATE_KEY_PASSPHRASE:}
+  allow-unknown-keys: ${SFTP_ALLOW_UNKNOWN_KEYS:true}
+  session-cache-size: ${SFTP_SESSION_CACHE_SIZE:10}
+  session-wait-timeout: ${SFTP_SESSION_WAIT_TIMEOUT:5000}

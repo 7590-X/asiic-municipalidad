@@ -6,7 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
-
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -14,6 +15,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "as_archivos")
+@EntityListeners(AuditingEntityListener.class)
 public class AsArchivo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +35,8 @@ public class AsArchivo {
     @Column(name = "ar_formato", nullable = false, length = 5)
     private String arFormato;
 
-    @NotNull
+
+    @CreatedDate
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "ar_fec_registro", nullable = false)
     private Instant arFecRegistro;
