@@ -16,9 +16,7 @@ export class DatosSolicitanteComponent implements OnInit {
   private incidenciasService = inject(IncidenciasService);
 
   ngOnInit(): void {
-    this.incidenciasService.getDatosSolicitanteActual().subscribe({
-      next: (datos) => this.stepForm.patchValue(datos),
-      error: (err) => console.error('Error al obtener perfil del vecino', err)
-    });
+    // Los datos del usuario ya son manejados por el JWT en el backend.
+    // No necesitamos extraer ni pre-llenar los datos aquí.
   }
 }

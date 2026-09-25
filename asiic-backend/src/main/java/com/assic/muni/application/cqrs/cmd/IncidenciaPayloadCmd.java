@@ -78,8 +78,7 @@ public class IncidenciaPayloadCmd {
         @NotBlank(message = "La descripción de la queja es requerida", groups = GrpQueja.class)
         private String descripcion;
 
-        @Valid
-        private List<TestigoDto> testigo;
+        private List<@Valid TestigoDto> testigo;
 
         private String latitudGps;
 

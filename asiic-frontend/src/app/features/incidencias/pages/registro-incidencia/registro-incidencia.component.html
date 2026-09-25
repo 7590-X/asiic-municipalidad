@@ -20,9 +20,8 @@
 
         <ol class="rv-aside__steps">
           <li><span>1</span> Tipo y Privacidad</li>
-          <li><span>2</span> Datos del Solicitante</li>
-          <li><span>3</span> Detalle de Incidencia</li>
-          <li><span>4</span> Evidencias</li>
+          <li><span>2</span> Detalle de Incidencia</li>
+          <li><span>3</span> Evidencias</li>
         </ol>
       </div>
 
@@ -48,17 +47,6 @@
           </clr-step-content>
         </clr-stepper-panel>
 
-        <!-- Paso 2: Datos del Solicitante -->
-        <clr-stepper-panel formGroupName="datosSolicitante">
-          <clr-step-title>Solicitante</clr-step-title>
-          <clr-step-description>Información de contacto</clr-step-description>
-          <clr-step-content *clrIfExpanded>
-            <fieldset [disabled]="isReadOnly" style="border:none; padding:0; margin:0;">
-              <app-datos-solicitante [stepForm]="datosSolicitanteForm"></app-datos-solicitante>
-            </fieldset>
-            <button clrStepButton="next" type="button" class="btn btn-primary mt-4">Siguiente</button>
-          </clr-step-content>
-        </clr-stepper-panel>
 
         <!-- Paso 3: Detalle de Incidencia -->
         <clr-stepper-panel formGroupName="detalleIncidencia">
