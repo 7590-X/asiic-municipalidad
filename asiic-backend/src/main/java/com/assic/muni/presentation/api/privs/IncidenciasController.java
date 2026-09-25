@@ -26,7 +26,7 @@ import java.time.ZonedDateTime;
 @RestController
 @RequestMapping(IncidenciasController.URI)
 @RequiredArgsConstructor
-@Tag(name = "Reporte de Incidencias")
+@Tag(name = "Incidencias", description = "Gestión de incidencias")
 public class IncidenciasController {
 
     protected static final String URI = "/api/v1/asiic/incidencias";
@@ -57,17 +57,17 @@ public class IncidenciasController {
                         "Insidencia registrada exitosamente", null));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/me/{id}")
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
-    @Operation(summary = "Obtener el detalle estructurado de una queja por su ID")
-    public ResponseEntity<IncidenciaDto> obtenerMiInscidenciaPorId(@PathVariable Integer id) {
+    @Operation(summary = "Obtener una de mis incidencias emitidas por su ID")
+    public ResponseEntity<IncidenciaDto> obtenerMiIncidenciaPorId(@PathVariable Integer id) {
         IncidenciaDto dto = incidenciaQueryHandler.obtenerMiIncidenciaPorId(id);
         return ResponseEntity.ok(dto);
     }
 
-    @GetMapping
+    @GetMapping("/me")
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
-    @Operation(summary = "Obtener el detalle estructurado de una queja por su ID")
+    @Operation(summary = "Obtener mis incidencias emitidas")
     public ResponseEntity<List<IncidenciaDto>> obtenerMisIncidenciasPorId() {
         List<IncidenciaDto> dtos = incidenciaQueryHandler.obtenerMisIncidencias();
         return ResponseEntity.ok(dtos);

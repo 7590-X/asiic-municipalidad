@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Catálogos de Locaciones")
+@Tag(name = "Locaciones Públicas", description = "Listado de catálogos de locaciones públicos")
 @RequestMapping("/api/v1/asiic/public/locaciones")
 public class PubLocacionesController {
 

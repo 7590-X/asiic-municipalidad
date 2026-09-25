@@ -15,5 +15,4 @@ public interface AsVecinoRepository extends JpaRepository<AsVecino, Integer> {
             select v.veCorreo.coCorreo from AsVecino v where v.id = :veId
             """)
     Optional<String> findEmailByVeId(@Param("veId") int veId);
-
 }

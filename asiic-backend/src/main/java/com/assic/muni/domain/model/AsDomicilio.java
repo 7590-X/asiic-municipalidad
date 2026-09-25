@@ -45,6 +45,4 @@ public class AsDomicilio {
 
     @Column(name = "do_fec_modifico")
     private Instant doFecModifico;
-
-
 }

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.ZonedDateTime;
 
 @RestController
-@Tag(name = "Administración Pública de Vecino")
+@Tag(name = "Vecino Público", description = "Gestión de vecinos públicos")
 @RequestMapping("/api/v1/asiic/public/vecinos")
 @RequiredArgsConstructor
 public class PubVecinoController {
