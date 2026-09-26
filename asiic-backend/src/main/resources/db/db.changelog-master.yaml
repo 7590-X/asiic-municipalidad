@@ -35,3 +35,7 @@ databaseChangeLog:
       file: db/changelog/260923-2-eliminar-not-null.sql
   - include:
       file: db/changelog/260925-1-alteracion-pk-incidencias-archivos.sql
+  - include:
+      file: db/changelog/260926-1-eliminar-not-null-direccion.sql
+  - include:
+      file: db/changelog/260926-2-eliminar-not-null-fecha-incidencia.sql

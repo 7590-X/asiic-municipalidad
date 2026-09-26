@@ -57,7 +57,10 @@ public class UpsertIncidenciaCmdHandler {
                 payloadValidator.validate(payload, GrpQueja.class);
                 yield registrarSolicitudQueja(payload, subject);
             }
-            case 2 -> registrarSolicitudReclamo(payload, subject);
+            case 2 -> {
+                payloadValidator.validate(payload, GrpQueja.class);
+                yield registrarSolicitudReclamo(payload, subject);
+            }
             case 3 -> registrarSolicitudDenuncia(payload, subject);
             case 4 -> registrarSolicitudSujerencia(payload, subject);
             default ->
@@ -71,11 +74,13 @@ public class UpsertIncidenciaCmdHandler {
 
     private Integer registrarSolicitudQueja(IncidenciaPayloadCmd payload, String subject) {
         // Validaciones
-        int vecinoId = verificacionExistenciaVecino(subject);
+        IncidenciaPayloadCmd.DetalleQuejaDto detalle = payload.getDetalleQueja();
+
+        int vecinoId = validacionExistenciaVecino(subject);
         validarPertenenciaDomicilio(payload.getContador(), vecinoId);
         Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
-        final short unidadId = payload.getDetalleQueja().getDependenciaId();
-        boolean existsUnidad = catalogoRepository.existsByTableAndId((short) 9, unidadId); // 9 = as_areas
+        final short unidadId = detalle.getDependenciaId();
+        boolean existsUnidad = catalogoRepository.existsByTableAndId((short) 6, unidadId);
 
         if (!existsUnidad) {
             throw new ServiceException(HttpStatus.BAD_REQUEST,
@@ -90,8 +95,8 @@ public class UpsertIncidenciaCmdHandler {
         }
 
         // Construcción Template
-        JsonNode evidenciasJson = objectMapper.valueToTree(payload.getDetalleQueja().getTestigo());
-        final AsIncidencia toPersist = IncidenciaMapper.frontDtoToQueja(
+        JsonNode evidenciasJson = objectMapper.valueToTree(detalle.getTestigo());
+        final AsIncidencia toPersist = IncidenciaMapper.fromDtoToQueja(
                 privacidad, vecinoId, unidadId, payload, insidencia, evidenciasJson);
 
         // Persistencia
@@ -110,19 +115,44 @@ public class UpsertIncidenciaCmdHandler {
     }
 
     private Integer registrarSolicitudReclamo(IncidenciaPayloadCmd payload, String subject) {
-        Integer vecinoId = verificacionExistenciaVecino(subject);
+        IncidenciaPayloadCmd.DetalleReclamoDto detalle = payload.getDetalleReclamo();
+
+        int vecinoId = validacionExistenciaVecino(subject);
+        validarPertenenciaDomicilio(payload.getContador(), vecinoId);
         Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
-        return null;
+        final short servicioId = detalle.getTipoServicioId();
+        boolean existsUnidad = catalogoRepository.existsByTableAndId((short) 7, servicioId);
+        if (!existsUnidad) {
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "Código de servicio es incorrecto");
+        }
+        AsIncidencia insidencia = null;
+        if (payload.getIncidenciaId() != null) {
+            insidencia = incidenciaRepository.findByIdAndInVecino(payload.getIncidenciaId(), vecinoId)
+                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
+                            "La incidence no fue encontrada para su actualización"));
+        }
+        final AsIncidencia toPersist = IncidenciaMapper.fromDtoToReclamo(privacidad, vecinoId, servicioId, payload, insidencia);
+        AsIncidencia persisted = incidenciaRepository.save(toPersist);
+
+        AsVecino vecino = vecinoRepository.findById(vecinoId).get();
+        eventPublisher.publishEvent(new IncidenciaUpsertEvent(
+                persisted.getId(),
+                persisted.getInFecRegistro(),
+                persisted.getInEstado().getDescripcion(),
+                vecino.getVePersona().getFullName(),
+                vecino.getVeCorreo().getCoCorreo()
+        ));
+        return persisted.getId();
     }
 
     private Integer registrarSolicitudDenuncia(IncidenciaPayloadCmd payload, String subject) {
-        Integer vecinoId = verificacionExistenciaVecino(subject);
+        Integer vecinoId = validacionExistenciaVecino(subject);
         Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
         return null;
     }
 
     private Integer registrarSolicitudSujerencia(IncidenciaPayloadCmd payload, String subject) {
-        Integer vecinoId = verificacionExistenciaVecino(subject);
+        Integer vecinoId = validacionExistenciaVecino(subject);
         Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
         return null;
     }
@@ -133,7 +163,7 @@ public class UpsertIncidenciaCmdHandler {
      * @param uuid UUID de la cuenta autenticada
      * @return ID del vecino
      */
-    private Integer verificacionExistenciaVecino(String uuid) {
+    private Integer validacionExistenciaVecino(String uuid) {
         return usuarioRepository.findUsPersonaByUsId(uuid)
                 .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
                         "No se pudo obtener información de la cuenta"));
@@ -167,6 +197,12 @@ public class UpsertIncidenciaCmdHandler {
         }
     }
 
+    /**
+     * Almacenamiento de evidencias de incidencias
+     *
+     * @param evidencias   Archivos de incidencias
+     * @param incidenciaId Código de incidencia
+     */
     private void almacenarEvidencias(List<MultipartFile> evidencias, int incidenciaId) {
         if (evidencias != null && !evidencias.isEmpty()) {
             for (MultipartFile mf : evidencias) {
