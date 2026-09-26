@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class IncidenciaMapper {
 
-    public static AsIncidencia frontDtoToQueja(short privacidad, int vecinoId, short unidadId, IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode evidencias) {
+    public static AsIncidencia fromDtoToQueja(short privacidad, int vecinoId, short unidadId, IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode evidencias) {
 
         if (null == toUpsert) {
             toUpsert = new AsIncidencia();
@@ -37,6 +37,24 @@ public final class IncidenciaMapper {
         toUpsert.setInLongitud(detalle.getLongitudGps());
         toUpsert.setInEstado(IncidenciaState.BORRADOR);
         toUpsert.setInJsons(evidencias);
+        return toUpsert;
+    }
+
+    public static AsIncidencia fromDtoToReclamo(short privacidad, int vecinoId, short servicio, IncidenciaPayloadCmd payload, AsIncidencia toUpsert){
+        IncidenciaPayloadCmd.DetalleReclamoDto detalle = payload.getDetalleReclamo();
+        if(null == toUpsert){
+            toUpsert = new AsIncidencia();
+        }
+        toUpsert.setId(payload.getIncidenciaId());
+        toUpsert.setInTipoIncidencia(payload.getTipoIncidencia());
+        toUpsert.setInPrivacidad(privacidad);
+        toUpsert.setInVecino(vecinoId);
+        toUpsert.setInContador(payload.getContador());
+        toUpsert.setInTipoServicio(servicio);
+        toUpsert.setInLatitud(detalle.getLatitudGps());
+        toUpsert.setInLongitud(detalle.getLongitudGps());
+        toUpsert.setInEstado(IncidenciaState.BORRADOR);
+        toUpsert.setInComentario(detalle.getDescripcion());
         return toUpsert;
     }
 

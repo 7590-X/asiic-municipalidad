@@ -53,8 +53,7 @@ public class AsIncidencia {
     private String inContador;
 
     @Size(max = 100)
-    @NotNull
-    @Column(name = "in_direccion", nullable = false, length = 100)
+    @Column(name = "in_direccion", length = 100)
     private String inDireccion;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -68,7 +67,6 @@ public class AsIncidencia {
     @Column(name = "in_empleado", length = 100)
     private String inEmpleado;
 
-    @NotNull
     @Column(name = "in_fec_insidencia", nullable = false)
     private Instant inFecInsidencia;
 
