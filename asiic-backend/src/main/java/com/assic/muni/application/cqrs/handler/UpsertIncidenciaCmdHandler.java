@@ -3,13 +3,12 @@ package com.assic.muni.application.cqrs.handler;
 import java.util.List;
 
 import com.assic.muni.application.port.out.FileStoragePort;
-import com.assic.muni.application.port.out.SftpStoragePort;
-import com.assic.muni.domain.model.AsArchivo;
-import com.assic.muni.domain.model.AsIncidenciaArchivo;
-import com.assic.muni.domain.model.AsIncidenciaArchivoId;
+import com.assic.muni.domain.event.IncidenciaUpsertEvent;
+import com.assic.muni.domain.model.*;
 import com.assic.muni.domain.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +20,6 @@ import com.assic.muni.application.group.GrpQueja;
 import com.assic.muni.application.mapper.IncidenciaMapper;
 import com.assic.muni.application.util.JwtExtractor;
 import com.assic.muni.application.util.PayloadValidator;
-import com.assic.muni.domain.model.AsIncidencia;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -42,9 +40,13 @@ public class UpsertIncidenciaCmdHandler {
     // Puertos
     private final FileStoragePort fileStoragePort;
 
+    // Eventos
+    private final ApplicationEventPublisher eventPublisher;
+
     // Utils
     private final PayloadValidator payloadValidator;
     private final ObjectMapper objectMapper;
+    private final VecinoRepository vecinoRepository;
 
     @Transactional
     public Integer handle(IncidenciaPayloadCmd payload, List<MultipartFile> evidencias) {
@@ -59,13 +61,11 @@ public class UpsertIncidenciaCmdHandler {
             case 3 -> registrarSolicitudDenuncia(payload, subject);
             case 4 -> registrarSolicitudSujerencia(payload, subject);
             default ->
-                    throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo identificare el tipo de insidencia");
+                    throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo identificare el tipo de incidence");
         };
 
-        // Persistir evidencias
-        if (evidencias != null && !evidencias.isEmpty()) {
-            almacenarEvidencias(evidencias, incidencia);
-        }
+        // Evento de registro de evidencias
+        almacenarEvidencias(evidencias, incidencia);
         return incidencia;
     }
 
@@ -76,6 +76,7 @@ public class UpsertIncidenciaCmdHandler {
         Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
         final short unidadId = payload.getDetalleQueja().getDependenciaId();
         boolean existsUnidad = catalogoRepository.existsByTableAndId((short) 9, unidadId); // 9 = as_areas
+
         if (!existsUnidad) {
             throw new ServiceException(HttpStatus.BAD_REQUEST,
                     "No se pudo identificar la dependencia de la solicitud de queja");
@@ -85,7 +86,7 @@ public class UpsertIncidenciaCmdHandler {
         if (payload.getIncidenciaId() != null) {
             insidencia = incidenciaRepository.findByIdAndInVecino(payload.getIncidenciaId(), vecinoId)
                     .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
-                            "La insidencia no fue encontrada para su actualización"));
+                            "La incidence no fue encontrada para su actualización"));
         }
 
         // Construcción Template
@@ -96,7 +97,15 @@ public class UpsertIncidenciaCmdHandler {
         // Persistencia
         AsIncidencia persisted = incidenciaRepository.save(toPersist);
 
-        // Guardado de archivos en SFTP
+        // Evento de registro de incidencia
+        AsVecino vecino = vecinoRepository.findById(vecinoId).get();
+        eventPublisher.publishEvent(new IncidenciaUpsertEvent(
+                persisted.getId(),
+                persisted.getInFecRegistro(),
+                persisted.getInEstado().getDescripcion(),
+                vecino.getVePersona().getFullName(),
+                vecino.getVeCorreo().getCoCorreo()
+        ));
         return persisted.getId();
     }
 

@@ -6,7 +6,7 @@ import java.util.List;
 import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
 import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd.DetalleQuejaDto;
 import com.assic.muni.application.cqrs.dto.*;
-import com.assic.muni.domain.enums.InsidenciaState;
+import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.domain.model.AsIncidencia;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,7 +35,7 @@ public final class IncidenciaMapper {
         toUpsert.setInComentario(detalle.getDescripcion());
         toUpsert.setInLatitud(detalle.getLatitudGps());
         toUpsert.setInLongitud(detalle.getLongitudGps());
-        toUpsert.setInEstado(InsidenciaState.BORRADOR.name());
+        toUpsert.setInEstado(IncidenciaState.BORRADOR);
         toUpsert.setInJsons(evidencias);
         return toUpsert;
     }
@@ -55,7 +55,7 @@ public final class IncidenciaMapper {
         List<TestigoDto> testigos = Collections.emptyList();
         if (entity.getInJsons() != null && !entity.getInJsons().isNull() && !entity.getInJsons().isEmpty()) {
             try {
-                testigos = objectMapper.convertValue(entity.getInJsons(), new TypeReference<List<TestigoDto>>() {
+                testigos = objectMapper.convertValue(entity.getInJsons(), new TypeReference<>() {
                 });
             } catch (Exception ignored) {
                 log.error("[JSON_MAPPER] No se pudo convertir testigos", ignored);
@@ -74,7 +74,7 @@ public final class IncidenciaMapper {
                 .descripcion(entity.getInComentario())
                 .latitud(entity.getInLatitud())
                 .longitud(entity.getInLongitud())
-                .estado(entity.getInEstado())
+                .estado(entity.getInEstado().getDescripcion())
                 .testigos(testigos)
                 .fechaRegistro(entity.getInFecRegistro())
                 .fechaModifico(entity.getInFecModifico())

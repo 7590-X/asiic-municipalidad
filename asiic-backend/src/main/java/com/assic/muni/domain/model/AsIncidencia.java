@@ -1,5 +1,6 @@
 package com.assic.muni.domain.model;
 
+import com.assic.muni.domain.enums.IncidenciaState;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -88,8 +89,9 @@ public class AsIncidencia {
     private String inLongitud;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "in_estado", nullable = false)
-    private String inEstado;
+    private IncidenciaState inEstado;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "in_tipo_servicio", insertable = false, updatable = false)

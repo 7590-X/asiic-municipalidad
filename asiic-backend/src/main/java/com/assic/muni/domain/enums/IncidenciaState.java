@@ -5,7 +5,7 @@ import lombok.Getter;
 /**
  * Listado de estados de una solicitud de insidencia
  */
-public enum InsidenciaState {
+public enum IncidenciaState {
     BORRADOR("Borrador"),
     ENVIADA("Enviada"),
     ASIGNADA("Incidencia Asignada"),
@@ -25,7 +25,7 @@ public enum InsidenciaState {
     @Getter
     private final String descripcion;
 
-    InsidenciaState(String descripcion) {
+    IncidenciaState(String descripcion) {
         this.descripcion = descripcion;
     }
 }

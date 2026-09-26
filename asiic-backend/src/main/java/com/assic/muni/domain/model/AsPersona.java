@@ -58,4 +58,8 @@ public class AsPersona {
 
     @Column(name = "pe_tip_persona")
     private Short peTipPersona;
+
+    public String getFullName(){
+        return peNombre + " " + peApellido;
+    }
 }

@@ -1,5 +1,5 @@
 package com.assic.muni.domain.enums;
 
-public enum InsidenciaEvent {
+public enum IncidenciaEvent {
 
 }
