@@ -1,0 +1,21 @@
+<aside class="rv-aside">
+  <div class="rv-aside__brand">
+    <img src="muni-emblem-white.svg" alt="" />
+    <div>
+      <strong>MUNICIPALIDAD</strong>
+      <span>DE GUATEMALA</span>
+    </div>
+  </div>
+
+  <div class="rv-aside__body">
+    <h1>{{ title }}</h1>
+    <p>{{ description }}</p>
+
+    <!-- Slot para contenido extra (ej: lista de pasos) -->
+    <ng-content></ng-content>
+  </div>
+
+  <p class="rv-aside__foot" *ngIf="footerText">
+    {{ footerText }}
+  </p>
+</aside>

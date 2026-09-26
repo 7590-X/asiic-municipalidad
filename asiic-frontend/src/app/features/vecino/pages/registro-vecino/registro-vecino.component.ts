@@ -1,0 +1,133 @@
+import { CommonModule } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
+import { ClarityModule, ClrLoadingState } from '@clr/angular';
+import { VecinoService } from '../../../../core/services/vecino-publico.service';
+import { RegistrarVecinoRequest } from '../../../../core/models/registrar-vecino-request.model';
+import { IdentificacionComponent } from '../../components/identificacion/identificacion.component';
+import { ContactoComponent } from '../../components/contacto/contacto.component';
+import { UbicacionComponent } from '../../components/ubicacion/ubicacion.component';
+import { DocumentosComponent } from '../../components/documentos/documentos.component';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { cuiValidator } from '../../../../shared/validators/cui.validator';
+import { telefonoValidator } from '../../../../shared/validators/correo.validator';
+import { AsidePanelComponent } from '../../components/aside-panel/aside-panel.component';
+import { ValidacionesService } from '../../../../core/services/validaciones.service';
+
+@Component({
+  selector: 'app-registro-vecino',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    ClarityModule,
+    RouterLink,
+    IdentificacionComponent,
+    ContactoComponent,
+    UbicacionComponent,
+    DocumentosComponent,
+    AsidePanelComponent
+  ],
+  templateUrl: './registro-vecino.component.html',
+  styleUrl: './registro-vecino.component.scss'
+})
+export class RegistroVecinoComponent {
+  // Servicios
+  private fb = inject(FormBuilder);
+  private vecinos = inject(VecinoService);
+  private validaciones = inject(ValidacionesService);
+  private notification = inject(NotificationService);
+
+  // Formulario reactivo para creación de vecino
+  form = this.fb.nonNullable.group({
+    identificacion: this.fb.nonNullable.group({
+      cui: [
+        '',
+        [Validators.required, Validators.pattern(/^\d{13}$/)],
+        cuiValidator(this.validaciones)
+      ],
+      nombres: ['', [Validators.required, Validators.maxLength(45)]],
+      apellidos: ['', [Validators.required, Validators.maxLength(45)]],
+      genero: ['', Validators.required],
+      estado_civil_id: ['', Validators.required],
+      profesion_id: ['', Validators.required]
+    }),
+    contacto: this.fb.nonNullable.group({
+      telefono: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
+      correo: [
+        '',
+        [Validators.required, Validators.email, Validators.maxLength(45)],
+        telefonoValidator(this.validaciones)
+      ]
+    }),
+    ubicacion: this.fb.nonNullable.group({
+      pais_id: [null as number | null, Validators.required],
+      departamento_id: [null as number | null, Validators.required],
+      municipio_id: [null as number | null, Validators.required],
+      comuna_id: [null as number | null, Validators.required],
+      direccion: ['', [Validators.required, Validators.maxLength(100)]],
+      no_contador: ['', [Validators.required, Validators.maxLength(100)]]
+    }),
+    documentos: this.fb.nonNullable.group({
+      nit: ['', [Validators.pattern(/^\d*[a-zA-Z]?$/), Validators.maxLength(13)]],
+      pasaporte: ['', [Validators.pattern(/^[a-zA-Z0-9]*$/), Validators.maxLength(20)]]
+    })
+  });
+
+  // Estados de interfaz
+  submitBtnState: ClrLoadingState = ClrLoadingState.DEFAULT;
+  isSubmitting = signal<boolean>(false);
+  isSuccess = signal<boolean>(false);
+  successMessage = signal<string>('');
+  errorMessage = signal<string | null>(null);
+
+  submit(): void {
+    this.errorMessage.set(null);
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.submitBtnState = ClrLoadingState.LOADING;
+    this.isSubmitting.set(true);
+    const v = this.form.getRawValue();
+
+    const body: RegistrarVecinoRequest = {
+      cui: v.identificacion.cui,
+      nombres: v.identificacion.nombres,
+      apellidos: v.identificacion.apellidos,
+      genero: v.identificacion.genero as 'M' | 'F',
+      estado_civil_id: v.identificacion.estado_civil_id,
+      profesion_id: v.identificacion.profesion_id,
+      telefono: v.contacto.telefono,
+      correo: v.contacto.correo,
+      pais_id: v.ubicacion.pais_id ?? undefined,
+      departamento_id: v.ubicacion.departamento_id ?? undefined,
+      municipio_id: v.ubicacion.municipio_id ?? undefined,
+      direccion: v.ubicacion.direccion,
+      locacion_id: v.ubicacion.comuna_id as number,
+      nit: v.documentos.nit || undefined,
+      pasaporte: v.documentos.pasaporte || undefined,
+      no_contador: v.ubicacion.no_contador
+    };
+
+    this.vecinos.registrar(body).subscribe({
+      next: (resp) => {
+        this.submitBtnState = ClrLoadingState.SUCCESS;
+        this.isSubmitting.set(false);
+        this.isSuccess.set(true);
+        this.successMessage.set(resp.message || 'Registro completado exitosamente.');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.submitBtnState = ClrLoadingState.ERROR;
+        this.isSubmitting.set(false);
+        const msg = err.error?.message || 'Ocurrió un error al procesar el registro. Revise los campos ingresados.';
+        this.errorMessage.set(msg);
+        this.notification.error(msg);
+      }
+    });
+  }
+}

@@ -1,0 +1,70 @@
+<div class="gestiones-page">
+  <div class="page-header clr-row">
+    <div class="clr-col-12">
+      <h2>
+        <cds-icon [attr.shape]="icono()" size="md"></cds-icon>
+        {{ titulo() }}
+      </h2>
+      <p class="text-muted">{{ descripcion() }}</p>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    <div class="card-block">
+      <clr-datagrid [clrDgLoading]="loading()">
+        <clr-dg-column [clrDgField]="'id'">Código</clr-dg-column>
+        <clr-dg-column [clrDgField]="'tipo'">Tipo</clr-dg-column>
+        <clr-dg-column [clrDgField]="'asunto'">Asunto</clr-dg-column>
+        <clr-dg-column [clrDgField]="'dependencia'">Dependencia</clr-dg-column>
+        <clr-dg-column [clrDgField]="'fecha'" [clrDgSortOrder]="-1">Fecha</clr-dg-column>
+        <clr-dg-column [clrDgField]="'estado'">Estado</clr-dg-column>
+
+        <clr-dg-row *clrDgItems="let t of gestiones()" [clrDgItem]="t">
+          <clr-dg-cell><strong>{{ t.id }}</strong></clr-dg-cell>
+          <clr-dg-cell><span class="label" [ngClass]="getTipoBadgeClass(t.tipo)">{{ t.tipo }}</span></clr-dg-cell>
+          <clr-dg-cell>{{ t.asunto }}</clr-dg-cell>
+          <clr-dg-cell>{{ t.dependencia || 'N/A' }}</clr-dg-cell>
+          <clr-dg-cell>{{ t.fecha }}</clr-dg-cell>
+          <clr-dg-cell>
+            <span class="badge" [ngClass]="getEstadoBadgeClass(t.estado)">{{ t.estado }}</span>
+          </clr-dg-cell>
+
+          <!-- Fila Expandible para la Línea de Tiempo -->
+          <ng-container ngProjectAs="clr-dg-row-detail">
+            <clr-dg-row-detail *clrIfExpanded>
+              <div class="timeline-container">
+                <h4>Etapas de la Gestión</h4>
+                <div class="timeline-steps">
+                  <div class="timeline-step" 
+                       *ngFor="let etapa of etapas" 
+                       [class.active]="getEtapaActual(t.estado) >= etapa.id"
+                       [class.current]="getEtapaActual(t.estado) === etapa.id">
+                    <div class="step-icon">
+                      <cds-icon [attr.shape]="etapa.icon" size="md"></cds-icon>
+                    </div>
+                    <div class="step-label">{{ etapa.label }}</div>
+                    <div class="step-connector" *ngIf="etapa.id < 4"></div>
+                  </div>
+                </div>
+                
+                <div class="timeline-actions">
+                  <a [routerLink]="['/vecino/incidencias/editar', t.id]" class="btn btn-sm btn-primary">
+                    <cds-icon shape="eye"></cds-icon> Ver Expediente Completo
+                  </a>
+                </div>
+              </div>
+            </clr-dg-row-detail>
+          </ng-container>
+
+        </clr-dg-row>
+
+        <clr-dg-footer>
+          <clr-dg-pagination #pagination [clrDgPageSize]="10">
+            <clr-dg-page-size [clrPageSizeOptions]="[10,20,50]">Registros por página</clr-dg-page-size>
+            {{pagination.firstItem + 1}} - {{pagination.lastItem + 1}} de {{pagination.totalItems}} registros
+          </clr-dg-pagination>
+        </clr-dg-footer>
+      </clr-datagrid>
+    </div>
+  </div>
+</div>

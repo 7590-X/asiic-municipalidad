@@ -1,0 +1,31 @@
+<div [formGroup]="stepForm" class="rv-grid">
+  
+  <clr-select-container class="rv-full">
+    <label>Tipo de Incidencia</label>
+    <select clrSelect name="tipoIncidencia" formControlName="tipoIncidencia">
+      <option value="">Seleccione...</option>
+      <option value="QUEJA">Queja (Inconformidad con el servicio)</option>
+      <option value="RECLAMO">Reclamo (Exigencia o corrección)</option>
+      <option value="DENUNCIA">Denuncia (Reporte de acto ilícito)</option>
+      <option value="SUGERENCIA">Sugerencia (Propuesta de mejora)</option>
+    </select>
+    <clr-control-error>Este campo es obligatorio</clr-control-error>
+  </clr-select-container>
+
+  <clr-radio-container clrInline class="rv-full mt-3">
+    <label>Privacidad</label>
+    <clr-radio-wrapper>
+      <input type="radio" clrRadio value="PUBLICO" name="privacidad" formControlName="privacidad" />
+      <label>Público</label>
+    </clr-radio-wrapper>
+    <clr-radio-wrapper>
+      <input type="radio" clrRadio value="CONFIDENCIAL" name="privacidad" formControlName="privacidad" />
+      <label>Confidencial</label>
+    </clr-radio-wrapper>
+    <clr-radio-wrapper *ngIf="tipoSeleccionado === 'SUGERENCIA'">
+      <input type="radio" clrRadio value="ANONIMO" name="privacidad" formControlName="privacidad" />
+      <label>Anónimo</label>
+    </clr-radio-wrapper>
+  </clr-radio-container>
+
+</div>

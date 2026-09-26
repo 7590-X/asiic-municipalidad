@@ -1,8 +1,22 @@
+# Configuración Aplicación
+app:
+  frontend:
+    domain: ${FRONT_DOMAIN:http://localhost:4200}
+  security:
+    jwt:
+      secret: ${JWT_TEMP_SECRET}
+      expiration:
+        reset-password: 900000  # 15 mins
+        verity-email: 86400000  # 24 horas
+
+# Configuración OID
 keycloak:
   client: ${KC_CLIENT}
   realm: ${KC_REALM}
   server: ${KC_SERVER}
   principalClaimName: preferred_name
+  ssl:
+    disable-trust-manager: ${KC_DISABLE_TRUST_MANAGER:false}
   clients:
     auth:
       id: asiic-auth-client
@@ -11,15 +25,15 @@ keycloak:
       id: asiic-admin-client
       secret: ${KC_ADMIN_SECRET}
 
-application:
-  name: asiic-api
-
 spring:
+  application:
+    name: asiic-backend
   security:
-    oath2:
+    oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${keycloak.server}/realms/${keycloak.realm}
+          jwk-set-uri: ${keycloak.server}/realms/${keycloak.realm}/protocol/openid-connect/certs
 
   datasource:
     url: ${DB_URL}
@@ -36,7 +50,44 @@ spring:
       ddl-auto: none
     show-sql: true
 
+  # Configuración para servidor de correo electrónico
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USER}
+    from: ${MAIL_FROM}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  # Configuración Liquibase Migraciones
   liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
+    change-log: classpath:db/db.changelog-master.yaml
+    enabled: true
+
+# Configuración Tomcat Server
 server:
   port: 8888
+
+# Configuración Swagger Open API
+openapi:
+  service:
+    title: ASIIC Backend
+    version: @project.version@
+    description: Documentación API Web Service
+
+# Configuración para servidor SFTP de archivos
+sftp:
+  host: ${SFTP_HOST}
+  port: ${SFTP_PORT:22}
+  user: ${SFTP_USER}
+  password: ${SFTP_PASSWORD:}
+  remote-directory: ${SFTP_REMOTE_DIRECTORY:/archivos/asiic}
+  private-key-path: "file:${user.home}/.ssh/sftp_key"
+  private-key-passphrase: ${SFTP_PRIVATE_KEY_PASSPHRASE:}
+  allow-unknown-keys: ${SFTP_ALLOW_UNKNOWN_KEYS:true}
+  session-cache-size: ${SFTP_SESSION_CACHE_SIZE:10}
+  session-wait-timeout: ${SFTP_SESSION_WAIT_TIMEOUT:5000}

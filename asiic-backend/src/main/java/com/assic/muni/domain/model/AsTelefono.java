@@ -3,16 +3,21 @@ package com.assic.muni.domain.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @Entity
 @Table(name = "as_telefonos")
+@EntityListeners(AuditingEntityListener.class)
 public class AsTelefono {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,12 +29,12 @@ public class AsTelefono {
     @Column(name = "te_telefono", nullable = false, length = 15)
     private String teTelefono;
 
-    @NotNull
+    @CreatedDate
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "te_fec_registro", nullable = false)
     private Instant teFecRegistro;
 
-    @Size(max = 25)
+    @Size(max = 36)
     @NotNull
     @Column(name = "te_usr_registro", nullable = false, length = 25)
     private String teUsrRegistro;

@@ -1,0 +1,146 @@
+<div [formGroup]="stepForm" class="rv-grid">
+  
+  <div *ngIf="loadingCatalogos()" class="rv-full text-center p-4" style="text-align: center; padding: 2rem;">
+    <clr-spinner>Cargando opciones...</clr-spinner>
+  </div>
+
+  <ng-container *ngIf="!loadingCatalogos()">
+    
+    <!-- === SIEMPRE REQUERIDO === -->
+    <clr-select-container class="rv-full mb-3" style="margin-bottom: 1rem;">
+      <label>No. de Contador (Domicilio vinculado)</label>
+      <select clrSelect formControlName="noContador">
+        <option value="">Seleccione un contador...</option>
+        <option *ngFor="let c of contadores()" [value]="c.do_contador">
+          {{ c.do_contador }} - {{ c.do_direccion.di_direccion }}, {{ c.do_direccion.di_locacion?.lo_descripcion || '' }}
+        </option>
+      </select>
+      <clr-control-helper>Elija la locación relacionada a esta solicitud</clr-control-helper>
+    </clr-select-container>
+
+    <!-- === QUEJA === -->
+    <ng-container *ngIf="tipoIncidencia === 'QUEJA'">
+      <clr-select-container>
+        <label>Dependencia Involucrada</label>
+        <select clrSelect formControlName="dependenciaId">
+          <option value="">Seleccione...</option>
+          <option *ngFor="let dep of dependencias()" [value]="dep.id">{{ dep.nombre }}</option>
+        </select>
+      </clr-select-container>
+
+      <clr-input-container>
+        <label>Empleado Involucrado (Opcional)</label>
+        <input clrInput type="text" formControlName="empleadoId" placeholder="Nombre del empleado" />
+      </clr-input-container>
+
+      <clr-input-container>
+        <label>Fecha de la Incidencia</label>
+        <input clrInput type="datetime-local" formControlName="fechaIncidencia" />
+      </clr-input-container>
+
+      <clr-input-container>
+        <label>Lugar</label>
+        <input clrInput type="text" formControlName="lugar" placeholder="Ej. Ventanilla 3" />
+      </clr-input-container>
+
+      <clr-textarea-container class="rv-full">
+        <label>Descripción</label>
+        <textarea clrTextarea formControlName="descripcion"></textarea>
+      </clr-textarea-container>
+
+      <h4 class="rv-full mt-4">Testigo (Opcional)</h4>
+      <clr-input-container class="rv-full">
+        <label>Nombre del Testigo</label>
+        <input clrInput type="text" formControlName="testigoNombre" />
+      </clr-input-container>
+      <clr-input-container>
+        <label>Teléfono del Testigo</label>
+        <input clrInput type="text" formControlName="testigoTelefono" />
+      </clr-input-container>
+      <clr-input-container>
+        <label>Correo del Testigo</label>
+        <input clrInput type="text" formControlName="testigoCorreo" />
+      </clr-input-container>
+    </ng-container>
+
+    <!-- === RECLAMO === -->
+    <ng-container *ngIf="tipoIncidencia === 'RECLAMO'">
+      <clr-select-container>
+        <label>Tipo de Servicio</label>
+        <select clrSelect formControlName="tipoServicioId">
+          <option value="">Seleccione...</option>
+          <option *ngFor="let serv of tiposServicio()" [value]="serv.id">{{ serv.nombre }}</option>
+        </select>
+      </clr-select-container>
+
+      <clr-input-container>
+        <label>Ubicación GPS</label>
+        <input clrInput type="text" formControlName="ubicacionGps" placeholder="Latitud, Longitud" />
+      </clr-input-container>
+
+      <clr-input-container class="rv-full">
+        <label>Dirección (Opcional)</label>
+        <input clrInput type="text" formControlName="direccion" />
+      </clr-input-container>
+
+      <clr-textarea-container class="rv-full">
+        <label>Descripción del Reclamo</label>
+        <textarea clrTextarea formControlName="descripcion"></textarea>
+      </clr-textarea-container>
+    </ng-container>
+
+    <!-- === DENUNCIA === -->
+    <ng-container *ngIf="tipoIncidencia === 'DENUNCIA'">
+      <clr-select-container>
+        <label>Tipo de Denuncia</label>
+        <select clrSelect formControlName="tipoDenunciaId">
+          <option value="">Seleccione...</option>
+          <option *ngFor="let den of tiposDenuncia()" [value]="den.id">{{ den.nombre }}</option>
+        </select>
+      </clr-select-container>
+
+      <clr-input-container>
+        <label>Fecha y Hora de los Hechos</label>
+        <input clrInput type="datetime-local" formControlName="fechaHoraHechos" />
+      </clr-input-container>
+
+      <clr-input-container class="rv-full">
+        <label>Personas/Entidades Denunciadas</label>
+        <input clrInput type="text" formControlName="denunciados" />
+      </clr-input-container>
+
+      <clr-input-container class="rv-full">
+        <label>Dirección/Lugar de los Hechos</label>
+        <input clrInput type="text" formControlName="direccion" />
+      </clr-input-container>
+
+      <clr-textarea-container class="rv-full">
+        <label>Relato de los Hechos</label>
+        <textarea clrTextarea formControlName="relato" placeholder="Qué pasó, cómo pasó, quiénes intervinieron..."></textarea>
+      </clr-textarea-container>
+    </ng-container>
+
+    <!-- === SUGERENCIA === -->
+    <ng-container *ngIf="tipoIncidencia === 'SUGERENCIA'">
+      <clr-select-container class="rv-full">
+        <label>Área a mejorar</label>
+        <select clrSelect formControlName="areaId">
+          <option value="">Seleccione...</option>
+          <option *ngFor="let area of areasSugerencia()" [value]="area.id">{{ area.nombre }}</option>
+        </select>
+      </clr-select-container>
+
+      <clr-textarea-container class="rv-full">
+        <label>Situación Actual</label>
+        <textarea clrTextarea formControlName="descripcionActual" placeholder="Lo que observa hoy..."></textarea>
+      </clr-textarea-container>
+
+      <clr-textarea-container class="rv-full">
+        <label>Propuesta de Mejora</label>
+        <textarea clrTextarea formControlName="propuestaMejora" placeholder="Su idea para mejorar..."></textarea>
+      </clr-textarea-container>
+    </ng-container>
+
+  </ng-container>
+
+</div>

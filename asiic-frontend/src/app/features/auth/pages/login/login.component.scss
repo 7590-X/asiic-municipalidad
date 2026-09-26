@@ -1,0 +1,225 @@
+@use '../../../../../styles/colors' as *;
+
+:host {
+  display: block;
+  font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
+}
+
+.rv-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $gradient-page-bg;
+}
+
+.rv-shell {
+  width: 100%;
+  max-width: 900px;
+  min-height: 520px;
+  display: flex;
+  background: $color-white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -25px $color-card-shadow;
+}
+
+/* ---------- Panel izquierdo ---------- */
+.rv-aside {
+  flex: 0 0 42%;
+  max-width: 400px;
+  padding: 2.5rem 2.25rem;
+  color: $color-white;
+  background: $gradient-aside;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+
+    img {
+      height: 46px;
+      width: 46px;
+      flex: none;
+    }
+
+    strong {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    span {
+      display: block;
+      font-size: 0.66rem;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.75);
+    }
+  }
+
+  &__body {
+    flex: 1;
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: 1.75rem;
+      line-height: 1.25;
+      font-weight: 700;
+      color: $color-white;
+    }
+
+    p {
+      margin: 0 0 1.75rem;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.85);
+    }
+  }
+
+  &__foot {
+    margin: 0;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 1.25rem;
+
+    .foot-link {
+      color: $color-accent-gold;
+      text-decoration: underline;
+      font-weight: 600;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 0.85;
+      }
+    }
+  }
+}
+
+/* ---------- Panel derecho ---------- */
+.rv-main {
+  flex: 1;
+  padding: 2.5rem 3.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.form-container {
+  width: 100%;
+}
+
+.form-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.form-subtitle {
+  margin: 0 0 1.5rem;
+  font-size: 0.9rem;
+  color: $color-text-muted;
+}
+
+.login-alert {
+  margin-bottom: 1.25rem;
+}
+
+/* Grid y Form Controls de Clarity */
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  .clr-form-control {
+    margin-top: 0;
+    width: 100%;
+  }
+
+  .clr-control-container,
+  .clr-input-wrapper,
+  .clr-password-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  input.clr-input {
+    width: 100%;
+    height: 2.2rem;
+    font-size: 0.92rem;
+  }
+}
+
+.remember-wrapper {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.submit-container {
+  margin-top: 1.75rem;
+
+  .btn-block {
+    width: 100%;
+    height: 2.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 6px;
+    background-color: $color-primary;
+    border-color: $color-primary;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover:not([disabled]) {
+      background-color: $color-primary-dark;
+      box-shadow: 0 4px 12px rgba(20, 59, 83, 0.25);
+    }
+  }
+}
+
+.form-footer {
+  margin-top: 2rem;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: $color-text-muted;
+    line-height: 1.5;
+  }
+
+  .register-link {
+    color: $color-primary-light;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+      color: $color-primary-dark;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .rv-shell {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .rv-aside {
+    flex: none;
+    max-width: none;
+    padding: 2rem 1.75rem;
+  }
+
+  .rv-main {
+    padding: 2rem 1.5rem 2.25rem;
+  }
+}

@@ -1,0 +1,69 @@
+<div *ngIf="stepForm" [formGroup]="stepForm" class="form-grid">
+  <!-- País -->
+  <clr-select-container>
+    <label class="clr-required-mark">
+      País
+      <clr-spinner *ngIf="loadingPaises()" clrInline clrSmall></clr-spinner>
+    </label>
+    <select clrSelect formControlName="pais_id">
+      <option [ngValue]="null">Seleccione…</option>
+      <option *ngFor="let p of paises()" [ngValue]="p.pais_id">{{ p.descripcion }}</option>
+    </select>
+    <clr-control-error *clrIfError="'required'">Seleccione el país</clr-control-error>
+  </clr-select-container>
+
+  <!-- Departamento -->
+  <clr-select-container>
+    <label class="clr-required-mark">
+      Departamento
+      <clr-spinner *ngIf="loadingDeptos()" clrInline clrSmall></clr-spinner>
+    </label>
+    <select clrSelect formControlName="departamento_id">
+      <option [ngValue]="null">Seleccione…</option>
+      <option *ngFor="let d of deptos()" [ngValue]="d.depto_id">{{ d.descripcion }}</option>
+    </select>
+    <clr-control-error *clrIfError="'required'">Seleccione el departamento</clr-control-error>
+  </clr-select-container>
+
+  <!-- Municipio -->
+  <clr-select-container>
+    <label class="clr-required-mark">
+      Municipio
+      <clr-spinner *ngIf="loadingMunis()" clrInline clrSmall></clr-spinner>
+    </label>
+    <select clrSelect formControlName="municipio_id">
+      <option [ngValue]="null">Seleccione…</option>
+      <option *ngFor="let m of munis()" [ngValue]="m.muni_id">{{ m.descripcion }}</option>
+    </select>
+    <clr-control-error *clrIfError="'required'">Seleccione el municipio</clr-control-error>
+  </clr-select-container>
+
+  <!-- Comuna / Zona -->
+  <clr-select-container>
+    <label class="clr-required-mark">
+      Comuna / Zona
+      <clr-spinner *ngIf="loadingComunas()" clrInline clrSmall></clr-spinner>
+    </label>
+    <select clrSelect formControlName="comuna_id">
+      <option [ngValue]="null">Seleccione…</option>
+      <option *ngFor="let c of comunas()" [ngValue]="c.comuna_id">{{ c.descripcion }}</option>
+    </select>
+    <clr-control-error *clrIfError="'required'">Seleccione la comuna o zona</clr-control-error>
+  </clr-select-container>
+
+  <!-- Dirección exacta -->
+  <clr-input-container class="col-span-2">
+    <label class="clr-required-mark">Dirección exacta</label>
+    <input clrInput formControlName="direccion" maxlength="100" appCapitalizeWords placeholder="Calle, avenida, número de casa, colonia o barrio" />
+    <clr-control-helper>Dirección residencial exacta según recibo o comprobante de domicilio</clr-control-helper>
+    <clr-control-error *clrIfError="'required'">La dirección es requerida</clr-control-error>
+  </clr-input-container>
+
+  <!-- Número de contador -->
+  <clr-input-container class="col-span-2">
+    <label class="clr-required-mark">Número de contador</label>
+    <input clrInput formControlName="no_contador" maxlength="20" appOnlyDigits placeholder="Número de contador del suministro" />
+    <clr-control-helper>Número identificador de contador de servicio eléctrico residencial</clr-control-helper>
+    <clr-control-error *clrIfError="'required'">El número de contador es requerido</clr-control-error>
+  </clr-input-container>
+</div>

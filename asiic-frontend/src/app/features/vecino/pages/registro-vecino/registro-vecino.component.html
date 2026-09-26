@@ -1,0 +1,135 @@
+<section class="rv-page">
+  <div class="rv-shell">
+
+    <!-- Panel izquierdo: marca institucional -->
+    <app-aside-panel title="Cree su cuenta de vecino"
+      description="Regístrese en el portal municipal para reportar incidencias, dar seguimiento a sus gestiones y recibir notificaciones."
+      footerText="Recibirá su contraseña temporal por correo electrónico.">
+
+      <ol class="rv-aside__steps">
+        <li><span>1</span> Identificación</li>
+        <li><span>2</span> Contacto</li>
+        <li><span>3</span> Ubicación</li>
+        <li><span>4</span> Documentos</li>
+      </ol>
+    </app-aside-panel>
+
+    <!-- Panel derecho: wizard stepper con estándares Clarity -->
+    <div class="rv-main">
+
+      <!-- Alerta nativa de error del servidor -->
+      @if (errorMessage()) {
+      <clr-alert clrAlertType="danger" [clrAlertClosable]="true" (clrAlertClosedChange)="errorMessage.set(null)"
+        class="mb-4">
+        <clr-alert-item>
+          <span class="alert-text">{{ errorMessage() }}</span>
+        </clr-alert-item>
+      </clr-alert>
+      }
+
+      <!-- Formulario principal con clrStepper y clrLayout vertical nativo -->
+      @if (!isSuccess()) {
+      <form clrStepper [formGroup]="form" clrLayout="vertical" class="clr-form" (ngSubmit)="submit()">
+
+        <!-- Paso 1: Identificación -->
+        <clr-stepper-panel formGroupName="identificacion">
+          <clr-step-title>Identificación</clr-step-title>
+          <clr-step-description>Datos personales del vecino</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <app-identificacion [stepForm]="form.controls.identificacion"></app-identificacion>
+            <div class="clr-step-button-group">
+              <button clrStepButton="next" class="btn btn-primary">Siguiente</button>
+            </div>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+        <!-- Paso 2: Contacto -->
+        <clr-stepper-panel formGroupName="contacto">
+          <clr-step-title>Contacto</clr-step-title>
+          <clr-step-description>Teléfono, correo y residencia</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <app-contacto [stepForm]="form.controls.contacto"></app-contacto>
+            <div class="clr-step-button-group">
+              <button clrStepButton="previous" class="btn btn-outline">Atrás</button>
+              <button clrStepButton="next" class="btn btn-primary">Siguiente</button>
+            </div>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+        <!-- Paso 3: Ubicación -->
+        <clr-stepper-panel formGroupName="ubicacion">
+          <clr-step-title>Ubicación</clr-step-title>
+          <clr-step-description>Zona del municipio</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <app-ubicacion [stepForm]="form.controls.ubicacion"></app-ubicacion>
+            <div class="clr-step-button-group">
+              <button clrStepButton="previous" class="btn btn-outline">Atrás</button>
+              <button clrStepButton="next" class="btn btn-primary">Siguiente</button>
+            </div>
+          </clr-step-content>
+        </clr-stepper-panel>
+
+        <!-- Paso 4: Documentos -->
+        <clr-stepper-panel formGroupName="documentos">
+          <clr-step-title>Otros</clr-step-title>
+          <clr-step-description>Documentos opcionales</clr-step-description>
+          <clr-step-content *clrIfExpanded>
+            <app-documentos [stepForm]="form.controls.documentos"></app-documentos>
+            <div class="clr-step-button-group">
+              <button clrStepButton="previous" class="btn btn-outline" [disabled]="isSubmitting()">Atrás</button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                [clrLoading]="submitBtnState"
+                [disabled]="isSubmitting()"
+                (click)="submit()"
+              >
+                Crear Cuenta
+              </button>
+            </div>
+
+            @if (isSubmitting()) {
+              <div class="rv-submit-loading">
+                <clr-spinner clrInline clrSmall></clr-spinner>
+                <span>Creando su cuenta de vecino, por favor espere...</span>
+              </div>
+            }
+          </clr-step-content>
+        </clr-stepper-panel>
+
+      </form>
+      }
+
+      <!-- Vista de Confirmación y Éxito -->
+      @if (isSuccess()) {
+      <div class="rv-success-panel">
+        <!-- <clr-alert clrAlertType="success" [clrAlertClosable]="false" class="mb-4">
+          <clr-alert-item>
+            <span class="alert-text">
+              {{ successMessage() }}
+            </span>
+          </clr-alert-item>
+        </clr-alert> -->
+
+        <div class="rv-success-card">
+          <div class="rv-success-card__icon">
+            <cds-icon shape="check-circle" size="48" solid></cds-icon>
+          </div>
+          <h3>¡Registro completado exitosamente!</h3>
+          <p>
+            Hemos enviado las instrucciones y su contraseña temporal a su correo electrónico. Por favor revise su
+            bandeja de entrada para activar su cuenta.
+          </p>
+          <div class="rv-success-actions">
+            <a routerLink="/login" class="btn btn-outline">
+              Iniciar Sesión
+            </a>
+          </div>
+        </div>
+      </div>
+      }
+
+    </div>
+
+  </div>
+</section>

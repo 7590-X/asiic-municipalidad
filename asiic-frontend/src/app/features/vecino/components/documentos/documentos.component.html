@@ -1,0 +1,30 @@
+<div *ngIf="stepForm" [formGroup]="stepForm" class="form-grid">
+  <!-- NIT -->
+  <clr-input-container>
+    <label>Número de Identificación Tributaria (NIT)</label>
+    <input
+      clrInput
+      formControlName="nit"
+      maxlength="13"
+      autocomplete="off"
+      appUppercase
+      placeholder="Ej: 12345678 o 1234567K"
+    />
+    <clr-control-helper>Opcional. Dígitos sin guiones, o terminado en letra</clr-control-helper>
+    <clr-control-error *clrIfError="'pattern'">Formato de NIT inválido</clr-control-error>
+  </clr-input-container>
+
+  <!-- Pasaporte -->
+  <clr-input-container>
+    <label>Número de pasaporte</label>
+    <input
+      clrInput
+      formControlName="pasaporte"
+      maxlength="20"
+      appUppercase
+      placeholder="Ingrese número de pasaporte"
+    />
+    <clr-control-helper>Opcional para vecinos de nacionalidad extranjera</clr-control-helper>
+    <clr-control-error *clrIfError="'pattern'">Solo se permiten números y letras</clr-control-error>
+  </clr-input-container>
+</div>

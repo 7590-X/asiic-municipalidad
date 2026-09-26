@@ -20,7 +20,7 @@ import java.time.Instant;
 public class AsTipoInsidencia {
     @Id
     @Column(name = "ti_id", nullable = false, precision = 2)
-    private BigDecimal id;
+    private Short id;
 
     @Size(max = 30)
     @NotNull

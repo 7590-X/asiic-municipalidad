@@ -1,0 +1,52 @@
+<section class="rv-page">
+  <div class="rv-shell">
+
+    <!-- Panel izquierdo: marca -->
+    <app-aside-panel
+      title="Genere su contraseña"
+      description="Ingrese una contraseña segura para activar su cuenta de vecino."
+      footerText="Su cuenta le permitirá reportar incidencias, dar seguimiento a sus gestiones y recibir notificaciones.">
+    </app-aside-panel>
+
+    <!-- Panel derecho: formulario -->
+    <div class="rv-main">
+      <div *ngIf="!isSuccess()" class="form-container">
+        <form [formGroup]="form" (ngSubmit)="submit()" class="clr-form" clrLayout="vertical">
+          <div class="form-grid">
+            <clr-password-container class="col-span-2">
+              <label class="clr-required-mark">Contraseña</label>
+              <input clrPassword formControlName="password" placeholder="Ingrese su contraseña" />
+              <clr-control-error *clrIfError="'required'">Este campo es requerido.</clr-control-error>
+              <clr-control-error *clrIfError="'minlength'">Debe tener al menos 8 caracteres.</clr-control-error>
+              <clr-control-error *clrIfError="'pattern'">La contraseña debe contener al menos un número, una letra minúscula y una mayúscula.</clr-control-error>
+            </clr-password-container>
+
+            <clr-password-container class="col-span-2">
+              <label class="clr-required-mark">Confirmar contraseña</label>
+              <input clrPassword formControlName="confirmPassword" placeholder="Confirme su contraseña" />
+              <clr-control-error *clrIfError="'required'">Este campo es requerido.</clr-control-error>
+              <clr-control-error *clrIfError="'passwordMismatch'">Las contraseñas no coinciden.</clr-control-error>
+            </clr-password-container>
+          </div>
+
+          <div class="submit-container">
+            <button type="submit" [clrLoading]="submitBtnState" class="btn btn-primary">
+              Confirmar Cuenta
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div *ngIf="isSuccess()" class="success-container">
+        <clr-alert clrAlertType="success" [clrAlertClosable]="false">
+          <clr-alert-item>
+            <span class="alert-text">
+              {{ successMessage() }}
+            </span>
+          </clr-alert-item>
+        </clr-alert>
+      </div>
+    </div>
+
+  </div>
+</section>

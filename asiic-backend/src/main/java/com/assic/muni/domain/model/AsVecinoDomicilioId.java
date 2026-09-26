@@ -26,6 +26,4 @@ public class AsVecinoDomicilioId implements Serializable {
     @NotNull
     @Column(name = "vd_vecino", nullable = false)
     private Integer vdVecino;
-
-
 }

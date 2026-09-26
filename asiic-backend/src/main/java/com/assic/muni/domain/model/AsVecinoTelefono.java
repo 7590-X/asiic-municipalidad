@@ -37,16 +37,16 @@ public class AsVecinoTelefono {
     @Column(name = "vt_fec_registro", nullable = false)
     private Instant vtFecRegistro;
 
-    @Size(max = 25)
+    @Size(max = 36)
     @NotNull
-    @Column(name = "vt_usr_registro", nullable = false, length = 25)
+    @Column(name = "vt_usr_registro", nullable = false, length = 36)
     private String vtUsrRegistro;
 
     @Column(name = "vt_fec_modifico")
     private Instant vtFecModifico;
 
-    @Size(max = 25)
-    @Column(name = "vt_usr_modifico", length = 25)
+    @Size(max = 36)
+    @Column(name = "vt_usr_modifico", length = 36)
     private String vtUsrModifico;
 
 

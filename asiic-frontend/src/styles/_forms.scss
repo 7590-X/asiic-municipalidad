@@ -1,0 +1,75 @@
+/* ==========================================================================
+   Estandarización Global de Formularios (Clarity UI Extension)
+   ========================================================================== */
+
+/* 
+ * 1. Grid de Formularios 
+ * Define la estructura para acomodar campos en 1, 2 o más columnas.
+ */
+.form-grid {
+  display: grid;
+  /* Por defecto en móvil es 1 columna */
+  grid-template-columns: 1fr;
+  column-gap: 2rem;
+  row-gap: 0.5rem;
+  margin-bottom: 1.25rem;
+
+  /* En pantallas medianas y grandes, 2 columnas */
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Aseguramos que cualquier hijo directo del grid ocupe el 100% de su celda */
+  > * {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+  }
+}
+
+/* 
+ * 2. Utilidades de Expansión (Col-Span)
+ * Permite que los controles abarquen más de una columna en pantallas grandes.
+ */
+.form-grid {
+  .col-span-2 {
+    @media (min-width: 768px) {
+      grid-column: 1 / -1 !important;
+    }
+  }
+}
+
+/* 
+ * 3. Estandarización de Anchos (Clarity Overrides)
+ * Aseguramos que los contenedores y los inputs llenen la celda del grid de forma limpia.
+ */
+.form-grid {
+  /* Hacemos que los form controls abarquen el 100% de la celda */
+  .clr-form-control {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  /* Expandir el contenedor interno para inputs, textareas y selects */
+  .clr-control-container,
+  .clr-input-wrapper,
+  .clr-select-wrapper,
+  .clr-textarea-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Los elementos nativos llenan todo el ancho del contenedor */
+  input.clr-input,
+  select.clr-select,
+  textarea.clr-textarea {
+    width: 100%;
+    /* Opcional: una altura estandarizada puede configurarse aquí,
+       pero Clarity usualmente gestiona la altura y padding bastante bien. */
+  }
+
+  /* Botones dentro del form-grid */
+  .btn {
+    margin-top: 0.5rem;
+  }
+}

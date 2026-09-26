@@ -1,0 +1,269 @@
+<div class="dashboard-page">
+  <!-- Banner Hero de Bienvenida -->
+  <section class="welcome-banner">
+    <div class="banner-content">
+      <div class="banner-badge">
+        <cds-icon shape="check-circle"></cds-icon>
+        <span>Vecino Empadronado y Verificado</span>
+      </div>
+      <h1 class="banner-title">¡Bienvenido, {{ userName() }}!</h1>
+      <p class="banner-subtitle">
+        Gestiona tus trámites, quejas, reclamos y solicitudes con la Municipalidad de Guatemala en un solo lugar.
+      </p>
+      <div class="banner-meta">
+        <span class="meta-item">
+          <cds-icon shape="calendar"></cds-icon>
+          {{ currentDate }}
+        </span>
+        <span class="meta-divider">•</span>
+        <span class="meta-item">
+          <cds-icon shape="home"></cds-icon>
+          Municipalidad de Guatemala – Región Metropolitana
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tarjetas Métricas / KPIs Clarity -->
+  <section class="metrics-section">
+    <div class="clr-row">
+      <!-- Métrica 1: Solicitudes Activas -->
+      <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
+        <app-metric-card
+          color="blue"
+          label="Solicitudes Activas"
+          icon="folder"
+          [value]="metrics().solicitudesActivas"
+          detail="de {{ metrics().solicitudesTotal }} registradas"
+          badgeClass="badge-info"
+          badgeText="2 en seguimiento">
+        </app-metric-card>
+      </div>
+
+      <!-- Métrica 2: Quejas y Reclamos -->
+      <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
+        <app-metric-card
+          color="orange"
+          label="Quejas y Reclamos"
+          icon="exclamation-circle"
+          [value]="metrics().quejasEnProceso"
+          detail="en atención técnica"
+          badgeClass="badge-warning"
+          badgeText="EMPAGUA asignada">
+        </app-metric-card>
+      </div>
+
+      <!-- Métrica 3: Notificaciones -->
+      <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
+        <app-metric-card
+          color="purple"
+          label="Avisos y Respuestas"
+          icon="bell"
+          [value]="metrics().notificacionesNuevas"
+          detail="mensajes sin leer"
+          badgeClass="badge-info"
+          badgeText="Último aviso hoy">
+        </app-metric-card>
+      </div>
+
+      <!-- Métrica 4: Solvencia Municipal -->
+      <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
+        <app-metric-card
+          color="green"
+          label="Estado Municipal"
+          icon="check-circle"
+          [value]="metrics().estadoSolvencia"
+          valueClass="text-success"
+          detail="Boleto de Ornato 2026"
+          badgeClass="badge-success"
+          badgeText="Constancia vigente">
+        </app-metric-card>
+      </div>
+    </div>
+  </section>
+
+  <!-- Accesos Rápidos de Trámites -->
+  <section class="quick-actions-section">
+    <div class="section-header">
+      <h3 class="section-title">Accesos Rápidos</h3>
+      <span class="section-desc">Inicia una nueva gestión vecinal en pocos pasos</span>
+    </div>
+    
+    <div class="clr-row">
+      <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
+        <app-quick-action-card
+          link="/vecino/incidencias/nueva"
+          [queryParams]="{tipo: 'QUEJA'}"
+          actionClass="action-primary"
+          icon="file"
+          title="Nueva Solicitud"
+          description="Servicios públicos y comunitarios">
+        </app-quick-action-card>
+      </div>
+
+      <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
+        <app-quick-action-card
+          link="/vecino/incidencias/nueva"
+          [queryParams]="{tipo: 'RECLAMO'}"
+          actionClass="action-warning"
+          icon="exclamation-circle"
+          title="Reportar Avería / Queja"
+          description="Alumbrado, fugas, baches">
+        </app-quick-action-card>
+      </div>
+
+      <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
+        <app-quick-action-card
+          link="/vecino/incidencias/nueva"
+          [queryParams]="{tipo: 'DENUNCIA'}"
+          actionClass="action-danger"
+          icon="shield"
+          title="Denuncia Ciudadana"
+          description="Infracciones y vías públicas">
+        </app-quick-action-card>
+      </div>
+
+      <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
+        <app-quick-action-card
+          link="/vecino/incidencias/nueva"
+          [queryParams]="{tipo: 'SUGERENCIA'}"
+          actionClass="action-info"
+          icon="talk-bubbles"
+          title="Buzón de Sugerencias"
+          description="Ideas para mejorar tu zona">
+        </app-quick-action-card>
+      </div>
+    </div>
+  </section>
+
+  <!-- Datagrid de Trámites Recientes Clarity -->
+  <section class="datagrid-section">
+    <div class="card table-card">
+      <div class="card-header">
+        <div class="table-header-flex">
+          <div>
+            <h3 class="card-title">Gestiones y Trámites Recientes</h3>
+            <p class="card-subtitle">Seguimiento en tiempo real de tus solicitudes y resoluciones municipales</p>
+          </div>
+          <div class="table-header-actions">
+            <button type="button" class="btn btn-sm btn-outline">
+              <cds-icon shape="refresh"></cds-icon> Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-block">
+        <clr-datagrid [clrDgLoading]="loading()">
+          <clr-dg-column [clrDgField]="'id'">Código</clr-dg-column>
+          <clr-dg-column [clrDgField]="'tipo'">Tipo</clr-dg-column>
+          <clr-dg-column [clrDgField]="'asunto'">Asunto y Descripción</clr-dg-column>
+          <clr-dg-column [clrDgField]="'dependencia'">Dependencia</clr-dg-column>
+          <clr-dg-column [clrDgField]="'fecha'">Fecha de Registro</clr-dg-column>
+          <clr-dg-column [clrDgField]="'estado'">Estado</clr-dg-column>
+          <clr-dg-column class="actions-column">Acciones</clr-dg-column>
+
+          <clr-dg-row *clrDgItems="let t of tramites()" [clrDgItem]="t">
+            <clr-dg-cell class="code-cell">
+              <strong>{{ t.id }}</strong>
+            </clr-dg-cell>
+            
+            <clr-dg-cell>
+              <span class="label" [ngClass]="getTipoBadgeClass(t.tipo)">{{ t.tipo }}</span>
+            </clr-dg-cell>
+            
+            <clr-dg-cell class="subject-cell">
+              {{ t.asunto }}
+            </clr-dg-cell>
+            
+            <clr-dg-cell>
+              {{ t.dependencia }}
+            </clr-dg-cell>
+            
+            <clr-dg-cell>
+              {{ t.fecha }}
+            </clr-dg-cell>
+            
+            <clr-dg-cell>
+              <span class="badge" [ngClass]="getEstadoBadgeClass(t.estado)">
+                {{ t.estado }}
+              </span>
+            </clr-dg-cell>
+            
+            <clr-dg-cell class="actions-cell">
+              <a [routerLink]="['/vecino/incidencias/editar', t.id]" class="btn btn-sm btn-link" title="Ver detalles del trámite">
+                Ver detalle
+              </a>
+            </clr-dg-cell>
+          </clr-dg-row>
+
+          <clr-dg-footer>
+            <clr-dg-pagination #pagination [clrDgPageSize]="5">
+              <clr-dg-page-size [clrPageSizeOptions]="[5, 10, 20]">Registros por página</clr-dg-page-size>
+              {{ pagination.firstItem + 1 }} - {{ pagination.lastItem + 1 }} de {{ pagination.totalItems }} registros
+            </clr-dg-pagination>
+          </clr-dg-footer>
+        </clr-datagrid>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tarjetas Informativas y Canales de Atención -->
+  <section class="info-section">
+    <div class="clr-row">
+      <div class="clr-col-12 clr-col-md-7">
+        <div class="card info-banner-card">
+          <div class="card-block">
+            <div class="info-banner-flex">
+              <div class="info-banner-icon">
+                <cds-icon shape="help-info"></cds-icon>
+              </div>
+              <div class="info-banner-content">
+                <h4 class="card-title">Canales Oficiales de Atención Vecinal</h4>
+                <p>
+                  Si tienes una emergencia urbana o necesitas atención prioritaria, comunícate directamente con las líneas de respuesta municipal:
+                </p>
+                <div class="emergency-pills">
+                  <div class="pill">
+                    <span class="pill-label">Línea de Atención Municipal:</span>
+                    <strong class="pill-value">1551</strong>
+                  </div>
+                  <div class="pill">
+                    <span class="pill-label">Emergencias PMT:</span>
+                    <strong class="pill-value">2380-1099</strong>
+                  </div>
+                  <div class="pill">
+                    <span class="pill-label">Reporte EMPAGUA:</span>
+                    <strong class="pill-value">1551 (Opción 2)</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clr-col-12 clr-col-md-5">
+        <div class="card schedule-card">
+          <div class="card-block">
+            <h4 class="card-title">Horarios de Mini-Munis y Sedes</h4>
+            <p class="schedule-desc">Atención presencial en las 22 zonas de la ciudad:</p>
+            <ul class="schedule-list">
+              <li>
+                <cds-icon shape="calendar"></cds-icon>
+                <span><strong>Lunes a Viernes:</strong> 8:00 hrs a 16:30 hrs</span>
+              </li>
+              <li>
+                <cds-icon shape="calendar"></cds-icon>
+                <span><strong>Sábados:</strong> 8:00 hrs a 12:00 hrs (Sedes seleccionadas)</span>
+              </li>
+            </ul>
+            <a href="https://www.muniguate.com" target="_blank" rel="noopener" class="btn btn-sm btn-outline btn-block">
+              Ver directorio de Sedes Zonales
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
