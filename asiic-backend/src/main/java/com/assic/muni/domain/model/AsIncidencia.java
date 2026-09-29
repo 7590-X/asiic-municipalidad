@@ -106,8 +106,11 @@ public class AsIncidencia {
     private Short inTipoIncidencia;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "in_tipo_denuncia")
-    private AsCatalogo inTipoDenuncia;
+    @JoinColumn(name = "in_tipo_denuncia", insertable = false, updatable = false)
+    private AsCatalogo inTipoDenunciaObj;
+
+    @Column(name = "in_tipo_denuncia")
+    private Short inTipoDenuncia;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "in_area")

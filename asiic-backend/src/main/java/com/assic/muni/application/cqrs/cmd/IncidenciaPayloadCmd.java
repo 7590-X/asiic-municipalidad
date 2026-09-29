@@ -4,7 +4,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.assic.muni.application.cqrs.dto.DenunciadoDto;
 import com.assic.muni.application.cqrs.dto.TestigoDto;
+import com.assic.muni.application.group.GrpDenuncia;
 import com.assic.muni.application.group.GrpQueja;
 
 import com.assic.muni.application.group.GrpReclamo;
@@ -111,11 +113,23 @@ public class IncidenciaPayloadCmd {
 
     @Data
     public static class DetalleDenunciaDto {
+        @NotNull(message = "Código de tipo de denuncia es requerido")
         private Short tipoDenunciaId;
-        private DenunciadoDto[] denunciados; // generar una estructura y almacenar como JSON en db
-        private LocalDateTime fechaHoraHechos;
-        private String direccion;
+
+        private List<@Valid DenunciadoDto> denunciados;
+
+        @NotNull(message = "La fecha de los hechos es requerida", groups = GrpDenuncia.class)
+        @PastOrPresent(message = "La fecha de los hechos debe de ser menor o igual a la fecha actual", groups = GrpDenuncia.class)
+        private Instant fechaHoraHechos;
+
+        @NotBlank(message = "El relato de la denuncia es requerido", groups = GrpDenuncia.class)
         private String relato;
+
+        @Size(max = 20, message = "La latitud no puede ser mayor a 20 caracteres", groups = GrpDenuncia.class)
+        private String latitudGps;
+
+        @Size(max = 20, message = "La longitud no puede ser mayor a 20 caracteres", groups = GrpDenuncia.class)
+        private String longitudGps;
     }
 
     @Data
@@ -123,17 +137,5 @@ public class IncidenciaPayloadCmd {
         private Short areaId;
         private String descripcionActual;
         private String propuestaMejora;
-    }
-
-    /**
-     * Estructura para denunciados para solicitudes de denuncias ciudadanas
-     */
-    @Data
-    public static class DenunciadoDto {
-        private String nombre;
-        private String cui;
-        private String direccion;
-        private String telefono;
-        private String correo;
     }
 }
