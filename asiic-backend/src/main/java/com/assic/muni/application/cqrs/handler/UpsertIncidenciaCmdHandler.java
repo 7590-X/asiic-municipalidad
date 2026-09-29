@@ -31,12 +31,26 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UpsertIncidenciaCmdHandler {
 
+    // Tablas de catálogo
+    private static final short CATALOGO_DEPENDENCIA = 6;
+    private static final short CATALOGO_TIPO_SERVICIO = 7;
+    private static final short CATALOGO_TIPO_DENUNCIA = 8;
+
+    /**
+     * Construcción de la entidad a persistir según el tipo de incidencia
+     */
+    @FunctionalInterface
+    private interface IncidenciaBuilder {
+        AsIncidencia build(short privacidad, int vecinoId, AsIncidencia existente);
+    }
+
     // Repositorios
     private final AsUsuarioRepository usuarioRepository;
     private final AsCatalogoRepository catalogoRepository;
     private final AsVecinoDomicilioRepository vecinoDomicilioRepository;
     private final AsIncidenciaRepository incidenciaRepository;
     private final AsIncidenciaArchivoRepository incidenciaArchivoRepository;
+    private final VecinoRepository vecinoRepository;
 
     // Puertos
     private final FileStoragePort fileStoragePort;
@@ -47,7 +61,6 @@ public class UpsertIncidenciaCmdHandler {
     // Utils
     private final PayloadValidator payloadValidator;
     private final ObjectMapper objectMapper;
-    private final VecinoRepository vecinoRepository;
 
     @Transactional
     public Integer handle(IncidenciaPayloadCmd payload, List<MultipartFile> evidencias) {
@@ -78,114 +91,116 @@ public class UpsertIncidenciaCmdHandler {
     }
 
     private Integer registrarSolicitudQueja(IncidenciaPayloadCmd payload, String subject) {
-        // Validaciones
         IncidenciaPayloadCmd.DetalleQuejaDto detalle = payload.getDetalleQueja();
-
-        int vecinoId = validacionExistenciaVecino(subject);
-        validarPertenenciaDomicilio(payload.getContador(), vecinoId);
-        Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
         final short unidadId = detalle.getDependenciaId();
-        boolean existsUnidad = catalogoRepository.existsByTableAndId((short) 6, unidadId);
+        JsonNode testigos = objectMapper.valueToTree(detalle.getTestigo());
 
-        if (!existsUnidad) {
-            throw new ServiceException(HttpStatus.BAD_REQUEST,
-                    "No se pudo identificar la dependencia de la solicitud de queja");
-        }
-        // Validar UPSERT
-        AsIncidencia insidencia = null;
-        if (payload.getIncidenciaId() != null) {
-            insidencia = incidenciaRepository.findByIdAndInVecino(payload.getIncidenciaId(), vecinoId)
-                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
-                            "La incidence no fue encontrada para su actualización"));
-        }
-
-        // Construcción Template
-        JsonNode evidenciasJson = objectMapper.valueToTree(detalle.getTestigo());
-        final AsIncidencia toPersist = IncidenciaMapper.fromDtoToQueja(
-                privacidad, vecinoId, unidadId, payload, insidencia, evidenciasJson);
-
-        // Persistencia
-        AsIncidencia persisted = incidenciaRepository.save(toPersist);
-
-        // Evento de registro de incidencia
-        AsVecino vecino = vecinoRepository.findById(vecinoId).get();
-        eventPublisher.publishEvent(new IncidenciaUpsertEvent(
-                persisted.getId(),
-                persisted.getInFecRegistro(),
-                persisted.getInEstado().getDescripcion(),
-                vecino.getVePersona().getFullName(),
-                vecino.getVeCorreo().getCoCorreo()
-        ));
-        return persisted.getId();
+        return registrarIncidencia(payload, subject,
+                CATALOGO_DEPENDENCIA, unidadId,
+                "No se pudo identificar la dependencia de la solicitud de queja",
+                "La queja no fue encontrada para su actualización",
+                (privacidad, vecinoId, existente) -> IncidenciaMapper.fromDtoToQueja(
+                        privacidad, vecinoId, unidadId, payload, existente, testigos));
     }
 
     private Integer registrarSolicitudReclamo(IncidenciaPayloadCmd payload, String subject) {
-        IncidenciaPayloadCmd.DetalleReclamoDto detalle = payload.getDetalleReclamo();
+        final short servicioId = payload.getDetalleReclamo().getTipoServicioId();
 
-        int vecinoId = validacionExistenciaVecino(subject);
-        validarPertenenciaDomicilio(payload.getContador(), vecinoId);
-        Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
-        final short servicioId = detalle.getTipoServicioId();
-        boolean existsServicio = catalogoRepository.existsByTableAndId((short) 7, servicioId);
-        if (!existsServicio) {
-            throw new ServiceException(HttpStatus.BAD_REQUEST, "Código de servicio es incorrecto");
-        }
-        AsIncidencia insidencia = null;
-        if (payload.getIncidenciaId() != null) {
-            insidencia = incidenciaRepository.findByIdAndInVecino(payload.getIncidenciaId(), vecinoId)
-                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
-                            "El reclamo no fue encontrado para su actualización"));
-        }
-        final AsIncidencia toPersist = IncidenciaMapper.fromDtoToReclamo(privacidad, vecinoId, servicioId, payload, insidencia);
-        AsIncidencia persisted = incidenciaRepository.save(toPersist);
-
-        AsVecino vecino = vecinoRepository.findById(vecinoId).get();
-        eventPublisher.publishEvent(new IncidenciaUpsertEvent(
-                persisted.getId(),
-                persisted.getInFecRegistro(),
-                persisted.getInEstado().getDescripcion(),
-                vecino.getVePersona().getFullName(),
-                vecino.getVeCorreo().getCoCorreo()
-        ));
-        return persisted.getId();
+        return registrarIncidencia(payload, subject,
+                CATALOGO_TIPO_SERVICIO, servicioId,
+                "Código de servicio es incorrecto",
+                "El reclamo no fue encontrado para su actualización",
+                (privacidad, vecinoId, existente) -> IncidenciaMapper.fromDtoToReclamo(
+                        privacidad, vecinoId, servicioId, payload, existente));
     }
 
     private Integer registrarSolicitudDenuncia(IncidenciaPayloadCmd payload, String subject) {
         IncidenciaPayloadCmd.DetalleDenunciaDto detalle = payload.getDetalleDenuncia();
-
-        int vecinoId = validacionExistenciaVecino(subject);
-        validarPertenenciaDomicilio(payload.getContador(), vecinoId);
-        Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
         final short tipoDenuncia = detalle.getTipoDenunciaId();
-        boolean existsTipoDenuncia = catalogoRepository.existsByTableAndId((short) 8, tipoDenuncia);
-        if (!existsTipoDenuncia) {
-            throw new ServiceException(HttpStatus.BAD_REQUEST, "Código de denuncia es incorrecto");
-        }
-        AsIncidencia incidencia = null;
-        if (payload.getIncidenciaId() != null) {
-            incidencia = incidenciaRepository.findByIdAndInVecino(payload.getIncidenciaId(), vecinoId)
-                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
-                            "La denuncia no fue encontrada para su actualización"));
-        }
         JsonNode denunciados = objectMapper.valueToTree(detalle.getDenunciados());
-        AsIncidencia toPersist = IncidenciaMapper.fromDtoToDenuncia(privacidad, vecinoId, tipoDenuncia, payload, incidencia, denunciados);
-        AsIncidencia persisted = incidenciaRepository.save(toPersist);
 
-        AsVecino vecino = vecinoRepository.findById(vecinoId).get();
-        eventPublisher.publishEvent(new IncidenciaUpsertEvent(
-                persisted.getId(),
-                persisted.getInFecRegistro(),
-                persisted.getInEstado().getDescripcion(),
-                vecino.getVePersona().getFullName(),
-                vecino.getVeCorreo().getCoCorreo()
-        ));
-        return persisted.getId();
+        return registrarIncidencia(payload, subject,
+                CATALOGO_TIPO_DENUNCIA, tipoDenuncia,
+                "Código de denuncia es incorrecto",
+                "La denuncia no fue encontrada para su actualización",
+                (privacidad, vecinoId, existente) -> IncidenciaMapper.fromDtoToDenuncia(
+                        privacidad, vecinoId, tipoDenuncia, payload, existente, denunciados));
     }
 
     private Integer registrarSolicitudSugerencia(IncidenciaPayloadCmd payload, String subject) {
         Integer vecinoId = validacionExistenciaVecino(subject);
         Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
         return null;
+    }
+
+    /**
+     * Flujo común de UPSERT de una incidencia: validaciones, construcción,
+     * persistencia y publicación del evento de registro
+     *
+     * @param payload             Payload de la incidencia
+     * @param subject             UUID de la cuenta autenticada
+     * @param tablaCatalogo       Tabla de catálogo del tipo específico de incidencia
+     * @param catalogoId          ID del registro de catálogo a validar
+     * @param msgCatalogoInvalido Mensaje de error si el catálogo no existe
+     * @param msgNoEncontrada     Mensaje de error si la incidencia a actualizar no existe
+     * @param builder             Construcción de la entidad según el tipo de incidencia
+     * @return ID de la incidencia persistida
+     */
+    private Integer registrarIncidencia(IncidenciaPayloadCmd payload, String subject,
+                                        short tablaCatalogo, short catalogoId,
+                                        String msgCatalogoInvalido, String msgNoEncontrada,
+                                        IncidenciaBuilder builder) {
+        // Validaciones
+        int vecinoId = validacionExistenciaVecino(subject);
+        validarPertenenciaDomicilio(payload.getContador(), vecinoId);
+        short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
+        validarExistenciaCatalogo(tablaCatalogo, catalogoId, msgCatalogoInvalido);
+
+        // Validar UPSERT
+        AsIncidencia existente = obtenerIncidenciaExistente(payload.getIncidenciaId(), vecinoId, msgNoEncontrada);
+
+        // Construcción y persistencia
+        AsIncidencia persisted = incidenciaRepository.save(builder.build(privacidad, vecinoId, existente));
+
+        // Evento de registro de incidencia
+        publicarEventoUpsert(persisted, vecinoId);
+        return persisted.getId();
+    }
+
+    /**
+     * Valida que exista el registro en la tabla de catálogo indicada
+     */
+    private void validarExistenciaCatalogo(short tabla, short id, String mensajeError) {
+        if (!catalogoRepository.existsByTableAndId(tabla, id)) {
+            throw new ServiceException(HttpStatus.BAD_REQUEST, mensajeError);
+        }
+    }
+
+    /**
+     * Obtiene la incidencia a actualizar del vecino, o null si es un nuevo registro
+     */
+    private AsIncidencia obtenerIncidenciaExistente(Integer incidenciaId, int vecinoId, String mensajeError) {
+        if (incidenciaId == null) {
+            return null;
+        }
+        return incidenciaRepository.findByIdAndInVecino(incidenciaId, vecinoId)
+                .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, mensajeError));
+    }
+
+    /**
+     * Publica el evento de registro/actualización de la incidencia
+     */
+    private void publicarEventoUpsert(AsIncidencia persisted, int vecinoId) {
+        AsVecino vecino = vecinoRepository.findById(vecinoId)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND,
+                        "No se encontró información del vecino"));
+        eventPublisher.publishEvent(new IncidenciaUpsertEvent(
+                persisted.getId(),
+                persisted.getInFecRegistro(),
+                persisted.getInEstado().getDescripcion(),
+                vecino.getVePersona().getFullName(),
+                vecino.getVeCorreo().getCoCorreo()
+        ));
     }
 
     /**
