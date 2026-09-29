@@ -6,8 +6,10 @@ import com.assic.muni.application.mapper.ArchivoMapper;
 import com.assic.muni.application.port.out.FileStoragePort;
 import com.assic.muni.application.port.out.SftpStoragePort;
 import com.assic.muni.application.util.JwtExtractor;
+import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.domain.model.AsArchivo;
 import com.assic.muni.domain.repository.AsArchivoRepository;
+import com.assic.muni.domain.repository.AsIncidenciaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,7 @@ import java.util.Optional;
 public class ArchivosQueryHandler {
 
     private final AsArchivoRepository archivoRepository;
+    private final AsIncidenciaRepository incidenciaRepository;
     private final FileStoragePort fileStoragePort;
 
 
@@ -49,5 +52,24 @@ public class ArchivosQueryHandler {
         }
         byte[] b = fileStoragePort.getFile(archivo.get().getId());
         return ArchivoMapper.frontEntityToDto(archivo.get(), b);
+    }
+
+    public void eliminarArchivoDeIncidencia(int incidenciaId, int archivoId) {
+        String subject = JwtExtractor.extrarJwtSubject();
+
+        boolean exists = archivoRepository.existsByIncidenciaAndArchivoAndUserUUID(incidenciaId, archivoId, subject);
+        if(!exists){
+            throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontró el archivo");
+        }
+
+        boolean esBorrador = incidenciaRepository.existsByIdAndInEstado(incidenciaId, IncidenciaState.BORRADOR);
+        if(!esBorrador){
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "No se puede eliminar un archivo de una incidencia que no está en estado borrador");
+        }
+        // Eliminar SFTP
+        boolean deleted = fileStoragePort.deleteFile(archivoId);
+        if(!deleted){
+            throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo eliminar el archivo, contacte con soporte");
+        }
     }
 }
