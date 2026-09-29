@@ -38,17 +38,17 @@ public class IncidenciaQueryHandler {
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND,
                         "La queja no fue encontrada o no pertenece a la cuenta autenticada"));
 
-        return IncidenciaMapper.entityToQuejaDto(incidencia, objectMapper);
+        return IncidenciaMapper.entityToIncidenciaDto(incidencia, objectMapper);
     }
 
-    public List<IncidenciaDto> obtenerMisIncidencias(){
+    public List<IncidenciaDto> obtenerMisIncidencias() {
         final String subject = JwtExtractor.extrarJwtSubject();
         final int vecinoId = verificacionExistenciaVecino(subject);
         List<AsIncidencia> incidencias = incidenciaRepository.findIncidenciasDetalleByVecino(vecinoId);
-        if (incidencias.isEmpty()){
+        if (incidencias.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron incidencias para el vecino");
         }
-        return incidencias.stream().map(incidencia -> IncidenciaMapper.entityToQuejaDto(incidencia, objectMapper)).toList();
+        return incidencias.stream().map(incidencia -> IncidenciaMapper.entityToIncidenciaDto(incidencia, objectMapper)).toList();
     }
 
     /**
@@ -63,7 +63,7 @@ public class IncidenciaQueryHandler {
                 .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND,
                         "La queja no fue encontrada"));
 
-        return IncidenciaMapper.entityToQuejaDto(incidencia, objectMapper);
+        return IncidenciaMapper.entityToIncidenciaDto(incidencia, objectMapper);
     }
 
     /**

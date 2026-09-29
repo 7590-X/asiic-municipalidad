@@ -35,6 +35,7 @@ public class UpsertIncidenciaCmdHandler {
     private static final short CATALOGO_DEPENDENCIA = 6;
     private static final short CATALOGO_TIPO_SERVICIO = 7;
     private static final short CATALOGO_TIPO_DENUNCIA = 8;
+    private static final short CATALOGO_AREA = 9;
 
     /**
      * Construcción de la entidad a persistir según el tipo de incidencia
@@ -128,9 +129,13 @@ public class UpsertIncidenciaCmdHandler {
     }
 
     private Integer registrarSolicitudSugerencia(IncidenciaPayloadCmd payload, String subject) {
-        Integer vecinoId = validacionExistenciaVecino(subject);
-        Short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
-        return null;
+        final short areaId = payload.getDetalleSugerencia().getAreaId();
+        return registrarIncidencia(payload, subject,
+                CATALOGO_AREA, areaId,
+                "El código de área es incorrecto",
+                "La sugerencia no fue encontrada para su actualización",
+                (privacidad, vecinoId, existente) -> IncidenciaMapper.fromDtoToSugerencia(
+                        privacidad, vecinoId, areaId, payload, existente));
     }
 
     /**
