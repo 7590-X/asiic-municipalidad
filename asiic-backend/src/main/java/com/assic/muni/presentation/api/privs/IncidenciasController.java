@@ -143,4 +143,14 @@ public class IncidenciasController {
                 .contentLength(dto.contenido().length)
                 .body(resource);
     }
+
+    @Operation(summary = "Elimina una evidencia de una incidencia", description = "Elimina una evidencia de una incidencia")
+    @DeleteMapping("me/{incidenciaId}/archivos/{archivoId}")
+    @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
+    public ResponseEntity<ApiResponseDto> eliminarEvidencia(@PathVariable Integer incidenciaId, @PathVariable Integer archivoId) {
+        archivosQueryHandler.eliminarArchivoDeIncidencia(incidenciaId, archivoId);
+        return ResponseEntity.ok()
+                .body(new ApiResponseDto(HttpStatus.NO_CONTENT.value(), HttpStatus.NO_CONTENT.getReasonPhrase(), ZonedDateTime.now(),
+                        "Evidencia eliminada correctamente", null));
+    }
 }
