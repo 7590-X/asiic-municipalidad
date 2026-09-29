@@ -40,9 +40,9 @@ public final class IncidenciaMapper {
         return toUpsert;
     }
 
-    public static AsIncidencia fromDtoToReclamo(short privacidad, int vecinoId, short servicio, IncidenciaPayloadCmd payload, AsIncidencia toUpsert){
+    public static AsIncidencia fromDtoToReclamo(short privacidad, int vecinoId, short servicio, IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
         IncidenciaPayloadCmd.DetalleReclamoDto detalle = payload.getDetalleReclamo();
-        if(null == toUpsert){
+        if (null == toUpsert) {
             toUpsert = new AsIncidencia();
         }
         toUpsert.setId(payload.getIncidenciaId());
@@ -58,7 +58,27 @@ public final class IncidenciaMapper {
         return toUpsert;
     }
 
-    public static IncidenciaDto entityToQuejaDto(AsIncidencia entity, ObjectMapper objectMapper) {
+    public static AsIncidencia fromDtoToDenuncia(short privacidad, int vecinoId, short tipoDenuncia, IncidenciaPayloadCmd payload, AsIncidencia toUpsert,JsonNode denunciados) {
+        IncidenciaPayloadCmd.DetalleDenunciaDto detalle = payload.getDetalleDenuncia();
+        if (null == toUpsert) {
+            toUpsert = new AsIncidencia();
+        }
+        toUpsert.setId(payload.getIncidenciaId());
+        toUpsert.setInTipoIncidencia(payload.getTipoIncidencia());
+        toUpsert.setInPrivacidad(privacidad);
+        toUpsert.setInVecino(vecinoId);
+        toUpsert.setInContador(payload.getContador());
+        toUpsert.setInTipoDenuncia(tipoDenuncia);
+        toUpsert.setInLatitud(detalle.getRelato());
+        toUpsert.setInLongitud(detalle.getLongitudGps());
+        toUpsert.setInEstado(IncidenciaState.BORRADOR);
+        toUpsert.setInComentario(detalle.getRelato());
+        toUpsert.setInFecInsidencia(detalle.getFechaHoraHechos());
+        toUpsert.setInJsons(denunciados);
+        return toUpsert;
+    }
+
+    public static IncidenciaDto entityToIncidenciaDto(AsIncidencia entity, ObjectMapper objectMapper) {
         // Mandatorio en todas las solicitudes
         TipoIncidenciaDto tipoIncidencia = TipoIncidenciaMapper.fronEntityToDto(entity.getInTipoIncidenciaObj());
         CatalogoItemDto privacidad = CatalogoMapper.fromEntityToDto(entity.getInPrivacidadObj());
