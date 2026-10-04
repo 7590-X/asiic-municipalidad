@@ -74,11 +74,16 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
 
     }
 
+    @Override
+    public List<RoleRepresentation> getRolesPermitidos() {
+        return kcGetRoles("sys_");
+    }
+
     private void kcEmailVerified(String userId, boolean emailVerified) {
         try {
             // Validar Correo
             UserRepresentation user = keycloakAdminClient.realm(realm).users().get(userId).toRepresentation();
-            user.setEmailVerified(true);
+            user.setEmailVerified(emailVerified);
             keycloakAdminClient.realm(realm).users().get(userId).update(user);
         } catch (RuntimeException e) {
             log.error("[ERROR_REQUEST_VERIFY_EMAIL]", e);
@@ -115,5 +120,11 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
             throw new InfrastructureException(HttpStatus.SERVICE_UNAVAILABLE,
                     "Ocurrió un problema al intentar crear la cuenta, por favor contacte con soporte");
         }
+    }
+
+    private List<RoleRepresentation> kcGetRoles(String prefix) {
+        return keycloakAdminClient.realm(realm)
+                .roles()
+                .list(prefix,true);
     }
 }
