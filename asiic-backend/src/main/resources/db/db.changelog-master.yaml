@@ -39,3 +39,5 @@ databaseChangeLog:
       file: db/changelog/260926-1-eliminar-not-null-direccion.sql
   - include:
       file: db/changelog/260926-2-eliminar-not-null-fecha-incidencia.sql
+  - include:
+      file: db/changelog/260930-1-agregar-relacion-persona-con-muni.sql

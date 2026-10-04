@@ -2610,7 +2610,7 @@
 											"top": 407,
 											"width": 144.04443359375,
 											"height": 13,
-											"text": "Resolección Finalizada"
+											"text": "Recolección Finalizada"
 										},
 										{
 											"_type": "LabelView",
@@ -5702,7 +5702,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGfjAmiOMdTjOw="
 							},
-							"name": "Resolección Finalizada"
+							"name": "Recolección Finalizada"
 						},
 						{
 							"_type": "UMLPseudostate",

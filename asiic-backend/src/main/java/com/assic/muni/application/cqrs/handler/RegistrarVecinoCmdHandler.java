@@ -22,7 +22,7 @@ public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<Integer, Regist
     private final AsPersonaRepository asPersonaRepository;
     private final AsCorreoRepository asCorreoRepository;
     private final AsTelefonoRepository asTelefonoRepository;
-    private final DireccionRepository direccionRepository;
+    private final AsDireccionRepository asDireccionRepository;
     private final AsCatalogoRepository catalogoRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final IdentityProviderPort identityProviderPort;
@@ -77,7 +77,7 @@ public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<Integer, Regist
                     .teUsrRegistro(userId)
                     .build());
 
-            AsDireccion direccion = direccionRepository.save(AsDireccion.builder()
+            AsDireccion direccion = asDireccionRepository.save(AsDireccion.builder()
                     .diDireccion(cmd.getDireccion())
                     .diLocacion(cmd.getLocacionId())
                     .build());
