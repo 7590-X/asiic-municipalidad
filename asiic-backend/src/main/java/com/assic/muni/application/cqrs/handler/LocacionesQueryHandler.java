@@ -39,7 +39,7 @@ public class LocacionesQueryHandler {
         return locaciones.stream().map(LocacionDto::new).toList();
     }
 
-    public List<LocacionDto>    obtainComunas(short paisId, short deptoId, short muniId) {
+    public List<LocacionDto> obtainComunas(short paisId, short deptoId, short muniId) {
         List<AsLocacion> locaciones = locacionRepository.findAllComunas(paisId, deptoId, muniId);
         if (locaciones.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron comunas disponibles");

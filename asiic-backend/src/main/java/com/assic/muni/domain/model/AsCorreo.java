@@ -5,7 +5,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
@@ -34,15 +37,17 @@ public class AsCorreo {
     @Column(name = "co_fec_registro", nullable = false)
     private Instant coFecRegistro;
 
+    @CreatedBy
     @Size(max = 36)
-    @NotNull
     @Column(name = "co_usr_registro", nullable = false, length = 36)
     private String coUsrRegistro;
 
+    @LastModifiedDate
     @Column(name = "co_fec_modifico")
     private Instant coFecModifico;
 
     @Size(max = 36)
+    @LastModifiedBy
     @Column(name = "co_usr_modifico", length = 36)
     private String coUsrModifico;
 

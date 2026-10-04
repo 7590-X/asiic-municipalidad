@@ -55,6 +55,4 @@ public class AsDireccion {
 
     @Column(name = "di_locacion")
     private Integer diLocacion;
-
-
 }

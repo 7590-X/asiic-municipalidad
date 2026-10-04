@@ -22,14 +22,13 @@ public class AsPersona {
     @Column(name = "pe_cui", length = 13)
     private String peCui;
 
-    @Size(max = 45)
+    @Size(max = 100)
     @NotNull
-    @Column(name = "pe_nombre", nullable = false, length = 45)
+    @Column(name = "pe_nombre", nullable = false, length = 100)
     private String peNombre;
 
     @Size(max = 45)
-    @NotNull
-    @Column(name = "pe_apellido", nullable = false, length = 45)
+    @Column(name = "pe_apellido", length = 45)
     private String peApellido;
 
     @Size(max = 13)
@@ -41,7 +40,6 @@ public class AsPersona {
     private String pePasaporte;
 
     @Size(max = 1)
-    @NotNull
     @Column(name = "pe_genero", nullable = false, length = 1)
     private String peGenero;
 
