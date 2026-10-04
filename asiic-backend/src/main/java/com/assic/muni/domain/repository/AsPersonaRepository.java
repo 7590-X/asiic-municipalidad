@@ -5,6 +5,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
+
 public interface AsPersonaRepository extends JpaRepository<AsPersona, Integer> {
 
     boolean existsByPeCui(String peCui);
@@ -12,11 +14,14 @@ public interface AsPersonaRepository extends JpaRepository<AsPersona, Integer> {
     boolean existsByPeNit(String peNit);
 
     @Query(value = """
-        select case
-        when exists(select 1 from as_personas where pe_cui = :p_cui) then 1
-        when exists(select 1 from as_correos where co_correo = :p_correo) then 2
-        else 0
-        end as codigo_estado
-    """, nativeQuery = true)
+                select case
+                when exists(select 1 from as_personas where pe_cui = :p_cui) then 1
+                when exists(select 1 from as_correos where co_correo = :p_correo) then 2
+                else 0
+                end as codigo_estado
+            """, nativeQuery = true)
     int validateByPeCuiAndPeCoCorreo(@Param("p_cui") String peCui, @Param("p_correo") String coCorreo);
+
+    @Query("select m.asPersona from AsMuni m where m.id = :muniId")
+    Optional<AsPersona> findByJoinMuni(@Param("muniId") short muniId);
 }

@@ -4,10 +4,13 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.assic.muni.application.cqrs.dto.DenunciadoDto;
 import com.assic.muni.application.cqrs.dto.TestigoDto;
+import com.assic.muni.application.group.GrpDenuncia;
 import com.assic.muni.application.group.GrpQueja;
 
 import com.assic.muni.application.group.GrpReclamo;
+import com.assic.muni.application.group.GrpSugerencia;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,19 +29,19 @@ public class IncidenciaPayloadCmd {
     /**
      * QUEJA, RECLAMO, DENUNCIA, SUGERENCIA
      */
-    @NotNull(message = "El código de incidencia es requerido", groups = {GrpQueja.class, GrpReclamo.class})
+    @NotNull(message = "El código de incidencia es requerido", groups = {GrpQueja.class, GrpReclamo.class, GrpDenuncia.class, GrpSugerencia.class})
     private Short tipoIncidencia;
 
     /**
      * Debe de almacenar el pseudónimo del tipo de privacidad
      */
-    @NotBlank(message = "El pseudónimo de privacidad es requerido", groups = {GrpQueja.class, GrpReclamo.class})
+    @NotBlank(message = "El pseudónimo de privacidad es requerido", groups = {GrpQueja.class, GrpReclamo.class, GrpDenuncia.class, GrpSugerencia.class})
     private String privacidad;
 
     /**
      * Número de contador
      */
-    @NotBlank(message = "El número de contador del domicilio es requerido", groups = {GrpQueja.class, GrpReclamo.class})
+    @NotBlank(message = "El número de contador del domicilio es requerido", groups = {GrpQueja.class, GrpReclamo.class, GrpDenuncia.class, GrpSugerencia.class})
     private String contador;
 
     /**
@@ -70,13 +73,13 @@ public class IncidenciaPayloadCmd {
         @NotNull(message = "El ID de dependencia es requerido", groups = GrpQueja.class)
         private Short dependenciaId; // En la tabla es "unidad"
 
-        @Size(max = 100, message = "La nombre del empleado no debe de ser mayor a 100 caracteres",groups = GrpQueja.class)
+        @Size(max = 100, message = "La nombre del empleado no debe de ser mayor a 100 caracteres", groups = GrpQueja.class)
         private String nombreEmpleado;
 
         @PastOrPresent(message = "La fecha de la incidencia debe ser anterior o igual a la actual", groups = GrpQueja.class)
         private Instant fechaIncidencia;
 
-        @Size(max = 100, message = "La dirección referencia no debe de ser mayor a 100 caracteres",groups = GrpQueja.class)
+        @Size(max = 100, message = "La dirección referencia no debe de ser mayor a 100 caracteres", groups = GrpQueja.class)
         @NotBlank(message = "El dirección referencial es requerida", groups = GrpQueja.class)
         private String direccionReferencial;
 
@@ -111,29 +114,37 @@ public class IncidenciaPayloadCmd {
 
     @Data
     public static class DetalleDenunciaDto {
+        @NotNull(message = "Código de tipo de denuncia es requerido")
         private Short tipoDenunciaId;
-        private DenunciadoDto[] denunciados; // generar una estructura y almacenar como JSON en db
-        private LocalDateTime fechaHoraHechos;
-        private String direccion;
+
+        private List<@Valid DenunciadoDto> denunciados;
+
+        @NotNull(message = "La fecha de los hechos es requerida", groups = GrpDenuncia.class)
+        @PastOrPresent(message = "La fecha de los hechos debe de ser menor o igual a la fecha actual", groups = GrpDenuncia.class)
+        private Instant fechaHoraHechos;
+
+        @NotBlank(message = "El relato de la denuncia es requerido", groups = GrpDenuncia.class)
+        @Size(max = 500, message = "El relato de la denuncia no puede ser mayor a 500 caracteres", groups = GrpDenuncia.class)
         private String relato;
+
+        @Size(max = 20, message = "La latitud no puede ser mayor a 20 caracteres", groups = GrpDenuncia.class)
+        private String latitudGps;
+
+        @Size(max = 20, message = "La longitud no puede ser mayor a 20 caracteres", groups = GrpDenuncia.class)
+        private String longitudGps;
     }
 
     @Data
     public static class DetalleSugerenciaDto {
+        @NotNull(message = "Código de área es requerido", groups = GrpSugerencia.class)
         private Short areaId;
-        private String descripcionActual;
-        private String propuestaMejora;
-    }
 
-    /**
-     * Estructura para denunciados para solicitudes de denuncias ciudadanas
-     */
-    @Data
-    public static class DenunciadoDto {
-        private String nombre;
-        private String cui;
-        private String direccion;
-        private String telefono;
-        private String correo;
+        @NotBlank(message = "La descripción actual es requerida", groups = GrpSugerencia.class)
+        @Size(max = 500, message = "La descripción actual no puede ser mayor a 500 caracteres", groups = GrpSugerencia.class)
+        private String descripcionActual;
+
+        @NotBlank(message = "La propuesta de mejora es requerida", groups = GrpSugerencia.class)
+        @Size(max = 500, message = "La propuesta de mejora no puede ser mayor a 500 caracteres", groups = GrpSugerencia.class)
+        private String propuestaMejora;
     }
 }

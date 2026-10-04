@@ -106,12 +106,18 @@ public class AsIncidencia {
     private Short inTipoIncidencia;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "in_tipo_denuncia")
-    private AsCatalogo inTipoDenuncia;
+    @JoinColumn(name = "in_tipo_denuncia", insertable = false, updatable = false)
+    private AsCatalogo inTipoDenunciaObj;
+
+    @Column(name = "in_tipo_denuncia")
+    private Short inTipoDenuncia;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "in_area")
-    private AsCatalogo inArea;
+    @JoinColumn(name = "in_area", insertable = false, updatable = false)
+    private AsCatalogo inAreaObj;
+
+    @Column(name = "in_area", insertable = true, updatable = true)
+    private short inArea;
 
     @Column(name = "in_propuesta", nullable = false, length = Integer.MAX_VALUE)
     private String inPropuesta;
