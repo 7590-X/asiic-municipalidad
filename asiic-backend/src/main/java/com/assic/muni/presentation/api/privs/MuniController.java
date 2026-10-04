@@ -2,6 +2,8 @@ package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.cmd.MuniPayloadCmd;
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
+import com.assic.muni.application.cqrs.dto.MuniDto;
+import com.assic.muni.application.cqrs.handler.MunisQueryHandler;
 import com.assic.muni.application.cqrs.handler.UpsertMunicipalidadCmdHandler;
 import com.assic.muni.infrastructure.config.SwaggerConfig;
 import com.assic.muni.presentation.api.util.UriBuilder;
@@ -12,13 +14,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,6 +27,7 @@ import java.time.ZonedDateTime;
 public class MuniController {
 
     private final UpsertMunicipalidadCmdHandler upsertMunicipalidadCmdHandler;
+    private final MunisQueryHandler munisQueryHandler;
 
     @PostMapping
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
@@ -42,5 +43,20 @@ public class MuniController {
                         "Municipalidad Registrada Correctamente",
                         null)
         );
+    }
+
+
+    @GetMapping
+    @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
+    @Operation(summary = "Obtener municipalidades registradas")
+    public ResponseEntity<List<MuniDto>> getMunis() {
+        return ResponseEntity.ok(munisQueryHandler.obtenerMunis());
+    }
+
+    @GetMapping("/{id}")
+    @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
+    @Operation(summary = "Obtener municipalidad por id")
+    public ResponseEntity<MuniDto> getMuni(@PathVariable("id") Short muniId) {
+        return ResponseEntity.ok(munisQueryHandler.obtenerMuniById(muniId));
     }
 }
