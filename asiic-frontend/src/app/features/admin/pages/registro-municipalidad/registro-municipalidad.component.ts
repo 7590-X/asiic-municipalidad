@@ -7,6 +7,8 @@ import { LocacionesService } from '../../../../core/services/locaciones.service'
 import { LocacionModel } from '../../../../core/models/locacion.model';
 import { distinctUntilChanged } from 'rxjs/operators';
 
+import { AsidePanelComponent } from '../../../vecino/components/aside-panel/aside-panel.component';
+
 @Component({
   selector: 'app-registro-municipalidad',
   standalone: true,

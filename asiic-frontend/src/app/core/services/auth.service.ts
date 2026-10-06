@@ -157,9 +157,6 @@ export class AuthService {
   private redirectToDashboard(roles: string[]): void {
     // Manejo de roles para redirección
     const normalizedRoles = roles.map((r) => r.toLowerCase());
-    console.log('Roles from token:', roles);
-    alert('Tus roles detectados: ' + roles.join(', '));
-
     if (normalizedRoles.some(r => r.includes('vecino'))) {
       this.router.navigate(['/vecino/dashboard']).catch(() => this.router.navigate(['/']));
     } else if (normalizedRoles.some(r => r.includes('admin'))) {

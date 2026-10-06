@@ -10,31 +10,28 @@
       <cds-icon shape="bars"></cds-icon>
     </button>
 
-    <a routerLink="/vecino/dashboard" class="nav-link brand-link">
-      <img src="muni-emblem-white.svg" alt="Escudo Municipal" class="brand-logo" />
+    <a [routerLink]="isAdmin() ? '/admin/dashboard' : '/vecino/dashboard'" class="nav-link brand-link">
+      <img src="muni-emblem-white.svg" alt="Escudo Municipal" class="brand-logo" *ngIf="!isAdmin()" />
       <div class="brand-text">
-        <span class="title">MUNICIPALIDAD DE GUATEMALA</span>
-        <span class="subtitle">PORTAL VECINAL ASIIC</span>
+        <ng-container *ngIf="!isAdmin()">
+          <span class="title">MUNICIPALIDAD DE GUATEMALA</span>
+          <span class="subtitle">PORTAL VECINAL ASIIC</span>
+        </ng-container>
+        <ng-container *ngIf="isAdmin()">
+          <span class="title">PORTAL ADMINISTRATIVO ASIIC</span>
+          <span class="subtitle" style="font-weight: 500;">SISTEMA CENTRAL</span>
+        </ng-container>
       </div>
     </a>
   </div>
 
   <div class="header-nav">
-    <a routerLink="/vecino/dashboard" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+    <a [routerLink]="isAdmin() ? '/admin/dashboard' : '/vecino/dashboard'" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
       <span class="nav-text">Dashboard</span>
     </a>
   </div>
 
-  <div class="search">
-    <label for="header-search">
-      <input
-        id="header-search"
-        type="text"
-        placeholder="Buscar trámites, quejas, servicios..."
-        aria-label="Buscar en el portal municipal"
-      />
-    </label>
-  </div>
+
 
   <div class="header-actions">
     <!-- Centro de Notificaciones -->

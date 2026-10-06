@@ -1,9 +1,10 @@
-<div class="main-container">
-  <div class="content-container">
-    <div class="content-area">
-      <h1>Registro de Municipalidad</h1>
+<div class="content-container">
+  <div class="content-area">
+    <div style="padding: 2rem;">
+      <h2>Nueva Municipalidad</h2>
+      <p style="margin-bottom: 2rem; color: #555;">Complete el formulario para registrar la nueva institución.</p>
 
-      <form [formGroup]="muniForm" (ngSubmit)="onRegistrarClick()" clrForm>
+      <form [formGroup]="muniForm" (ngSubmit)="onRegistrarClick()" clrForm clrLayout="vertical">
         <div class="clr-row">
           <div class="clr-col-12 clr-col-md-4">
             <clr-select-container>
@@ -114,7 +115,7 @@
           </div>
         </div>
 
-        <div class="mt-4" style="margin-top: 2rem;">
+        <div class="mt-4" style="margin-top: 3rem; display: flex; gap: 1rem;">
           <button type="submit" class="btn btn-primary" [disabled]="muniForm.invalid">Registrar Municipalidad</button>
           <button type="button" class="btn btn-outline" (click)="onCancelarClick()">Cancelar</button>
         </div>
