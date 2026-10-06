@@ -4,7 +4,7 @@ import com.assic.muni.application.port.out.EmailServicePort;
 import com.assic.muni.application.port.out.TemporalTokenPort;
 import com.assic.muni.application.port.out.dto.SimpleMail;
 import com.assic.muni.domain.event.CuentaConfirmadaEvent;
-import com.assic.muni.domain.event.VecinoCreadoEvent;
+import com.assic.muni.domain.event.CuentaCreadaEvent;
 import com.assic.muni.infrastructure.util.ConstantsString;
 import com.assic.muni.infrastructure.util.CorreoVariablesBuilder;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import org.thymeleaf.TemplateEngine;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class VecinoEventListener {
+public class CuentaEventListener {
 
     private final EmailServicePort emailServicePort;
     private final TemporalTokenPort temporalTokenPort;
@@ -30,12 +30,12 @@ public class VecinoEventListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void eventVecinoCreado(VecinoCreadoEvent event) {
+    public void eventCuentaCreado(CuentaCreadaEvent event) {
         final String token = temporalTokenPort.generateVerifyEmailToken(event.userId());
         final String link = frontendDomain + "/confirmar-cuenta?token=" + token;
 
         String html = CorreoVariablesBuilder.builder()
-                .title("Cuenta de Vecino Creada Exitosamente")
+                .title("Cuenta Creada Exitosamente")
                 .messageBody("Confirmar tu cuenta y crear una contraseña")
                 .buttonUrl(link)
                 .buttonText("Confirmar")
@@ -51,9 +51,9 @@ public class VecinoEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void eventCuentaConfirmada(CuentaConfirmadaEvent event) {
         String html = CorreoVariablesBuilder.builder()
-                .title("Cuenta de Vecino Confirmada Exitosamente")
+                .title("Cuenta Confirmada Exitosamente")
                 .messageBody(String.format("""
-                                Estimado vecino %s, tu cuenta ha sido confirmada a las %s exitosamente,
+                                Estimado %s, tu cuenta ha sido confirmada a las %s exitosamente,
                                 ahora puedes acceder a la plataforma de manera ilimitada para hacer tus gestiones.""",
                         event.fullName(), event.confirmationTime().toString()))
                 .processWith(templateEngine);

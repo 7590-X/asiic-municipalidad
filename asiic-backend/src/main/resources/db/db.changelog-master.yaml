@@ -40,4 +40,12 @@ databaseChangeLog:
   - include:
       file: db/changelog/260926-2-eliminar-not-null-fecha-incidencia.sql
   - include:
-      file: db/changelog/260930-1-agregar-relacion-persona-con-muni.sql
+      file: db/changelog/261006-tabla-relacion-munis-usuarios.sql
+  - include:
+      file: db/changelog/261006-1-modificacion-registros-tipos-usuarios.sql
+  - include:
+      file: db/changelog/261006-2-agregar-json-roles.sql
+  - include:
+      file: db/changelog/261006-1-modificacion-usuario.sql
+  - include:
+      file: db/changelog/261006-5-agregar-campo-credencial.sql
