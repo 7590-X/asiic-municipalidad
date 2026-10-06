@@ -27,7 +27,16 @@ export class HeaderComponent {
   });
 
   readonly userRole = computed(() => {
-    return this.authService.getRole() || 'Vecino';
+    const role = this.authService.getRole();
+    if (!role) return 'Vecino';
+    const roleUpper = role.toUpperCase();
+    if (roleUpper === 'ROLE_VECINO') return 'Vecino';
+    if (roleUpper === 'ROLE_ADMIN') return 'Administrador';
+    return role;
+  });
+
+  readonly isAdmin = computed(() => {
+    return this.authService.isAdmin();
   });
 
   readonly userInitials = computed(() => {

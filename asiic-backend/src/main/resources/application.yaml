@@ -28,6 +28,10 @@ keycloak:
 spring:
   application:
     name: asiic-backend
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
   security:
     oauth2:
       resourceserver:

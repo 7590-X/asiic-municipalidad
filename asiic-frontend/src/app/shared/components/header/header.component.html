@@ -39,6 +39,7 @@
   <div class="header-actions">
     <!-- Centro de Notificaciones -->
     <a
+      *ngIf="!isAdmin()"
       href="javascript:void(0)"
       class="nav-link nav-icon notification-trigger"
       aria-label="Notificaciones del portal"
@@ -67,7 +68,7 @@
 
       <clr-dropdown-menu clrPosition="bottom-right" *clrIfOpen class="user-menu">
         <div class="dropdown-header">Sesión Iniciada</div>
-        
+
         <div class="dropdown-item user-info-card">
           <div class="info-avatar">{{ userInitials() }}</div>
           <div class="info-content">
@@ -79,15 +80,7 @@
 
         <div class="dropdown-divider"></div>
 
-        <a clrDropdownItem routerLink="/vecino/dashboard">
-          <cds-icon shape="user"></cds-icon>
-          <span class="item-text">Mi Perfil Vecinal</span>
-        </a>
 
-        <a clrDropdownItem routerLink="/vecino/dashboard">
-          <cds-icon shape="cog"></cds-icon>
-          <span class="item-text">Seguridad y Ajustes</span>
-        </a>
 
         <a clrDropdownItem href="javascript:void(0)">
           <cds-icon shape="help-info"></cds-icon>

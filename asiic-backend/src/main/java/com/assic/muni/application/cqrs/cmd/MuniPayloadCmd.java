@@ -8,6 +8,9 @@ public record MuniPayloadCmd(
 
         Short municipalidadId,
 
+        String estado,
+
+
         @NotNull(message = "El código de municipio es obligatorio")
         Integer municipioId,
 
@@ -19,7 +22,6 @@ public record MuniPayloadCmd(
         @Pattern(regexp = "^\\d*[A-Z]?$", message = "Formato de NIT es invalido")
         String nit,
 
-        @NotNull(message = "La fecha de fundación es obligatoria")
         @Past(message = "La fecha de fundación debe ser anterior a la fecha actual")
         LocalDate fechaFundacion,
 
@@ -35,7 +37,6 @@ public record MuniPayloadCmd(
         @Size(max = 20, message = "La longitud GPS debe tener un máximo de 10 caracteres")
         String longitudGps,
 
-        @NotBlank(message = "El número de teléfono es obligatorio")
         @Size(max = 12, message = "El número de teléfono debe tener un máximo de 12 caracteres")
         String pbx,
 

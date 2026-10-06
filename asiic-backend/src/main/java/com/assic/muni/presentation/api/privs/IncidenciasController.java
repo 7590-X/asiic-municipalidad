@@ -85,7 +85,7 @@ public class IncidenciasController {
         return ResponseEntity.ok(dtos);
     }
 
-    @GetMapping("me/{incidenciaId}/archivos")
+    @GetMapping("/me/{incidenciaId}/archivos")
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
     @Operation(summary = "Obtener mis archivos de una incidencia por su ID")
     public ResponseEntity<List<ArchivoDto>> obtenerArchivosDeIncidenciaPorId(@PathVariable Integer incidenciaId) {
@@ -123,7 +123,7 @@ public class IncidenciasController {
                     content = @Content
             )
     })
-    @GetMapping("me/{incidenciaId}/archivos/{archivoId}")
+    @GetMapping("/me/{incidenciaId}/archivos/{archivoId}")
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
     public ResponseEntity<Resource> descargarMiArchivoDeIncidencia(@PathVariable Integer incidenciaId, @PathVariable Integer archivoId) {
         ArchivoDto dto = archivosQueryHandler.descargarMiArchivo(incidenciaId, archivoId);

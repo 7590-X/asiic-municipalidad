@@ -78,7 +78,10 @@ public final class IncidenciaMapper {
         incidencia.setInPrivacidad(privacidad);
         incidencia.setInVecino(vecinoId);
         incidencia.setInContador(payload.getContador());
-        incidencia.setInEstado(IncidenciaState.BORRADOR);
+        
+        IncidenciaState estado = Boolean.TRUE.equals(payload.getEsBorrador()) ? IncidenciaState.BORRADOR : IncidenciaState.ENVIADA;
+        incidencia.setInEstado(estado); 
+        
         return incidencia;
     }
 
@@ -91,6 +94,11 @@ public final class IncidenciaMapper {
         if (entity.getInUnidadObj() != null) {
             dependencia = CatalogoMapper.fromEntityToDto(entity.getInUnidadObj());
         }
+        
+        CatalogoItemDto tipoServicio = entity.getInTipoServicioObj() != null ? CatalogoMapper.fromEntityToDto(entity.getInTipoServicioObj()) : null;
+        CatalogoItemDto tipoDenuncia = entity.getInTipoDenunciaObj() != null ? CatalogoMapper.fromEntityToDto(entity.getInTipoDenunciaObj()) : null;
+        CatalogoItemDto area = entity.getInAreaObj() != null ? CatalogoMapper.fromEntityToDto(entity.getInAreaObj()) : null;
+
         VecinoDto vecino = VecinoMapper.fronEntityToDto(entity.getInVecinoObj());
         DomicilioDto domicilio = DomicilioMapper.frontEntityToDto(entity.getInContadorObj());
 
@@ -110,6 +118,10 @@ public final class IncidenciaMapper {
                 .vecino(vecino)
                 .domicilio(domicilio)
                 .dependencia(dependencia)
+                .tipoServicio(tipoServicio)
+                .tipoDenuncia(tipoDenuncia)
+                .area(area)
+                .propuestaMejora(entity.getInPropuesta())
                 .direccionReferencial(entity.getInDireccion())
                 .nombreEmpleado(entity.getInEmpleado())
                 .fechaIncidencia(entity.getInFecInsidencia())

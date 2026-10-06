@@ -19,6 +19,10 @@ public class IncidenciaDto {
     private VecinoDto vecino;
     private DomicilioDto domicilio;
     private CatalogoItemDto dependencia;
+    private CatalogoItemDto tipoServicio;
+    private CatalogoItemDto tipoDenuncia;
+    private CatalogoItemDto area;
+    private String propuestaMejora;
     private String direccionReferencial;
     private String nombreEmpleado;
     private Instant fechaIncidencia;

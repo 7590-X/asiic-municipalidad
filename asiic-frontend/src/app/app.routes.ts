@@ -44,6 +44,34 @@ export const routes: Routes = [
         pathMatch: 'full',
       },
       {
+        path: 'solicitudes',
+        loadComponent: () =>
+          import('./features/vecino/pages/lista-gestiones/lista-gestiones.component')
+            .then((m) => m.ListaGestionesComponent),
+        data: { tipos: [] }
+      },
+      {
+        path: 'quejas',
+        loadComponent: () =>
+          import('./features/vecino/pages/lista-gestiones/lista-gestiones.component')
+            .then((m) => m.ListaGestionesComponent),
+        data: { tipos: ['Queja', 'Reclamo'] }
+      },
+      {
+        path: 'denuncias',
+        loadComponent: () =>
+          import('./features/vecino/pages/lista-gestiones/lista-gestiones.component')
+            .then((m) => m.ListaGestionesComponent),
+        data: { tipos: ['Denuncia'] }
+      },
+      {
+        path: 'sugerencias',
+        loadComponent: () =>
+          import('./features/vecino/pages/lista-gestiones/lista-gestiones.component')
+            .then((m) => m.ListaGestionesComponent),
+        data: { tipos: ['Sugerencia'] }
+      },
+      {
         path: 'incidencias/nueva',
         loadComponent: () =>
           import('./features/incidencias/pages/registro-incidencia/registro-incidencia.component')
@@ -61,6 +89,33 @@ export const routes: Routes = [
     path: 'dashboard',
     redirectTo: 'vecino/dashboard',
     pathMatch: 'full',
+  },
+  {
+    path: 'admin',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./shared/layouts/portal-layout/portal-layout.component')
+        .then((m) => m.PortalLayoutComponent),
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/admin/pages/dashboard-admin/dashboard-admin.component')
+            .then((m) => m.DashboardAdminComponent),
+      },
+      {
+        path: 'registro-municipalidad',
+        loadComponent: () =>
+          import('./features/admin/pages/registro-municipalidad/registro-municipalidad.component')
+            .then((m) => m.RegistroMunicipalidadComponent),
+      },
+      {
+        path: 'registro-usuario',
+        loadComponent: () =>
+          import('./features/admin/pages/registro-usuario/registro-usuario.component')
+            .then((m) => m.RegistroUsuarioComponent),
+      }
+    ]
   },
   { path: '**', redirectTo: '' },
 ];

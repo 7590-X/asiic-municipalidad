@@ -45,6 +45,11 @@ public class IncidenciaPayloadCmd {
     private String contador;
 
     /**
+     * Define si la incidencia se envía como borrador
+     */
+    private Boolean esBorrador;
+
+    /**
      * Estructura de queja
      */
     @Valid

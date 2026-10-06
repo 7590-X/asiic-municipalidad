@@ -60,7 +60,9 @@ public class UpsertMunicipalidadCmdHandler implements CQRSCmdHandler<Short, Muni
                 .orElseThrow(() -> new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un problema al tratar de identificar el tipo de persona"));
         AsPersona persona = upsertPersona(cmd.municipalidadId(), cmd.nombre(), cmd.nit(), tipoPersona.getId());
 
-        if (null == cmd.municipalidadId()) {
+        if (cmd.estado() != null && !cmd.estado().isEmpty()) {
+            muni.setMuEstado(cmd.estado());
+        } else if (null == cmd.municipalidadId()) {
             muni.setMuEstado("A");
         }
         muni.setMuFecFundacion(cmd.fechaFundacion());
