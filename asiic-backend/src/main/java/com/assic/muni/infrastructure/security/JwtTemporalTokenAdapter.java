@@ -2,11 +2,14 @@ package com.assic.muni.infrastructure.security;
 
 import com.assic.muni.application.enums.ETokenAction;
 import com.assic.muni.application.port.out.TemporalTokenPort;
+import com.assic.muni.infrastructure.exception.InfrastructureException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -46,25 +49,22 @@ public class JwtTemporalTokenAdapter implements TemporalTokenPort {
 
     @Override
     public String validateAndExtractUserId(String token, ETokenAction expectedAction) {
+        Claims claims;
         try {
-            Claims claims = Jwts.parser().verifyWith(secretKey)
+            claims = Jwts.parser().verifyWith(secretKey)
                     .build().parseSignedClaims(token).getPayload();
-
-            Date expiration = claims.getExpiration();
-            Date now = new Date();
-
-            if (expiration.before(now)) {
-                throw new JwtException("Token ha expirado, por favor vuelva a generar un nuevo link de confirmación de cuenta");
-            }
-
-            String action = claims.get("action", String.class);
-            if (!expectedAction.name().equals(action)) {
-                throw new JwtException("El token no es válido para esta acción");
-            }
-            return claims.getSubject();
-        } catch (JwtException e) {
-            throw e;
+        } catch (ExpiredJwtException e) {
+            throw new InfrastructureException(HttpStatus.BAD_REQUEST,
+                    "Token ha expirado, por favor vuelva a generar un nuevo link de confirmación de cuenta");
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new InfrastructureException(HttpStatus.BAD_REQUEST, "El token no es válido");
         }
+
+        String action = claims.get(CLAIM_ACTION, String.class);
+        if (!expectedAction.name().equals(action)) {
+            throw new InfrastructureException(HttpStatus.BAD_REQUEST, "El token no es válido para esta acción");
+        }
+        return claims.getSubject();
     }
 
     private String buildToken(String userId, String action, long expirationMs) {

@@ -2,12 +2,15 @@ package com.assic.muni.infrastructure.service;
 
 import com.assic.muni.application.cqrs.cmd.RegistrarVecinoCmd;
 import com.assic.muni.application.port.out.IdentityProviderPort;
+import com.assic.muni.application.port.out.dto.KCUsuario;
 import com.assic.muni.infrastructure.enums.KCRole;
 import com.assic.muni.infrastructure.exception.InfrastructureException;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -16,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,15 +32,15 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
     private String realm;
 
     @Override
-    public String createNewIdentityUser(RegistrarVecinoCmd newUser) {
+    public String createNewIdentityUser(KCUsuario newUser) {
 
         UserRepresentation kcUser = new UserRepresentation();
-        kcUser.setUsername(newUser.getCui());
-        kcUser.setEmail(newUser.getCorreo());
-        kcUser.setFirstName(newUser.getNombres());
-        kcUser.setLastName(newUser.getApellidos());
-        kcUser.setEnabled(true);
-        kcUser.setEmailVerified(false);
+        kcUser.setUsername(newUser.username());
+        kcUser.setEmail(newUser.email());
+        kcUser.setFirstName(newUser.firstName());
+        kcUser.setLastName(newUser.lastName());
+        kcUser.setEnabled(newUser.accountEnabled());
+        kcUser.setEmailVerified(newUser.emailVerified());
 
         try (Response response = keycloakAdminClient.realm(realm).users().create(kcUser)) {
             int status = response.getStatus();
@@ -77,6 +81,31 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
     @Override
     public List<RoleRepresentation> getRolesPermitidos() {
         return kcGetRoles("sys_");
+    }
+
+    @Override
+    public void asignarRoles(String userId, List<String> roles) {
+        // Validar roles
+        roles.forEach(r -> {
+            if (!(r.startsWith("sys_") && KCRole.isValid(r))) {
+                throw new InfrastructureException(HttpStatus.BAD_REQUEST, "El rol " + r + " no es válido");
+            }
+        });
+
+        try{
+            RealmResource realmResource = keycloakAdminClient.realm(realm);
+            UserResource userResource = realmResource.users().get(userId);
+
+            // Guardar los roles
+            List<RoleRepresentation> rolesRepresentation = roles.stream()
+                    .map(r -> realmResource.roles().get(r).toRepresentation())
+                    .collect(Collectors.toList());
+            userResource.roles().realmLevel().add(rolesRepresentation);
+        }catch (RuntimeException e){
+            log.error("[ERROR_REQUEST_ASSIGN_ROLES]", e);
+            throw e;
+        }
+
     }
 
     private void kcEmailVerified(String userId, boolean emailVerified) {
@@ -125,6 +154,6 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
     private List<RoleRepresentation> kcGetRoles(String prefix) {
         return keycloakAdminClient.realm(realm)
                 .roles()
-                .list(prefix,true);
+                .list(prefix, true);
     }
 }

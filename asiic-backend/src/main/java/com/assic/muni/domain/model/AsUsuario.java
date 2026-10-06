@@ -1,10 +1,14 @@
 package com.assic.muni.domain.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -52,7 +56,7 @@ public class AsUsuario {
     private AsPersona usPersona;
 
     @Size(max = 36)
-    @NotNull
+    @CreatedBy
     @Column(name = "us_usr_registro", nullable = false, length = 36)
     private String usUsrRegistro;
 
@@ -67,4 +71,15 @@ public class AsUsuario {
     @Size(max = 36)
     @Column(name = "us_usr_modifico", length = 36)
     private String usUsrModifico;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "us_json_roles", columnDefinition = "jsonb")
+    private JsonNode usJsonRoles;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "us_correo", nullable = false)
+    private AsCorreo usCorreo;
+
+    @Column(name = "us_credencial", length = 10)
+    private String usCredencial;
 }
