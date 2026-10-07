@@ -8,8 +8,10 @@ import com.assic.muni.application.port.out.SftpStoragePort;
 import com.assic.muni.application.util.JwtExtractor;
 import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.domain.model.AsArchivo;
+import com.assic.muni.domain.model.AsIncidenciaArchivoId;
 import com.assic.muni.domain.repository.AsArchivoRepository;
 import com.assic.muni.domain.repository.AsIncidenciaRepository;
+import com.assic.muni.domain.repository.AsIncidenciaArchivoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -25,7 +27,7 @@ public class ArchivosQueryHandler {
     private final AsArchivoRepository archivoRepository;
     private final AsIncidenciaRepository incidenciaRepository;
     private final FileStoragePort fileStoragePort;
-    private final com.assic.muni.domain.repository.AsIncidenciaArchivoRepository incidenciaArchivoRepository;
+    private final AsIncidenciaArchivoRepository incidenciaArchivoRepository;
 
     public List<ArchivoDto> obtenerMisArchivosDeIncidencia(int incidenciaId) {
         String subject = JwtExtractor.extrarJwtSubject();
@@ -65,13 +67,11 @@ public class ArchivosQueryHandler {
 
         boolean esBorrador = incidenciaRepository.existsByIdAndInEstado(incidenciaId, IncidenciaState.BORRADOR);
         if (!esBorrador) {
-            throw new ServiceException(HttpStatus.BAD_REQUEST,
-                    "No se puede eliminar un archivo de una incidencia que no está en estado borrador");
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "No se puede eliminar un archivo de una incidencia que no está en estado borrador");
         }
 
         // Eliminar en la tabla incidencia_archivo
-        incidenciaArchivoRepository
-                .deleteById(new com.assic.muni.domain.model.AsIncidenciaArchivoId(archivoId, incidenciaId));
+        incidenciaArchivoRepository.deleteById(new AsIncidenciaArchivoId(archivoId, incidenciaId));
 
         // Eliminar SFTP
         boolean deleted = fileStoragePort.deleteFile(archivoId);

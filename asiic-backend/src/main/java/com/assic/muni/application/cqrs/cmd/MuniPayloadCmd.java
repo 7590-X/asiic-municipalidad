@@ -7,9 +7,7 @@ import java.time.LocalDate;
 public record MuniPayloadCmd(
 
         Short municipalidadId,
-
         String estado,
-
 
         @NotNull(message = "El código de municipio es obligatorio")
         Integer municipioId,
