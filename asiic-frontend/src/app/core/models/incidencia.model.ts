@@ -27,7 +27,7 @@ export interface DetalleQueja {
     nombre: string;
     telefono: string;
     correo: string;
-  };
+  }[];
 }
 
 export interface DetalleReclamo {

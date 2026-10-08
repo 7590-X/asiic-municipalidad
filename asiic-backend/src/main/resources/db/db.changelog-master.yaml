@@ -40,6 +40,8 @@ databaseChangeLog:
   - include:
       file: db/changelog/260926-2-eliminar-not-null-fecha-incidencia.sql
   - include:
+      file: db/changelog/261005-1-agregar-munnicipio-mixco.sql
+  - include:
       file: db/changelog/261006-tabla-relacion-munis-usuarios.sql
   - include:
       file: db/changelog/261006-1-modificacion-registros-tipos-usuarios.sql

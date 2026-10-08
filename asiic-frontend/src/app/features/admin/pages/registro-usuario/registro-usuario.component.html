@@ -1,0 +1,98 @@
+<div class="content-container">
+  <div class="content-area">
+    <div style="padding: 2rem;">
+      <h2>Registro de Usuarios</h2>
+      <p style="margin-bottom: 2rem; color: #555;">Complete el siguiente formulario para crear una nueva cuenta de usuario en el sistema municipal. Se enviará un correo con el acceso.</p>
+
+      <!-- Alertas -->
+      <clr-alert *ngIf="successMessage" [clrAlertType]="'success'" [clrAlertAppLevel]="true">
+        <clr-alert-item>
+          <span class="alert-text">{{ successMessage }}</span>
+        </clr-alert-item>
+      </clr-alert>
+
+      <clr-alert *ngIf="errorMessage" [clrAlertType]="'danger'" [clrAlertAppLevel]="true">
+        <clr-alert-item>
+          <span class="alert-text">{{ errorMessage }}</span>
+        </clr-alert-item>
+      </clr-alert>
+
+      <form [formGroup]="userForm" (ngSubmit)="openConfirm()" clrForm clrLayout="vertical">
+        
+        <div class="clr-row">
+          <div class="clr-col-12 clr-col-md-6">
+            <clr-input-container>
+              <label>Nombres</label>
+              <input clrInput type="text" formControlName="nombres" placeholder="Ingrese nombres" style="width: 100%;"/>
+              <clr-control-error *clrIfError="'required'">Los nombres son obligatorios.</clr-control-error>
+            </clr-input-container>
+          </div>
+
+          <div class="clr-col-12 clr-col-md-6">
+            <clr-input-container>
+              <label>Apellidos</label>
+              <input clrInput type="text" formControlName="apellidos" placeholder="Ingrese apellidos" style="width: 100%;"/>
+              <clr-control-error *clrIfError="'required'">Los apellidos son obligatorios.</clr-control-error>
+            </clr-input-container>
+          </div>
+        </div>
+
+        <div class="clr-row">
+          <div class="clr-col-12">
+            <clr-input-container>
+              <label>Correo Electrónico</label>
+              <input clrInput type="email" formControlName="correo" placeholder="ejemplo@correo.com" style="width: 100%;"/>
+              <clr-control-error *clrIfError="'required'">El correo es obligatorio.</clr-control-error>
+              <clr-control-error *clrIfError="'email'">Formato de correo inválido.</clr-control-error>
+            </clr-input-container>
+          </div>
+        </div>
+
+        <div class="clr-row">
+          <div class="clr-col-12 clr-col-md-6">
+            <clr-select-container>
+              <label>Rol de Usuario</label>
+              <select clrSelect formControlName="rol">
+                <option value="" disabled>Seleccione un rol</option>
+                <option *ngFor="let rol of roles" [value]="rol.name">{{ formatRole(rol.name) }}</option>
+              </select>
+              <clr-control-error *clrIfError="'required'">Debe seleccionar un rol.</clr-control-error>
+            </clr-select-container>
+          </div>
+
+          <div class="clr-col-12 clr-col-md-6">
+            <clr-select-container>
+              <label>Municipalidad</label>
+              <select clrSelect formControlName="municipalidadId">
+                <option value="" disabled>Seleccione una municipalidad</option>
+                <option *ngFor="let muni of municipalidades" [value]="muni.id">{{ muni.nombre }}</option>
+              </select>
+              <clr-control-error *clrIfError="'required'">Debe asignar una municipalidad.</clr-control-error>
+            </clr-select-container>
+          </div>
+        </div>
+
+        <div class="mt-4" style="margin-top: 3rem; display: flex; gap: 1rem;">
+          <button type="submit" class="btn btn-primary" [clrLoading]="loading">
+            Registrar Usuario
+          </button>
+          <button type="button" class="btn btn-outline" (click)="userForm.reset()">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<clr-modal [(clrModalOpen)]="isConfirmOpen">
+  <h3 class="modal-title">Confirmar Registro</h3>
+  <div class="modal-body">
+    <p>¿Está seguro de registrar el nuevo usuario y enviar las credenciales por correo electrónico?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cancelConfirm()">No</button>
+    <button type="button" class="btn btn-primary" (click)="onSubmit()">Sí, registrar</button>
+  </div>
+</clr-modal>

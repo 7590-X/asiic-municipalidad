@@ -1,0 +1,137 @@
+<div class="content-container">
+  <div class="content-area">
+    <div style="padding: 2rem;">
+      <h2>Nueva Municipalidad</h2>
+      <p style="margin-bottom: 2rem; color: #555;">Complete el formulario para registrar la nueva institución.</p>
+
+      <form [formGroup]="muniForm" (ngSubmit)="onRegistrarClick()" clrForm clrLayout="vertical">
+        <div class="clr-row">
+          <div class="clr-col-12 clr-col-md-4">
+            <clr-select-container>
+              <label>País</label>
+              <select clrSelect formControlName="paisId" required>
+                <option [ngValue]="''">Seleccione un país</option>
+                <option *ngFor="let p of paises" [ngValue]="p.pais_id">{{ p.descripcion }}</option>
+              </select>
+              <clr-control-error>Este campo es obligatorio.</clr-control-error>
+            </clr-select-container>
+          </div>
+
+          <div class="clr-col-12 clr-col-md-4">
+            <clr-select-container>
+              <label>Departamento</label>
+              <select clrSelect formControlName="departamentoId" required>
+                <option [ngValue]="''">Seleccione un departamento</option>
+                <option *ngFor="let d of departamentos" [ngValue]="d.depto_id">{{ d.descripcion }}</option>
+              </select>
+              <clr-control-error>Este campo es obligatorio.</clr-control-error>
+            </clr-select-container>
+          </div>
+
+          <div class="clr-col-12 clr-col-md-4">
+            <clr-select-container>
+              <label>Municipio</label>
+              <select clrSelect formControlName="municipioId" required>
+                <option [ngValue]="''">Seleccione un municipio</option>
+                <option *ngFor="let m of municipios" [ngValue]="m.id">{{ m.descripcion }}</option>
+              </select>
+              <clr-control-error>Este campo es obligatorio.</clr-control-error>
+            </clr-select-container>
+          </div>
+        </div>
+
+        <div class="clr-row">
+          <div class="clr-col-12 clr-col-md-8">
+            <clr-input-container>
+              <label>Nombre oficial de la municipalidad</label>
+              <input clrInput type="text" formControlName="nombreOficial" placeholder="Ej: Municipalidad de Guatemala" required style="width: 100%;"/>
+              <clr-control-error>Este campo es obligatorio.</clr-control-error>
+            </clr-input-container>
+          </div>
+
+          <div class="clr-col-12 clr-col-md-4">
+            <clr-input-container>
+              <label>NIT</label>
+              <input clrInput type="text" formControlName="nit" placeholder="Ej: 1234567K" required/>
+              <clr-control-error *clrIfError="'required'">Este campo es obligatorio.</clr-control-error>
+              <clr-control-error *clrIfError="'pattern'">El NIT ingresado es inválido.</clr-control-error>
+              <clr-control-error *clrIfError="'minlength'">Debe tener al menos 4 caracteres.</clr-control-error>
+            </clr-input-container>
+          </div>
+        </div>
+
+        <div class="clr-row">
+          <div class="clr-col-12 clr-col-md-6">
+            <clr-date-container>
+              <label>Fecha de Fundación</label>
+              <input type="date" clrDate formControlName="fechaFundacion" />
+            </clr-date-container>
+          </div>
+        </div>
+
+        <div class="clr-row">
+          <div class="clr-col-12">
+            <clr-input-container>
+              <label>Dirección Fiscal</label>
+              <input clrInput type="text" formControlName="direccionFiscal" style="width: 100%;" required />
+              <clr-control-error>Este campo es obligatorio.</clr-control-error>
+            </clr-input-container>
+          </div>
+        </div>
+
+        <div class="clr-row">
+          <div class="clr-col-12 clr-col-md-4">
+            <clr-input-container>
+              <label>Coordenadas GPS</label>
+              <input clrInput type="text" formControlName="coordenadasGps" placeholder="Ej: 14.6349,-90.5068" required/>
+              <clr-control-error>Este campo es obligatorio.</clr-control-error>
+            </clr-input-container>
+          </div>
+
+          <div class="clr-col-12 clr-col-md-4">
+            <clr-input-container>
+              <label>PBX</label>
+              <input clrInput type="text" formControlName="pbx" />
+            </clr-input-container>
+          </div>
+
+          <div class="clr-col-12 clr-col-md-4">
+            <clr-input-container>
+              <label>Correo</label>
+              <input clrInput type="email" formControlName="correo" placeholder="ejemplo@muni.gob.gt" required/>
+              <clr-control-error *clrIfError="'required'">Este campo es obligatorio.</clr-control-error>
+              <clr-control-error *clrIfError="'email'">El formato del correo electrónico es inválido.</clr-control-error>
+            </clr-input-container>
+          </div>
+        </div>
+
+        <div class="mt-4" style="margin-top: 3rem; display: flex; gap: 1rem;">
+          <button type="submit" class="btn btn-primary" [disabled]="muniForm.invalid">Registrar Municipalidad</button>
+          <button type="button" class="btn btn-outline" (click)="onCancelarClick()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<clr-modal [(clrModalOpen)]="showConfirmDialog">
+  <h3 class="modal-title">Confirmar Registro</h3>
+  <div class="modal-body">
+    <p>¿Estás seguro de registrar la nueva municipalidad?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cerrarConfirmDialog()">No</button>
+    <button type="button" class="btn btn-primary" (click)="confirmarRegistro()">Sí</button>
+  </div>
+</clr-modal>
+
+<clr-modal [(clrModalOpen)]="showCancelDialog">
+  <h3 class="modal-title">Cancelar Registro</h3>
+  <div class="modal-body">
+    <p>¿Estás seguro de cancelar el registro? Se perderán los datos ingresados.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cerrarCancelDialog()">No</button>
+    <button type="button" class="btn btn-danger" (click)="confirmarCancelar()">Sí</button>
+  </div>
+</clr-modal>

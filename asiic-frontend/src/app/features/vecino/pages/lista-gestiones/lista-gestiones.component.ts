@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { ClarityModule } from '@clr/angular';
 import { IncidenciasService } from '../../../incidencias/services/incidencias.service';
 
@@ -17,10 +19,13 @@ export class ListaGestionesComponent implements OnInit {
 
   gestiones = signal<any[]>([]);
   loading = signal<boolean>(true);
-  
+
   titulo = signal<string>('Mis Solicitudes');
   descripcion = signal<string>('Historial completo de gestiones');
   icono = signal<string>('folder');
+
+  resumenModalOpen = false;
+  resumenSeleccionado: any = null;
 
   ngOnInit() {
     this.route.data.subscribe(data => {
@@ -107,5 +112,69 @@ export class ListaGestionesComponent implements OnInit {
     if (st.includes('SOLUCIONANDO') || st.includes('CAMPO') || st.includes('RECOLECCION')) return 3;
     if (st.includes('FINALIZADA') || st.includes('SOLUCIONADA') || st.includes('CONFIRMADA') || st.includes('RECHAZADA') || st.includes('BLOQUEADA')) return 4;
     return 1;
+  }
+
+  getEtapaLabel(etapa: any, estado: string): string {
+    if (etapa.id === 1 && estado && estado.toUpperCase().includes('BORRADOR')) {
+      return 'Borrador';
+    }
+    return etapa.label;
+  }
+
+  getEtapaIcon(etapa: any, estado: string): string {
+    if (etapa.id === 1 && estado && estado.toUpperCase().includes('BORRADOR')) {
+      return 'pencil';
+    }
+    return etapa.icon;
+  }
+
+  abrirResumen(gestion: any): void {
+    this.loading.set(true);
+    forkJoin({
+      incidencia: this.incidenciasService.getIncidenciaById(gestion.id),
+      archivos: this.incidenciasService.getArchivosIncidencia(gestion.id)
+    }).subscribe({
+      next: (data) => {
+        const incidencia = data.incidencia;
+        const archivos = data.archivos || [];
+
+        if (archivos.length > 0) {
+          const peticiones = archivos.map((archivo: any) =>
+            this.incidenciasService.descargarArchivoIncidencia(gestion.id, archivo.id).pipe(
+              map(blob => {
+                const isImage = archivo.formato?.toLowerCase().match(/(jpg|jpeg|png|gif|webp)$/);
+                return {
+                  ...archivo,
+                  url: isImage ? URL.createObjectURL(blob) : null
+                };
+              }),
+              catchError(() => of({ ...archivo, url: null }))
+            )
+          );
+
+          forkJoin(peticiones).subscribe(archivosConUrl => {
+            this.resumenSeleccionado = { ...incidencia, archivosAdjuntos: archivosConUrl };
+            this.resumenModalOpen = true;
+            this.loading.set(false);
+          });
+        } else {
+          this.resumenSeleccionado = { ...incidencia, archivosAdjuntos: [] };
+          this.resumenModalOpen = true;
+          this.loading.set(false);
+        }
+      },
+      error: (err) => {
+        console.error('Error cargando detalles del resumen', err);
+        alert('No se pudieron cargar los detalles para el resumen.');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  imprimirResumen(): void {
+    // La impresión se controla por CSS (@media print) en los estilos.
+    setTimeout(() => {
+      window.print();
+    }, 100);
   }
 }

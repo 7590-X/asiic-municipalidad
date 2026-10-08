@@ -29,19 +29,22 @@ public class IncidenciaPayloadCmd {
     /**
      * QUEJA, RECLAMO, DENUNCIA, SUGERENCIA
      */
-    @NotNull(message = "El código de incidencia es requerido", groups = {GrpQueja.class, GrpReclamo.class, GrpDenuncia.class, GrpSugerencia.class})
+    @NotNull(message = "El código de incidencia es requerido", groups = { GrpQueja.class, GrpReclamo.class,
+            GrpDenuncia.class, GrpSugerencia.class })
     private Short tipoIncidencia;
 
     /**
      * Debe de almacenar el pseudónimo del tipo de privacidad
      */
-    @NotBlank(message = "El pseudónimo de privacidad es requerido", groups = {GrpQueja.class, GrpReclamo.class, GrpDenuncia.class, GrpSugerencia.class})
+    @NotBlank(message = "El pseudónimo de privacidad es requerido", groups = { GrpQueja.class, GrpReclamo.class,
+            GrpDenuncia.class, GrpSugerencia.class })
     private String privacidad;
 
     /**
      * Número de contador
      */
-    @NotBlank(message = "El número de contador del domicilio es requerido", groups = {GrpQueja.class, GrpReclamo.class, GrpDenuncia.class, GrpSugerencia.class})
+    @NotBlank(message = "El número de contador del domicilio es requerido", groups = { GrpQueja.class, GrpReclamo.class,
+            GrpDenuncia.class, GrpSugerencia.class })
     private String contador;
 
     /**

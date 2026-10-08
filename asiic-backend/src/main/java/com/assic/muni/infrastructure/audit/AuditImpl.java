@@ -13,10 +13,15 @@ public class AuditImpl implements AuditorAware<String> {
 
     @Override
     public @NonNull Optional<String> getCurrentAuditor() {
-        Jwt jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        assert jwt != null;
-        String subject = jwt.getSubject();
-        assert subject != null;
-        return Optional.of(subject);
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
+            return Optional.empty();
+        }
+
+        if (authentication.getPrincipal() instanceof Jwt jwt) {
+            return Optional.ofNullable(jwt.getSubject());
+        }
+
+        return Optional.ofNullable(authentication.getName());
     }
 }

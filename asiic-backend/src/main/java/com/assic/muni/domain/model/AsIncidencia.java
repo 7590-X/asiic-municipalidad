@@ -117,7 +117,7 @@ public class AsIncidencia {
     private AsCatalogo inAreaObj;
 
     @Column(name = "in_area", insertable = true, updatable = true)
-    private short inArea;
+    private Short inArea;
 
     @Column(name = "in_propuesta", nullable = false, length = Integer.MAX_VALUE)
     private String inPropuesta;
