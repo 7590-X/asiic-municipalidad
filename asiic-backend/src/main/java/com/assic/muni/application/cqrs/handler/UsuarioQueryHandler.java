@@ -11,12 +11,18 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import com.assic.muni.domain.repository.AsMuniUsuarioRepository;
+import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class UsuarioQueryHandler {
 
     private final IdentityProviderPort identityProviderPort;
     private final AsUsuarioRepository usuarioRepository;
+    private final AsMuniUsuarioRepository muniUsuarioRepository;
 
     public List<RoleRepresentation> getRolesPermitidos() {
         List<RoleRepresentation> roles = identityProviderPort.getRolesPermitidos();
@@ -26,15 +32,31 @@ public class UsuarioQueryHandler {
     }
 
     public List<UsuarioDto> getUsuarios() {
+        Map<String, List<Short>> munisPorUsuario = muniUsuarioRepository.findAll()
+                .stream()
+                .collect(Collectors.groupingBy(
+                        mu -> mu.getId().getMuUsuario(),
+                        Collectors.mapping(mu -> mu.getId().getMuMuni(), Collectors.toList())
+                ));
+
         return usuarioRepository.findAll().stream().map(usuario -> {
-            String role = "";
-            if (usuario.getUsJsonRoles() != null && usuario.getUsJsonRoles().isArray() && !usuario.getUsJsonRoles().isEmpty()) {
-                role = usuario.getUsJsonRoles().get(0).asText();
+            List<String> roles = new ArrayList<>();
+            if (usuario.getUsJsonRoles() != null && usuario.getUsJsonRoles().isArray()) {
+                usuario.getUsJsonRoles().forEach(node -> roles.add(node.asText()));
             }
+            if (usuario.getUsTipo() != null && usuario.getUsTipo().getCaSeudo() != null) {
+                if (!roles.contains(usuario.getUsTipo().getCaSeudo())) {
+                    roles.add(usuario.getUsTipo().getCaSeudo());
+                }
+            }
+            
+            List<Short> municipalidades = munisPorUsuario.getOrDefault(usuario.getUsId(), new ArrayList<>());
+
             return new UsuarioDto(
                     usuario.getUsId(),
                     usuario.getUsPersona() != null ? usuario.getUsPersona().getFullName() : "N/A",
-                    role,
+                    roles,
+                    municipalidades,
                     usuario.getUsEstado()
             );
         }).toList();

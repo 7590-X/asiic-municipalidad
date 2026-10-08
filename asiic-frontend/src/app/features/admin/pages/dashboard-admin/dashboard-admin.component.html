@@ -48,27 +48,16 @@
           <clr-datagrid>
             <clr-dg-column>ID</clr-dg-column>
             <clr-dg-column>Nombre</clr-dg-column>
-            <clr-dg-column>Estado</clr-dg-column>
-            <clr-dg-column>Acciones</clr-dg-column>
 
             <clr-dg-row *clrDgItems="let m of municipalidades">
               <clr-dg-cell>{{ m.id }}</clr-dg-cell>
               <clr-dg-cell>{{ m.nombre }}</clr-dg-cell>
-              <clr-dg-cell>
-                <span class="badge" [ngClass]="m.estado === 'A' ? 'badge-success' : 'badge-danger'">
-                  {{ m.estado === 'A' ? 'Activa' : 'Inactiva' }}
-                </span>
-              </clr-dg-cell>
-              <clr-dg-cell>
-                <button class="btn btn-sm btn-link" (click)="toggleEstadoMuni(m)">
-                  {{ m.estado === 'A' ? 'Inactivar' : 'Activar' }}
-                </button>
-              </clr-dg-cell>
             </clr-dg-row>
             <clr-dg-footer>
               <clr-dg-pagination #paginationMuni [clrDgPageSize]="5">
                 <clr-dg-page-size [clrPageSizeOptions]="[5, 10, 20]">Por página</clr-dg-page-size>
-                {{paginationMuni.firstItem + 1}} - {{paginationMuni.lastItem + 1}} de {{paginationMuni.totalItems}} municipalidad(es)
+                {{paginationMuni.firstItem + 1}} - {{paginationMuni.lastItem + 1}} de {{paginationMuni.totalItems}}
+                municipalidad(es)
               </clr-dg-pagination>
             </clr-dg-footer>
           </clr-datagrid>
@@ -79,27 +68,18 @@
           <clr-datagrid>
             <clr-dg-column>Nombre</clr-dg-column>
             <clr-dg-column>Rol</clr-dg-column>
-            <clr-dg-column>Estado</clr-dg-column>
-            <clr-dg-column>Acciones</clr-dg-column>
+            <clr-dg-column>Municipalidades</clr-dg-column>
 
             <clr-dg-row *clrDgItems="let u of usuarios">
               <clr-dg-cell>{{ u.nombre }}</clr-dg-cell>
               <clr-dg-cell>{{ u.rol }}</clr-dg-cell>
-              <clr-dg-cell>
-                <span class="badge" [ngClass]="u.estado === 'A' ? 'badge-success' : 'badge-danger'">
-                  {{ u.estado === 'A' ? 'Activo' : 'Inactivo' }}
-                </span>
-              </clr-dg-cell>
-              <clr-dg-cell>
-                <button class="btn btn-sm btn-link" (click)="toggleEstadoUsuario(u)">
-                  {{ u.estado === 'A' ? 'Inactivar' : 'Activar' }}
-                </button>
-              </clr-dg-cell>
+              <clr-dg-cell>{{ u.municipalidadesStr }}</clr-dg-cell>
             </clr-dg-row>
             <clr-dg-footer>
               <clr-dg-pagination #paginationUser [clrDgPageSize]="5">
                 <clr-dg-page-size [clrPageSizeOptions]="[5, 10, 20]">Por página</clr-dg-page-size>
-                {{paginationUser.firstItem + 1}} - {{paginationUser.lastItem + 1}} de {{paginationUser.totalItems}} usuario(s)
+                {{paginationUser.firstItem + 1}} - {{paginationUser.lastItem + 1}} de {{paginationUser.totalItems}}
+                usuario(s)
               </clr-dg-pagination>
             </clr-dg-footer>
           </clr-datagrid>

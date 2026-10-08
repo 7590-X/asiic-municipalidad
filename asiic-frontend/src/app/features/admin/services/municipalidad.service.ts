@@ -17,7 +17,6 @@ export interface MuniPayload {
   longitudGps: string;
   pbx?: string;
   correo: string;
-  estado?: string;
 }
 
 @Injectable({

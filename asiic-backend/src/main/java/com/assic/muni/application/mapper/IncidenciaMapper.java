@@ -13,11 +13,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
-
 @Slf4j
 public final class IncidenciaMapper {
 
-    public static AsIncidencia fromDtoToQueja(short privacidad, int vecinoId, short unidadId, IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode evidencias) {
+    public static AsIncidencia fromDtoToQueja(short privacidad, int vecinoId, short unidadId,
+            IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode evidencias) {
         DetalleQuejaDto detalle = payload.getDetalleQueja();
         AsIncidencia incidencia = mapearCamposComunes(privacidad, vecinoId, payload, toUpsert);
         incidencia.setInDireccion(detalle.getDireccionReferencial());
@@ -31,7 +31,8 @@ public final class IncidenciaMapper {
         return incidencia;
     }
 
-    public static AsIncidencia fromDtoToReclamo(short privacidad, int vecinoId, short servicio, IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
+    public static AsIncidencia fromDtoToReclamo(short privacidad, int vecinoId, short servicio,
+            IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
         IncidenciaPayloadCmd.DetalleReclamoDto detalle = payload.getDetalleReclamo();
         AsIncidencia incidencia = mapearCamposComunes(privacidad, vecinoId, payload, toUpsert);
         incidencia.setInTipoServicio(servicio);
@@ -41,7 +42,8 @@ public final class IncidenciaMapper {
         return incidencia;
     }
 
-    public static AsIncidencia fromDtoToDenuncia(short privacidad, int vecinoId, short tipoDenuncia, IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode denunciados) {
+    public static AsIncidencia fromDtoToDenuncia(short privacidad, int vecinoId, short tipoDenuncia,
+            IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode denunciados) {
         IncidenciaPayloadCmd.DetalleDenunciaDto detalle = payload.getDetalleDenuncia();
         AsIncidencia incidencia = mapearCamposComunes(privacidad, vecinoId, payload, toUpsert);
         incidencia.setInTipoDenuncia(tipoDenuncia);
@@ -53,7 +55,8 @@ public final class IncidenciaMapper {
         return incidencia;
     }
 
-    public static AsIncidencia fromDtoToSugerencia(short privacidad, int vecinoId, short area, IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
+    public static AsIncidencia fromDtoToSugerencia(short privacidad, int vecinoId, short area,
+            IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
         IncidenciaPayloadCmd.DetalleSugerenciaDto detalle = payload.getDetalleSugerencia();
         AsIncidencia incidencia = mapearCamposComunes(privacidad, vecinoId, payload, toUpsert);
         incidencia.setInArea(area);
@@ -63,25 +66,27 @@ public final class IncidenciaMapper {
     }
 
     /**
-     * Mapea los campos comunes a todos los tipos de incidencia en estado de borrador
+     * Mapea los campos comunes a todos los tipos de incidencia en estado de
+     * borrador
      *
      * @param privacidad ID de privacidad en catálogo
      * @param vecinoId   Código de vecino
      * @param payload    Payload de la incidencia
-     * @param toUpsert   Incidencia existente a actualizar, o null para un nuevo registro
+     * @param toUpsert   Incidencia existente a actualizar, o null para un nuevo
+     *                   registro
      * @return Incidencia con los campos comunes asignados
      */
-    private static AsIncidencia mapearCamposComunes(short privacidad, int vecinoId, IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
+    private static AsIncidencia mapearCamposComunes(short privacidad, int vecinoId, IncidenciaPayloadCmd payload,
+            AsIncidencia toUpsert) {
         AsIncidencia incidencia = toUpsert != null ? toUpsert : new AsIncidencia();
         incidencia.setId(payload.getIncidenciaId());
         incidencia.setInTipoIncidencia(payload.getTipoIncidencia());
         incidencia.setInPrivacidad(privacidad);
         incidencia.setInVecino(vecinoId);
         incidencia.setInContador(payload.getContador());
-        
-        IncidenciaState estado = Boolean.TRUE.equals(payload.getEsBorrador()) ? IncidenciaState.BORRADOR : IncidenciaState.ENVIADA;
-        incidencia.setInEstado(estado); 
-        
+
+        incidencia.setInEstado(IncidenciaState.BORRADOR);
+
         return incidencia;
     }
 
@@ -93,11 +98,13 @@ public final class IncidenciaMapper {
         CatalogoItemDto dependencia = null;
         if (entity.getInUnidadObj() != null) {
             dependencia = CatalogoMapper.fromEntityToDto(entity.getInUnidadObj());
+        } else if (entity.getInTipoServicioObj() != null) {
+            dependencia = CatalogoMapper.fromEntityToDto(entity.getInTipoServicioObj());
+        } else if (entity.getInTipoDenunciaObj() != null) {
+            dependencia = CatalogoMapper.fromEntityToDto(entity.getInTipoDenunciaObj());
+        } else if (entity.getInAreaObj() != null) {
+            dependencia = CatalogoMapper.fromEntityToDto(entity.getInAreaObj());
         }
-        
-        CatalogoItemDto tipoServicio = entity.getInTipoServicioObj() != null ? CatalogoMapper.fromEntityToDto(entity.getInTipoServicioObj()) : null;
-        CatalogoItemDto tipoDenuncia = entity.getInTipoDenunciaObj() != null ? CatalogoMapper.fromEntityToDto(entity.getInTipoDenunciaObj()) : null;
-        CatalogoItemDto area = entity.getInAreaObj() != null ? CatalogoMapper.fromEntityToDto(entity.getInAreaObj()) : null;
 
         VecinoDto vecino = VecinoMapper.fronEntityToDto(entity.getInVecinoObj());
         DomicilioDto domicilio = DomicilioMapper.frontEntityToDto(entity.getInContadorObj());
@@ -118,9 +125,6 @@ public final class IncidenciaMapper {
                 .vecino(vecino)
                 .domicilio(domicilio)
                 .dependencia(dependencia)
-                .tipoServicio(tipoServicio)
-                .tipoDenuncia(tipoDenuncia)
-                .area(area)
                 .propuestaMejora(entity.getInPropuesta())
                 .direccionReferencial(entity.getInDireccion())
                 .nombreEmpleado(entity.getInEmpleado())

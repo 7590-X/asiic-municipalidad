@@ -60,7 +60,6 @@ export class RegistroMunicipalidadComponent implements OnInit {
       municipioId: ['', Validators.required],
       nombreOficial: ['', Validators.required],
       nit: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(13), Validators.pattern('^\\d*[A-Z]?$')]],
-      estado: ['A', Validators.required],
       fechaFundacion: [''],
       direccionFiscal: ['', Validators.required],
       coordenadasGps: ['', Validators.required],
@@ -106,7 +105,6 @@ export class RegistroMunicipalidadComponent implements OnInit {
   confirmarCancelar(): void {
     this.showCancelDialog = false;
     this.muniForm.reset();
-    this.muniForm.get('estado')?.setValue('A');
     // En un sistema real aquí se retornaría a la pantalla anterior
     alert('Cancelado. Se borró la información ingresada.');
   }
@@ -159,8 +157,7 @@ export class RegistroMunicipalidadComponent implements OnInit {
       latitudGps,
       longitudGps,
       pbx: formVal.pbx ? formVal.pbx : undefined,
-      correo: formVal.correo,
-      estado: formVal.estado
+      correo: formVal.correo
     };
 
     alert('Enviando payload con municipioId: ' + payload.municipioId);
@@ -169,7 +166,6 @@ export class RegistroMunicipalidadComponent implements OnInit {
       next: () => {
         alert('Municipalidad registrada exitosamente');
         this.muniForm.reset();
-        this.muniForm.get('estado')?.setValue('A');
       },
       error: (err) => {
         let errorMsg = 'Ocurrió un error al registrar la municipalidad.';

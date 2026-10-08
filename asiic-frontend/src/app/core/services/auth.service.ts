@@ -157,10 +157,10 @@ export class AuthService {
   private redirectToDashboard(roles: string[]): void {
     // Manejo de roles para redirección
     const normalizedRoles = roles.map((r) => r.toLowerCase());
-    if (normalizedRoles.some(r => r.includes('vecino'))) {
-      this.router.navigate(['/vecino/dashboard']).catch(() => this.router.navigate(['/']));
-    } else if (normalizedRoles.some(r => r.includes('admin'))) {
+    if (normalizedRoles.some(r => r.includes('admin') || r === 'ranta' || r === 'roper' || r === 'sys_admin')) {
       this.router.navigate(['/admin/dashboard']).catch(() => this.router.navigate(['/']));
+    } else if (normalizedRoles.some(r => r.includes('vecino') || r === 'rveco')) {
+      this.router.navigate(['/vecino/dashboard']).catch(() => this.router.navigate(['/']));
     } else {
       this.router.navigate(['/']);
     }
