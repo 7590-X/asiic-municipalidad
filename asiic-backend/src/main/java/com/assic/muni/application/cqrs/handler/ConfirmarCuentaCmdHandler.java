@@ -48,8 +48,10 @@ public class ConfirmarCuentaCmdHandler implements CQRSVoidCmdHandler<ConfirmarCu
         final String fullName = persona.getPeNombre() + " " + persona.getPeApellido();
 
         // Obtener correo
-        String email = vecinoRepository.findEmailByVeId(persona.getId()).orElseThrow(
-                () -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar el correo electrónico"));
+        String email = usuario.getUsCorreo() != null ? usuario.getUsCorreo().getCoCorreo() : null;
+        if (email == null) {
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar el correo electrónico");
+        }
 
         // Publicar evento
         eventPublisher.publishEvent(new CuentaConfirmadaEvent(fullName, usuario.getUsFecModifico(), email));

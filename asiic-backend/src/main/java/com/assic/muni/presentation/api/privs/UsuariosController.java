@@ -25,6 +25,12 @@ public class UsuariosController {
     private final RegistrarUsuarioCmdHandler registrarUsuarioCmdHandler;
     private final UsuarioQueryHandler usuarioQueryHandler;
 
+    @GetMapping
+    @Operation(summary = "Obtiene el listado de usuarios")
+    public ResponseEntity<Object> getUsuarios() {
+        return ResponseEntity.ok(usuarioQueryHandler.getUsuarios());
+    }
+
     @GetMapping("/roles")
     @Operation(summary = "Obtiene los roles permitidos para el usuario")
     public ResponseEntity<Object> getRolesPermitidos() {

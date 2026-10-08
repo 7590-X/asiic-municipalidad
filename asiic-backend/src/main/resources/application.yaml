@@ -28,6 +28,10 @@ keycloak:
 spring:
   application:
     name: asiic-backend
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
   security:
     oauth2:
       resourceserver:
@@ -63,6 +67,11 @@ spring:
           auth: true
           starttls:
             enable: true
+            required: true
+          ssl:
+            trust: "*"
+            checkserveridentity: false
+            
   # Configuración Liquibase Migraciones
   liquibase:
     change-log: classpath:db/db.changelog-master.yaml
