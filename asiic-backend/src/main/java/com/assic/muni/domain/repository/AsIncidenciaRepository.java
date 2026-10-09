@@ -60,4 +60,7 @@ public interface AsIncidenciaRepository extends JpaRepository<AsIncidencia, Inte
     Optional<AsIncidencia> findQuejaDetalleById(@Param("id") int id);
 
     boolean existsByIdAndInEstado(@Param("id") int id, @Param("estado") IncidenciaState estado);
+
+    @Query("select i.inEstado from AsIncidencia i where i.id = :id")
+    Optional<IncidenciaState> findStateById(@Param("id") int id);
 }

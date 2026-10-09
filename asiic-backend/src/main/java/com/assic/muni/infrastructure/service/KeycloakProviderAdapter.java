@@ -1,6 +1,5 @@
 package com.assic.muni.infrastructure.service;
 
-import com.assic.muni.application.cqrs.cmd.RegistrarVecinoCmd;
 import com.assic.muni.application.port.out.IdentityProviderPort;
 import com.assic.muni.application.port.out.dto.KCUsuario;
 import com.assic.muni.infrastructure.enums.KCRole;
@@ -84,7 +83,7 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
     }
 
     @Override
-    public void asignarRoles(String userId, List<String> roles) {
+    public List<RoleRepresentation> asignarRoles(String userId, List<String> roles) {
         // Validar roles
         roles.forEach(r -> {
             if (!(r.startsWith("sys_") && KCRole.isValid(r))) {
@@ -92,7 +91,7 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
             }
         });
 
-        try{
+        try {
             RealmResource realmResource = keycloakAdminClient.realm(realm);
             UserResource userResource = realmResource.users().get(userId);
 
@@ -101,11 +100,11 @@ public class KeycloakProviderAdapter implements IdentityProviderPort {
                     .map(r -> realmResource.roles().get(r).toRepresentation())
                     .collect(Collectors.toList());
             userResource.roles().realmLevel().add(rolesRepresentation);
-        }catch (RuntimeException e){
+            return rolesRepresentation;
+        } catch (RuntimeException e) {
             log.error("[ERROR_REQUEST_ASSIGN_ROLES]", e);
             throw e;
         }
-
     }
 
     private void kcEmailVerified(String userId, boolean emailVerified) {

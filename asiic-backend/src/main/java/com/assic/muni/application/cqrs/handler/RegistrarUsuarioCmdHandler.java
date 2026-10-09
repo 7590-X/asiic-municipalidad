@@ -10,12 +10,14 @@ import com.assic.muni.domain.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -59,11 +61,14 @@ public class RegistrarUsuarioCmdHandler implements CQRSCmdHandler<String, Regist
             AsCatalogo tipoUsuario = catalogoRepository.findByCaSeudo("RANTA") // Usuario Interno
                     .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar el tipo de usuario"));
 
-            JsonNode jsonRoles = objectMapper.valueToTree(cmd.roles());
+
 
             AsCorreo correo = correoRepository.saveAndFlush(AsCorreo.builder()
                     .coCorreo(cmd.correo())
                     .build());
+
+            List<RoleRepresentation> roles =  identityProviderPort.asignarRoles(userId, cmd.roles());
+            JsonNode jsonRoles = objectMapper.valueToTree(roles);
 
             usuarioRepository.saveAndFlush(AsUsuario.builder()
                     .usId(userId)
@@ -82,7 +87,6 @@ public class RegistrarUsuarioCmdHandler implements CQRSCmdHandler<String, Regist
                             .id(new AsMuniUsuarioId(m, userId))
                             .build()).toList());
 
-            identityProviderPort.asignarRoles(userId, cmd.roles());
         } catch (RuntimeException e) {
             identityProviderPort.deleteIdentityUser(userId);
             throw e;

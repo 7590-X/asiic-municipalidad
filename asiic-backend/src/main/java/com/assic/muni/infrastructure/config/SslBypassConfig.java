@@ -21,7 +21,7 @@ public class SslBypassConfig {
 
     @PostConstruct
     public void disableSsl() {
-        log.info("[SSL] Trust manager disabled: {}", disableTrustManager);
+        log.info("[SSL] Trust adapter disabled: {}", disableTrustManager);
         if (disableTrustManager) {
             try {
                 TrustManager[] trustAllCerts = new TrustManager[]{

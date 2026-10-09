@@ -1,10 +1,11 @@
-package com.assic.muni.infrastructure.statemachine.config;
+package com.assic.muni.infrastructure.statemachine;
 
 import com.assic.muni.domain.enums.IncidenciaEvent;
 import com.assic.muni.domain.enums.IncidenciaState;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
+import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
 
@@ -15,12 +16,19 @@ import java.util.EnumSet;
 public class StateMachineConfig extends StateMachineConfigurerAdapter<IncidenciaState, IncidenciaEvent> {
 
     @Override
+    public void configure(StateMachineConfigurationConfigurer<IncidenciaState, IncidenciaEvent> config) throws Exception {
+        config
+                .withConfiguration()
+                .autoStartup(false); // La máquina se inicia programáticamente tras la rehidratación
+    }
+
+    @Override
     public void configure(StateMachineStateConfigurer<IncidenciaState, IncidenciaEvent> states) throws Exception {
         states
                 .withStates()
                 .initial(IncidenciaState.BORRADOR)
-                .states(EnumSet.allOf(IncidenciaState.class))
-                .end(IncidenciaState.FINALIZADA);
+                .end(IncidenciaState.FINALIZADA)
+                .states(EnumSet.allOf(IncidenciaState.class));
     }
 
     @Override

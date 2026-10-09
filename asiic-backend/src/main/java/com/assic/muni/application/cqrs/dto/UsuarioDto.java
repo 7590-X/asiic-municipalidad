@@ -1,12 +1,11 @@
 package com.assic.muni.application.cqrs.dto;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public record UsuarioDto(
         String id,
+        String credencial,
         String nombre,
-        List<String> roles,
-        List<Short> municipalidades,
-        String estado
+        JsonNode roles
 ) {
 }
