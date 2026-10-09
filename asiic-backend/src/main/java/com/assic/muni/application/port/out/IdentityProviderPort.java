@@ -43,5 +43,5 @@ public interface IdentityProviderPort {
      * @param userId ID de usuario en KC
      * @param roles  Listado de roles a asignar
      */
-    void asignarRoles(String userId, List<String> roles);
+    List<RoleRepresentation> asignarRoles(String userId, List<String> roles);
 }

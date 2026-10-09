@@ -14,6 +14,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -82,4 +83,12 @@ public class AsUsuario {
 
     @Column(name = "us_credencial", length = 10)
     private String usCredencial;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "as_munis_usuarios",
+            joinColumns = @JoinColumn(name = "mu_usuario"),
+            inverseJoinColumns = @JoinColumn(name = "mu_muni")
+    )
+    private Set<AsMuni> asMuniSet;
 }

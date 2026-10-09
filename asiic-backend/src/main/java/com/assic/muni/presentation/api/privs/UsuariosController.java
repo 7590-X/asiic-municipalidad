@@ -2,6 +2,9 @@ package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.cmd.RegistrarUsuarioCmd;
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
+import com.assic.muni.application.cqrs.dto.MuniDto;
+import com.assic.muni.application.cqrs.dto.UsuarioDto;
+import com.assic.muni.application.cqrs.handler.MunisQueryHandler;
 import com.assic.muni.application.cqrs.handler.RegistrarUsuarioCmdHandler;
 import com.assic.muni.application.cqrs.handler.UsuarioQueryHandler;
 import com.assic.muni.infrastructure.config.SwaggerConfig;
@@ -9,12 +12,14 @@ import com.assic.muni.presentation.api.util.UriBuilder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,17 +29,34 @@ public class UsuariosController {
 
     private final RegistrarUsuarioCmdHandler registrarUsuarioCmdHandler;
     private final UsuarioQueryHandler usuarioQueryHandler;
+    private final MunisQueryHandler munisQueryHandler;
 
     @GetMapping
     @Operation(summary = "Obtiene el listado de usuarios")
-    public ResponseEntity<Object> getUsuarios() {
-        return ResponseEntity.ok(usuarioQueryHandler.getUsuarios());
+    public ResponseEntity<List<UsuarioDto>> getUsuarios() {
+        return ResponseEntity.ok(usuarioQueryHandler.getUsuariosInternosPorEstado("A"));
     }
 
     @GetMapping("/roles")
     @Operation(summary = "Obtiene los roles permitidos para el usuario")
-    public ResponseEntity<Object> getRolesPermitidos() {
+    public ResponseEntity<List<RoleRepresentation>> getRolesPermitidos() {
         return ResponseEntity.ok(usuarioQueryHandler.getRolesPermitidos());
+    }
+
+    @GetMapping("/{userId}/munis")
+    @Operation(summary = "Obtiene las municipalidades asociadas a un usuario")
+    public ResponseEntity<List<MuniDto>> getMunisAsociadasAUsuario(@PathVariable("userId") String userId) {
+        return ResponseEntity.ok(
+                munisQueryHandler.obtenerMunisAsignadasToUsuario(userId)
+        );
+    }
+
+    @GetMapping("/{userId}")
+    @Operation(summary = "Obtiene la información de un usuario")
+    public ResponseEntity<UsuarioDto> getInformacionUsuario(@PathVariable("userId") String userId) {
+        return ResponseEntity.ok(
+                usuarioQueryHandler.getInformacionUsuario(userId)
+        );
     }
 
     @PostMapping
