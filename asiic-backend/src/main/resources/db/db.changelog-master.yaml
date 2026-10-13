@@ -51,3 +51,5 @@ databaseChangeLog:
       file: db/changelog/261006-1-modificacion-usuario.sql
   - include:
       file: db/changelog/261006-5-agregar-campo-credencial.sql
+  - include:
+      file: db/changelog/261012-1-sp-asignacion-incidencias.sql
