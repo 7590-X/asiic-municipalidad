@@ -1,8 +1,10 @@
 package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
+import com.assic.muni.application.cqrs.dto.IncidenciaDto;
 import com.assic.muni.application.cqrs.handler.IncidenciaPipelineHandler;
 import com.assic.muni.domain.enums.IncidenciaEvent;
+import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -10,12 +12,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -82,6 +82,20 @@ public class IncidenciasEventController {
     public ResponseEntity<ApiResponseDto> eventFinalizarIncidencia(@PathVariable Integer id) {
         incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.FINALIZAR);
         return ResponseEntity.ok(getMessageBody("Recolección finalizada correctamente"));
+    }
+
+    @GetMapping("/asignadas/analista")
+    @Operation(summary = "Obtener incidencias asignadas al analista autenticado")
+    public ResponseEntity<List<IncidenciaDto>> getIncidenciasAsignadas() {
+        return ResponseEntity.ok(
+                incidenciaPipelineHandler.obtenerIncidenciasAsignadasByEstado(
+                        IncidenciaState.ASIGNADA,
+                        IncidenciaState.ACEPTADA,
+                        IncidenciaState.ASIGNADA_CAMPO,
+                        IncidenciaState.RECOLECCION_FIN,
+                        IncidenciaState.CONFIRMADA
+                )
+        );
     }
 
     private ApiResponseDto getMessageBody(String message) {
