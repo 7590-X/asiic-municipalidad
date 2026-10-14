@@ -142,8 +142,11 @@ public class AsIncidencia {
     private String inUsrModifico;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "in_analista")
+    @JoinColumn(name = "in_analista", insertable = false, updatable = false)
     private AsUsuario inAnalista;
+
+    @Column(name = "in_analista")
+    private String inAnalistaId;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "in_jsons", columnDefinition = "jsonb")
