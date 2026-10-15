@@ -2,6 +2,7 @@ package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
 import com.assic.muni.application.cqrs.dto.IncidenciaDto;
+import com.assic.muni.application.cqrs.dto.IncidenciaFeedback;
 import com.assic.muni.application.cqrs.handler.IncidenciaPipelineHandler;
 import com.assic.muni.domain.enums.IncidenciaEvent;
 import com.assic.muni.domain.enums.IncidenciaState;
@@ -9,6 +10,7 @@ import com.assic.muni.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +39,14 @@ public class IncidenciasEventController {
     @Operation(summary = "EV1-1 - Aceptar Incidencia")
     public ResponseEntity<ApiResponseDto> eventAceptarIncidencia(@PathVariable Integer id) {
         incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.ACEPTAR_INCIDENCIA);
+        return ResponseEntity.ok(getMessageBody("Incidencia aceptada correctamente"));
+    }
+
+    @PostMapping("/{id}/event/rechazar-incidencia")
+    @Operation(summary = "EV1-1 - Rechazar Incidencia")
+    public ResponseEntity<ApiResponseDto> eventRechazadaIncidencia(@PathVariable Integer id,
+                                                                   @Valid @RequestBody List<IncidenciaFeedback> feedback) {
+        incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.RECHAZAR_INCIDENCIA, feedback);
         return ResponseEntity.ok(getMessageBody("Incidencia aceptada correctamente"));
     }
 

@@ -2,6 +2,7 @@ package com.assic.muni.infrastructure.statemachine;
 
 import com.assic.muni.domain.enums.IncidenciaEvent;
 import com.assic.muni.domain.enums.IncidenciaState;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachineFactory;
 import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
@@ -12,8 +13,11 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 import java.util.EnumSet;
 
 @Configuration
+@RequiredArgsConstructor
 @EnableStateMachineFactory
 public class StateMachineConfig extends StateMachineConfigurerAdapter<IncidenciaState, IncidenciaEvent> {
+
+    private final RechazarIncidenciaAction rechazarIncidenciaAction;
 
     @Override
     public void configure(StateMachineConfigurationConfigurer<IncidenciaState, IncidenciaEvent> config) throws Exception {
@@ -106,6 +110,7 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<Incidencia
                 .withExternal()
                 .source(IncidenciaState.ASIGNADA)
                 .event(IncidenciaEvent.RECHAZAR_INCIDENCIA)
+                .action(rechazarIncidenciaAction)
                 .target(IncidenciaState.RECHAZADA)
                 .and()
 

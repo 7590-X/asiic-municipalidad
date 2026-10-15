@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
+import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.state.State;
 import org.springframework.statemachine.support.StateMachineInterceptorAdapter;
@@ -23,15 +24,17 @@ public class IncidenciaStateChangeInterceptor extends StateMachineInterceptorAda
 
     private final AsIncidenciaRepository incidenciaRepository;
 
-
     @Override
-    public void preStateChange(State<IncidenciaState, IncidenciaEvent> state, Message<IncidenciaEvent> message, Transition<IncidenciaState, IncidenciaEvent> transition, StateMachine<IncidenciaState, IncidenciaEvent> stateMachine, StateMachine<IncidenciaState, IncidenciaEvent> rootStateMachine) {
+    public void postStateChange(State<IncidenciaState, IncidenciaEvent> state, Message<IncidenciaEvent> message, Transition<IncidenciaState, IncidenciaEvent> transition, StateMachine<IncidenciaState, IncidenciaEvent> stateMachine, StateMachine<IncidenciaState, IncidenciaEvent> rootStateMachine) {
         if (message != null && message.getHeaders().containsKey(H_ID.name())) {
             Integer incidenciaId = message.getHeaders().get(H_ID.name(), Integer.class);
             AsIncidencia incidencia = incidenciaRepository.findById(incidenciaId)
                     .orElseThrow(() -> new EntityNotFoundException("Incidencia no encontrada"));
+            final String estadoAnterior = incidencia.getInEstado().name();
             incidencia.setInEstado(state.getId());
             incidenciaRepository.save(incidencia);
+            final String estadoActual = incidencia.getInEstado().name();
+            log.info("Incidencia {} cambió de estado {} a {}", incidenciaId, estadoAnterior, estadoActual);
         } else {
             log.warn("No se encontró el header con el id de la incidencia");
         }
