@@ -151,4 +151,7 @@ public class AsIncidencia {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "in_jsons", columnDefinition = "jsonb")
     private JsonNode inJsons;
+
+    @Column(name = "in_rechazos")
+    private Short inRechazos;
 }

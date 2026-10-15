@@ -4,6 +4,7 @@ import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.domain.model.AsIncidencia;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -65,4 +66,14 @@ public interface AsIncidenciaRepository extends JpaRepository<AsIncidencia, Inte
     Optional<IncidenciaState> findStateById(@Param("id") int id);
 
     List<AsIncidencia> findByInAnalistaIdAndInEstadoIn(String analistaId, List<IncidenciaState> estados);
+
+    @Query("select coalesce(i.inRechazos,0) < :max from AsIncidencia i where i.id = :id")
+    boolean validarCantidadRechazosHabiles(@Param("max") short maxRechazos, @Param("id") int id);
+
+    @Modifying
+    @Query("update AsIncidencia i set  i.inRechazos = coalesce(i.inRechazos,0) + 1 where i.id = :id")
+    int actualizarCantidadRechazos(@Param("id") int id);
+
+    @Query("select coalesce(i.inRechazos,0)  from AsIncidencia i where i.id = :id")
+    Optional<Short> findInRechazosById(int id);
 }

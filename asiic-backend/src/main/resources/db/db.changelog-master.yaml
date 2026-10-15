@@ -53,3 +53,5 @@ databaseChangeLog:
       file: db/changelog/261006-5-agregar-campo-credencial.sql
   - include:
       file: db/changelog/261012-1-sp-asignacion-incidencias.sql
+  - include:
+      file: db/changelog/261013-1-tabla-rechazos.sql
