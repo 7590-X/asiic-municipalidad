@@ -30,20 +30,29 @@ public class ArchivosQueryHandler {
     private final AsIncidenciaArchivoRepository incidenciaArchivoRepository;
 
     public List<ArchivoDto> obtenerMisArchivosDeIncidencia(int incidenciaId) {
-        String subject = JwtExtractor.extrarJwtSubject();
-        List<AsArchivo> archivos = archivoRepository.findByIncidenciaIdAndUserUUID(incidenciaId, subject);
+        String userId = JwtExtractor.extrarJwtSubject();
+        List<AsArchivo> archivos = archivoRepository.findByIncidenciaIdAndUserUUID(incidenciaId, userId);
         if (archivos.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron archivos para la incidencia");
         }
         return archivos.stream().map(ArchivoMapper::frontEntityToDto).toList();
     }
 
-    public List<ArchivoDto> obtenerArchivosDeIncidencia(int incidenciaId) {
+    private List<ArchivoDto> obtenerArchivosDeIncidencia(int incidenciaId) {
         List<AsArchivo> archivos = archivoRepository.findByIncidenciaId(incidenciaId);
         if (archivos.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron archivos para la incidencia");
         }
         return archivos.stream().map(ArchivoMapper::frontEntityToDto).toList();
+    }
+
+    public List<ArchivoDto> obtenerArchivosDeIncidenciaAsignadaAnalista(int incidenciaId){
+        final String userId = JwtExtractor.extrarJwtSubject();
+        final boolean asignada = incidenciaRepository.existsByIdAndInAnalista(incidenciaId,userId);
+        if(!asignada){
+            throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron archivos para la incidencia o no fue asignada al analista");
+        }
+        return obtenerArchivosDeIncidencia(incidenciaId);
     }
 
     public ArchivoDto descargarMiArchivo(int incidenciaId, int archivoId) {
