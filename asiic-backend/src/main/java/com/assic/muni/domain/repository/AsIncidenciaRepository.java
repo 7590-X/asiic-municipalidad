@@ -76,4 +76,6 @@ public interface AsIncidenciaRepository extends JpaRepository<AsIncidencia, Inte
 
     @Query("select coalesce(i.inRechazos,0)  from AsIncidencia i where i.id = :id")
     Optional<Short> findInRechazosById(int id);
+
+    boolean existsByIdAndInAnalista(int id, String analistaId);
 }

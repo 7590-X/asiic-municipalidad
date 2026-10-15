@@ -1,8 +1,10 @@
 package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
+import com.assic.muni.application.cqrs.dto.ArchivoDto;
 import com.assic.muni.application.cqrs.dto.IncidenciaDto;
 import com.assic.muni.application.cqrs.dto.IncidenciaFeedback;
+import com.assic.muni.application.cqrs.handler.ArchivosQueryHandler;
 import com.assic.muni.application.cqrs.handler.IncidenciaPipelineHandler;
 import com.assic.muni.domain.enums.IncidenciaEvent;
 import com.assic.muni.domain.enums.IncidenciaState;
@@ -27,6 +29,7 @@ import java.util.List;
 public class IncidenciasEventController {
 
     private final IncidenciaPipelineHandler incidenciaPipelineHandler;
+    private final ArchivosQueryHandler archivosQueryHandler;
 
     @PostMapping("/{id}/event/enviar-incidencia")
     @Operation(summary = "EV1-0 - Enviar Incidencia")
@@ -106,6 +109,12 @@ public class IncidenciasEventController {
                         IncidenciaState.CONFIRMADA
                 )
         );
+    }
+
+    @GetMapping("/{id}/archivos")
+    @Operation(summary = "Obtener archivos de incidencia asignada al analista autenticado")
+    public ResponseEntity<List<ArchivoDto>> obtenerArchivosDeIncidenciaPorId(@PathVariable Integer id) {
+        return ResponseEntity.ok(archivosQueryHandler.obtenerArchivosDeIncidenciaAsignadaAnalista(id));
     }
 
     private ApiResponseDto getMessageBody(String message) {
