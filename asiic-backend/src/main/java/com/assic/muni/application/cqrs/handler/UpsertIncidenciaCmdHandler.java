@@ -1,9 +1,11 @@
 package com.assic.muni.application.cqrs.handler;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.assic.muni.application.group.GrpDenuncia;
 import com.assic.muni.application.port.out.FileStoragePort;
+import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.domain.event.IncidenciaUpsertEvent;
 import com.assic.muni.domain.model.*;
 import com.assic.muni.domain.repository.*;
@@ -24,7 +26,7 @@ import com.assic.muni.application.util.PayloadValidator;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Clase para la ejecución de comando UPSERT para el registro de una insidencia
+ * Clase para la ejecución de comando UPSERT para el registro de una incidence
  * en estado de borrador
  */
 @Service
@@ -139,6 +141,11 @@ public class UpsertIncidenciaCmdHandler {
     }
 
     /**
+     * Estados permitidos para actualizar incidencia
+     */
+    private static final List<IncidenciaState> ESTADOS_PERMITIDOS_UPSERT = List.of(IncidenciaState.BORRADOR, IncidenciaState.RECHAZADA);
+
+    /**
      * Flujo común de UPSERT de una incidencia: validaciones, construcción,
      * persistencia y publicación del evento de registro
      *
@@ -157,6 +164,15 @@ public class UpsertIncidenciaCmdHandler {
                                         IncidenciaBuilder builder) {
         // Validaciones
         int vecinoId = validacionExistenciaVecino(subject);
+
+        // Validar estados permitidos para actualizar incidencia
+        if (null != payload.getIncidenciaId()) {
+            final boolean valida = incidenciaRepository.existsByIdAndInVecinoAndInEstadoIn(payload.getIncidenciaId(), vecinoId, ESTADOS_PERMITIDOS_UPSERT);
+            if (!valida) {
+                throw new ServiceException(HttpStatus.BAD_REQUEST, "El estado de la incidencia no permite actualizar");
+            }
+        }
+
         validarPertenenciaDomicilio(payload.getContador(), vecinoId);
         short privacidad = verificacionExistenciaPrivacidad(payload.getPrivacidad());
         validarExistenciaCatalogo(tablaCatalogo, catalogoId, msgCatalogoInvalido);

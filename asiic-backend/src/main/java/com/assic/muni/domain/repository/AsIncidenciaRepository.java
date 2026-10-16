@@ -78,4 +78,7 @@ public interface AsIncidenciaRepository extends JpaRepository<AsIncidencia, Inte
     Optional<Short> findInRechazosById(int id);
 
     boolean existsByIdAndInAnalista(int id, String analistaId);
+
+    @Query("select exists(select 1 from AsIncidencia i where i.id = :id and i.inVecino = :vecinoId and i.inEstado in :estados)")
+    boolean existsByIdAndInVecinoAndInEstadoIn(int id, int vecinoId, List<IncidenciaState> estados);
 }

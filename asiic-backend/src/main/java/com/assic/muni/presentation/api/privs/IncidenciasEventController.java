@@ -1,5 +1,6 @@
 package com.assic.muni.presentation.api.privs;
 
+import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
 import com.assic.muni.application.cqrs.dto.ArchivoDto;
 import com.assic.muni.application.cqrs.dto.IncidenciaDto;
@@ -10,6 +11,7 @@ import com.assic.muni.domain.enums.IncidenciaEvent;
 import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
@@ -50,20 +53,41 @@ public class IncidenciasEventController {
     }
 
     @PostMapping("/{id}/event/aceptar-incidencia")
-    @Operation(summary = "EV1-1 - Aceptar Incidencia")
+    @Operation(summary = "EV1-1-1 - Aceptar Incidencia")
     public ResponseEntity<ApiResponseDto> eventAceptarIncidencia(@PathVariable Integer id) {
         incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.ACEPTAR_INCIDENCIA);
         return ResponseEntity.ok(getMessageBody("Incidencia aceptada correctamente"));
     }
 
     @PostMapping("/{id}/event/rechazar-incidencia")
-    @Operation(summary = "EV1-1 - Rechazar Incidencia")
+    @Operation(summary = "EV1-1-2 - Rechazar Incidencia")
     public ResponseEntity<ApiResponseDto> eventRechazadaIncidencia(@PathVariable Integer id,
                                                                    @Valid @RequestBody List<IncidenciaFeedback> feedback) {
         incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.RECHAZAR_INCIDENCIA, feedback);
         return ResponseEntity.ok(getMessageBody("Incidencia aceptada correctamente"));
     }
 
+    @PostMapping("/{id}/event/apelar-incidencia")
+    @Operation(summary = "EV1-1-2-1 - Apelar Incidencia")
+    public ResponseEntity<ApiResponseDto> eventApelarIncidencia(
+            @PathVariable Integer id,
+            @Parameter(
+                    description = "Datos estructurados de la incidencia en formato JSON",
+                    required = true,
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = IncidenciaPayloadCmd.class))
+            )
+            @RequestPart("insidencia_json")
+            IncidenciaPayloadCmd payload,
+
+            @Parameter(
+                    description = "Lista opcional de archivos adjuntos (imágenes, documentos, etc.)",
+                    content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            )
+            @RequestPart(value = "insidencia_bin", required = false) List<MultipartFile> evidencias
+    ) {
+        incidenciaPipelineHandler.pipelineApelarIncidencia(id, payload, evidencias);
+        return ResponseEntity.ok(getMessageBody("Incidencia apelada correctamente"));
+    }
 
     @PostMapping("/{id}/event/finalizar-recoleccion")
     @Operation(summary = "EV1-2 - Finalizar Recolección")
@@ -161,7 +185,7 @@ public class IncidenciasEventController {
             )
     })
     public ResponseEntity<Resource> obtenerArchivosDeIncidenciaPorId(@PathVariable Integer id, @PathVariable Integer archivoId) {
-        ArchivoDto dto = archivosQueryHandler.descargarArchivoComoAnalista(id,archivoId);
+        ArchivoDto dto = archivosQueryHandler.descargarArchivoComoAnalista(id, archivoId);
         if (dto.contenido().length == 0) {
             return ResponseEntity.noContent().build();
         }
