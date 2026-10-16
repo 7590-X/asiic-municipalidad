@@ -117,7 +117,7 @@ public class AsIncidencia {
     private AsCatalogo inAreaObj;
 
     @Column(name = "in_area", insertable = true, updatable = true)
-    private short inArea;
+    private Short inArea;
 
     @Column(name = "in_propuesta", nullable = false, length = Integer.MAX_VALUE)
     private String inPropuesta;
@@ -142,10 +142,19 @@ public class AsIncidencia {
     private String inUsrModifico;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "in_analista")
+    @JoinColumn(name = "in_analista", insertable = false, updatable = false)
     private AsUsuario inAnalista;
+
+    @Column(name = "in_analista")
+    private String inAnalistaId;
+
+    @Column(name = "in_agente")
+    private String inAgente;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "in_jsons", columnDefinition = "jsonb")
     private JsonNode inJsons;
+
+    @Column(name = "in_rechazos")
+    private Short inRechazos;
 }

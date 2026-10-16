@@ -1,0 +1,91 @@
+<div class="main-container">
+  <div class="content-container">
+    <div class="content-area">
+      <h1>Dashboard Administrativo</h1>
+      <p>Bienvenido al panel de control. Desde aquí puedes gestionar la plataforma.</p>
+
+      <!-- Quick Actions -->
+      <div class="clr-row mt-4">
+        <div class="clr-col-12 clr-col-md-6" style="margin-top: 1rem;">
+          <div class="card">
+            <div class="card-header">
+              <cds-icon shape="building" size="24" class="is-solid"></cds-icon>
+              Gestión de Municipalidades
+            </div>
+            <div class="card-block">
+              <div class="card-text">
+                Registra nuevas municipalidades en el sistema.
+              </div>
+            </div>
+            <div class="card-footer">
+              <a class="btn btn-primary" routerLink="/admin/registro-municipalidad">Crear Municipalidad</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="clr-col-12 clr-col-md-6" style="margin-top: 1rem;">
+          <div class="card">
+            <div class="card-header">
+              <cds-icon shape="users" size="24" class="is-solid"></cds-icon>
+              Gestión de Usuarios
+            </div>
+            <div class="card-block">
+              <div class="card-text">
+                Crea nuevos perfiles de usuario y administradores.
+              </div>
+            </div>
+            <div class="card-footer">
+              <a class="btn btn-primary" routerLink="/admin/registro-usuario">Crear Usuario</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lists -->
+      <div class="clr-row" style="margin-top: 2rem;">
+        <div class="clr-col-12 clr-col-lg-6">
+          <h3>Directorio de Municipalidades</h3>
+          <clr-datagrid>
+            <clr-dg-column>ID</clr-dg-column>
+            <clr-dg-column>Nombre</clr-dg-column>
+
+            <clr-dg-row *clrDgItems="let m of municipalidades">
+              <clr-dg-cell>{{ m.id }}</clr-dg-cell>
+              <clr-dg-cell>{{ m.nombre }}</clr-dg-cell>
+            </clr-dg-row>
+            <clr-dg-footer>
+              <clr-dg-pagination #paginationMuni [clrDgPageSize]="5">
+                <clr-dg-page-size [clrPageSizeOptions]="[5, 10, 20]">Por página</clr-dg-page-size>
+                {{paginationMuni.firstItem + 1}} - {{paginationMuni.lastItem + 1}} de {{paginationMuni.totalItems}}
+                municipalidad(es)
+              </clr-dg-pagination>
+            </clr-dg-footer>
+          </clr-datagrid>
+        </div>
+
+        <div class="clr-col-12 clr-col-lg-6">
+          <h3>Listado de Usuarios del Sistema</h3>
+          <clr-datagrid>
+            <clr-dg-column>Nombre</clr-dg-column>
+            <clr-dg-column>Rol</clr-dg-column>
+            <clr-dg-column>Municipalidades</clr-dg-column>
+
+            <clr-dg-row *clrDgItems="let u of usuarios">
+              <clr-dg-cell>{{ u.nombre }}</clr-dg-cell>
+              <clr-dg-cell>{{ u.rol }}</clr-dg-cell>
+              <clr-dg-cell>{{ u.municipalidadesStr }}</clr-dg-cell>
+            </clr-dg-row>
+            <clr-dg-footer>
+              <clr-dg-pagination #paginationUser [clrDgPageSize]="5">
+                <clr-dg-page-size [clrPageSizeOptions]="[5, 10, 20]">Por página</clr-dg-page-size>
+                {{paginationUser.firstItem + 1}} - {{paginationUser.lastItem + 1}} de {{paginationUser.totalItems}}
+                usuario(s)
+              </clr-dg-pagination>
+            </clr-dg-footer>
+          </clr-datagrid>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -35,22 +35,29 @@
               <div class="timeline-container">
                 <h4>Etapas de la Gestión</h4>
                 <div class="timeline-steps">
-                  <div class="timeline-step" 
-                       *ngFor="let etapa of etapas" 
+                  <div class="timeline-step"
+                       *ngFor="let etapa of etapas"
                        [class.active]="getEtapaActual(t.estado) >= etapa.id"
                        [class.current]="getEtapaActual(t.estado) === etapa.id">
                     <div class="step-icon">
-                      <cds-icon [attr.shape]="etapa.icon" size="md"></cds-icon>
+                      <cds-icon [attr.shape]="getEtapaIcon(etapa, t.estado)" size="md"></cds-icon>
                     </div>
-                    <div class="step-label">{{ etapa.label }}</div>
+                    <div class="step-label">{{ getEtapaLabel(etapa, t.estado) }}</div>
                     <div class="step-connector" *ngIf="etapa.id < 4"></div>
                   </div>
                 </div>
-                
+
                 <div class="timeline-actions">
-                  <a [routerLink]="['/vecino/incidencias/editar', t.id]" class="btn btn-sm btn-primary">
-                    <cds-icon shape="eye"></cds-icon> Ver Expediente Completo
-                  </a>
+                  <ng-container *ngIf="t.estado?.toUpperCase() === 'BORRADOR'">
+                    <a [routerLink]="['/vecino/incidencias/editar', t.id]" class="btn btn-sm btn-primary">
+                      <cds-icon shape="pencil"></cds-icon> Editar Borrador
+                    </a>
+                  </ng-container>
+                  <ng-container *ngIf="t.estado?.toUpperCase() !== 'BORRADOR'">
+                    <button type="button" class="btn btn-sm btn-outline" (click)="abrirResumen(t)">
+                      <cds-icon shape="eye"></cds-icon> Ver Resumen
+                    </button>
+                  </ng-container>
                 </div>
               </div>
             </clr-dg-row-detail>
@@ -68,3 +75,102 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de Resumen -->
+<clr-modal [(clrModalOpen)]="resumenModalOpen" [clrModalSize]="'lg'" *ngIf="resumenSeleccionado">
+  <h3 class="modal-title" style="display: flex; align-items: center; justify-content: space-between;">
+    <span>Resumen de Gestión #{{ resumenSeleccionado?.id }}</span>
+    <span class="badge" [ngClass]="getEstadoBadgeClass(resumenSeleccionado?.estado)">
+      {{ resumenSeleccionado?.estado }}
+    </span>
+  </h3>
+  <div class="modal-body" id="print-section">
+    <div class="resumen-header print-only">
+      <div class="brand">
+        <img src="muni-logo.svg" alt="Municipalidad de Guatemala" style="width: 250px; height: auto;">
+      </div>
+      <h2>Hoja de Resumen - Gestión #{{ resumenSeleccionado?.id }}</h2>
+    </div>
+
+    <div class="resumen-content">
+      <!-- Datos Generales -->
+      <div class="section-title">Datos de la Gestión</div>
+      <div class="info-row">
+        <div class="info-item">
+          <strong>Estado Actual:</strong>
+          <span class="badge" [ngClass]="getEstadoBadgeClass(resumenSeleccionado?.estado)">{{ resumenSeleccionado?.estado }}</span>
+        </div>
+        <div class="info-item">
+          <strong>Tipo de Incidencia:</strong>
+          {{ resumenSeleccionado?.tipoIncidencia?.nombre || resumenSeleccionado?.tipo }}
+        </div>
+        <div class="info-item">
+          <strong>Fecha de Registro:</strong>
+          {{ resumenSeleccionado?.fechaRegistro ? (resumenSeleccionado?.fechaRegistro | date:'medium') : resumenSeleccionado?.fecha }}
+        </div>
+      </div>
+
+      <!-- Datos del Vecino -->
+      <ng-container *ngIf="resumenSeleccionado?.vecino">
+        <div class="section-title">Datos del Vecino Solicitante</div>
+        <div class="info-row">
+          <div class="info-item"><strong>Nombre Completo:</strong> {{ resumenSeleccionado?.vecino?.nombreCompleto }}</div>
+          <div class="info-item"><strong>DPI / CUI:</strong> {{ resumenSeleccionado?.vecino?.cui }}</div>
+        </div>
+        <div class="info-row">
+          <div class="info-item"><strong>Correo Electrónico:</strong> {{ resumenSeleccionado?.vecino?.correo }}</div>
+          <div class="info-item"><strong>Teléfono:</strong> {{ resumenSeleccionado?.vecino?.telefono }}</div>
+        </div>
+      </ng-container>
+
+      <!-- Detalles Adicionales -->
+      <div class="section-title">Detalles de la Incidencia</div>
+      <div class="info-row">
+        <div class="info-item" *ngIf="resumenSeleccionado?.dependencia?.valor">
+          <strong>Dependencia Asignada:</strong> {{ resumenSeleccionado?.dependencia?.valor }}
+        </div>
+        <div class="info-item" *ngIf="resumenSeleccionado?.direccionReferencial">
+          <strong>Lugar / Dirección:</strong> {{ resumenSeleccionado?.direccionReferencial }}
+        </div>
+      </div>
+
+      <div class="info-block">
+        <strong>Asunto / Descripción:</strong>
+        <p class="resumen-text">{{ resumenSeleccionado?.descripcion || resumenSeleccionado?.asunto }}</p>
+      </div>
+
+      <!-- Evidencias -->
+      <div class="info-block" *ngIf="resumenSeleccionado?.archivosAdjuntos?.length">
+        <strong>Evidencias Adjuntas:</strong>
+        <div class="evidencias-grid mt-2" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+          <ng-container *ngFor="let archivo of resumenSeleccionado.archivosAdjuntos">
+
+            <!-- Si es imagen y tiene URL generada -->
+            <div *ngIf="archivo.url" class="evidencia-card" style="border: 1px solid #ccc; padding: 4px; border-radius: 4px; text-align: center;">
+              <img [src]="archivo.url" [alt]="archivo.nombre" style="max-width: 100%; height: auto; max-height: 150px; object-fit: contain;" />
+              <div style="font-size: 0.75rem; margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" [title]="archivo.nombre">
+                {{ archivo.nombre }}
+              </div>
+            </div>
+
+            <!-- Si no es imagen o falló la URL, mostrar como lista/tarjeta -->
+            <div *ngIf="!archivo.url" class="evidencia-card" style="border: 1px solid #ccc; padding: 10px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f9f9f9;">
+              <cds-icon shape="file" size="lg" style="color: #0079b8; margin-bottom: 0.5rem;"></cds-icon>
+              <div style="font-size: 0.75rem; text-align: center; word-break: break-all;" [title]="archivo.nombre">
+                {{ archivo.nombre }}
+              </div>
+              <span style="color: #666; font-size: 0.65rem; margin-top: 0.25rem;">({{ archivo.formato }})</span>
+            </div>
+
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="resumenModalOpen = false">Cerrar</button>
+    <button type="button" class="btn btn-primary" (click)="imprimirResumen()">
+      <cds-icon shape="printer"></cds-icon> Imprimir
+    </button>
+  </div>
+</clr-modal>

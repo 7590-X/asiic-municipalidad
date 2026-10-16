@@ -48,16 +48,4 @@ public interface AsArchivoRepository extends JpaRepository<AsArchivo, Integer> {
             where a.id = :archivoId
             """)
     boolean existsByIncidenciaAndArchivoAndUserUUID(Integer incidenciaId, Integer archivoId, String user);
-
-    @Query("""
-            select a from AsArchivo a
-            inner join AsIncidenciaArchivo ia
-                on a.id                         = ia.id.aiArchivo
-                and ia.id.aiIncidencia          = :incidenciaId
-                and ia.aiUsrRegistro            = :user
-                AND ia.asIncidencia.inEstado    = 'BORRADOR'
-            where a.id = :archivoId
-            """)
-    Optional<AsArchivo> findByIncidenciaAndArchivoAndUserUUIDAndEstadoBORRADOR(Integer incidenciaId, Integer archivoId, String user);
-
 }

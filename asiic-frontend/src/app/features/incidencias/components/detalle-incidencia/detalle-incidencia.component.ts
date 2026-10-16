@@ -1,9 +1,9 @@
 import { Component, DestroyRef, Input, OnInit, inject, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormGroup, FormArray, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClarityModule } from '@clr/angular';
 import { forkJoin } from 'rxjs';
-import { IncidenciasService, ContadorVecino } from '../../services/incidencias.service';
+import { IncidenciasService, DomicilioDto } from '../../services/incidencias.service';
 import { CatalogoItem } from '../../../../core/models/catalogo.model';
 
 @Component({
@@ -23,8 +23,45 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
   tiposServicio = signal<CatalogoItem[]>([]);
   tiposDenuncia = signal<CatalogoItem[]>([]);
   areasSugerencia = signal<CatalogoItem[]>([]);
-  contadores = signal<ContadorVecino[]>([]);
+  contadores = signal<DomicilioDto[]>([]);
   loadingCatalogos = signal<boolean>(true);
+
+  get testigosArray() {
+    return this.stepForm.get('testigos') as FormArray;
+  }
+
+  agregarTestigo() {
+    this.testigosArray.push(
+      new FormGroup({
+        testigoNombre: new FormControl(''),
+        testigoTelefono: new FormControl(''),
+        testigoCorreo: new FormControl('')
+      })
+    );
+  }
+
+  removerTestigo(index: number) {
+    this.testigosArray.removeAt(index);
+  }
+
+  obtenerUbicacion() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude.toFixed(6);
+          const lng = position.coords.longitude.toFixed(6);
+          this.stepForm.get('ubicacionGps')?.setValue(`${lat}, ${lng}`);
+        },
+        (error) => {
+          console.error('Error obteniendo ubicación', error);
+          alert('No se pudo obtener tu ubicación. Por favor, asegúrate de haber dado los permisos en el navegador o ingrésala manualmente.');
+        }
+      );
+    } else {
+      alert('Tu navegador no soporta geolocalización.');
+    }
+  }
+
 
   ngOnInit(): void {
     const sub = forkJoin({
@@ -32,7 +69,7 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
       serv: this.incidenciasService.getCatalogosTiposServicio(),
       den: this.incidenciasService.getCatalogosTiposDenuncia(),
       sug: this.incidenciasService.getCatalogosAreasSugerencia(),
-      contadores: this.incidenciasService.getMisContadores()
+      contadores: this.incidenciasService.getMisDomicilios()
     }).subscribe({
       next: (data) => {
         this.dependencias.set(data.dep);
@@ -42,7 +79,7 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
         this.contadores.set(data.contadores);
 
         if (data.contadores.length === 1) {
-          this.stepForm.get('noContador')?.setValue(data.contadores[0].do_contador);
+          this.stepForm.get('noContador')?.setValue(data.contadores[0].contador);
         }
 
         this.loadingCatalogos.set(false);
@@ -68,7 +105,7 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['tipoIncidencia'] && !changes['tipoIncidencia'].firstChange) {
+    if (changes['tipoIncidencia'] && changes['tipoIncidencia'].currentValue) {
       this.updateDynamicValidators(changes['tipoIncidencia'].currentValue);
     }
   }

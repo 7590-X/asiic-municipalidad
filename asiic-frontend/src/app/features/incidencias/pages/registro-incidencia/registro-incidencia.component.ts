@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClarityModule } from '@clr/angular';
 import { IncidenciasService } from '../../services/incidencias.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -14,8 +14,8 @@ import { EvidenciasComponent } from '../../components/evidencias/evidencias.comp
   selector: 'app-registro-incidencia',
   standalone: true,
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
+    CommonModule,
+    ReactiveFormsModule,
     ClarityModule,
     TipoPrivacidadComponent,
     DetalleIncidenciaComponent,
@@ -27,6 +27,7 @@ import { EvidenciasComponent } from '../../components/evidencias/evidencias.comp
 export class RegistroIncidenciaComponent implements OnInit {
   incidenciaForm!: FormGroup;
   files: File[] = [];
+  archivosExistentes: any[] = [];
   isSubmitting = false;
 
   incidenciaId: string | null = null;
@@ -59,48 +60,77 @@ export class RegistroIncidenciaComponent implements OnInit {
     this.isLoading = true;
     this.incidenciasService.getIncidenciaById(id).subscribe({
       next: (res) => {
+        const tipoStr = res.tipoIncidencia?.nombre?.toUpperCase() || '';
+
+        const reversePrivacidadMap: any = {
+          'PUB': 'PUBLICO',
+          'PRIV': 'CONFIDENCIAL'
+        };
+        const privacidadStr = res.privacidad?.seudo ? reversePrivacidadMap[res.privacidad.seudo] : 'PUBLICO';
+
         this.tipoYPrivacidadForm.patchValue({
-          tipoIncidencia: res.tipoIncidencia,
-          privacidad: res.privacidad
+          tipoIncidencia: tipoStr,
+          privacidad: privacidadStr
         });
-        
-        if (res.tipoIncidencia === 'QUEJA') {
+
+        if (tipoStr === 'QUEJA') {
           this.detalleIncidenciaForm.patchValue({
-            dependenciaId: res.dependenciaId,
-            empleadoId: res.empleadoId,
+            dependenciaId: res.dependencia?.id || '',
+            empleadoId: res.nombreEmpleado || '',
             fechaIncidencia: res.fechaIncidencia ? res.fechaIncidencia.substring(0, 16) : '',
-            lugar: res.lugar,
-            descripcion: res.descripcion
+            lugar: res.direccionReferencial || '',
+            descripcion: res.descripcion || ''
           });
-        } else if (res.tipoIncidencia === 'RECLAMO') {
+
+          if (res.testigos && Array.isArray(res.testigos)) {
+            const testigosFormArray = this.detalleIncidenciaForm.get('testigos') as FormArray;
+            testigosFormArray.clear();
+            res.testigos.forEach((t: any) => {
+              testigosFormArray.push(this.fb.group({
+                testigoNombre: [t.nombre || ''],
+                testigoTelefono: [t.telefono || ''],
+                testigoCorreo: [t.correo || '']
+              }));
+            });
+          }
+        } else if (tipoStr === 'RECLAMO') {
           this.detalleIncidenciaForm.patchValue({
-            tipoServicioId: res.tipoServicioId,
-            ubicacionGps: res.ubicacionGps,
-            direccion: res.direccion,
-            noContador: res.noContador,
-            descripcion: res.descripcion
+            tipoServicioId: res.tipoServicio?.id || '',
+            ubicacionGps: (res.latitud && res.longitud) ? `${res.latitud},${res.longitud}` : '',
+            direccion: res.direccionReferencial || '',
+            noContador: res.domicilio?.contador || '',
+            descripcion: res.descripcion || ''
           });
-        } else if (res.tipoIncidencia === 'DENUNCIA') {
+        } else if (tipoStr === 'DENUNCIA') {
+          // El backend mapea 'inJsons' como testigos en el DTO de respuesta, por ende los denunciados vienen ahí
+          const denunciadosNombres = res.testigos && res.testigos.length > 0 ? res.testigos.map((t: any) => t.nombre).join(', ') : '';
           this.detalleIncidenciaForm.patchValue({
-            tipoDenunciaId: res.tipoDenunciaId,
-            denunciados: res.denunciados,
-            fechaHoraHechos: res.fechaHoraHechos ? res.fechaHoraHechos.substring(0, 16) : '',
-            direccion: res.direccion,
-            relato: res.relato
+            tipoDenunciaId: res.tipoDenuncia?.id || '',
+            denunciados: denunciadosNombres,
+            fechaHoraHechos: res.fechaIncidencia ? res.fechaIncidencia.substring(0, 16) : '',
+            ubicacionGps: (res.latitud && res.longitud) ? `${res.latitud},${res.longitud}` : '',
+            relato: res.descripcion || ''
           });
-        } else if (res.tipoIncidencia === 'SUGERENCIA') {
+        } else if (tipoStr === 'SUGERENCIA') {
           this.detalleIncidenciaForm.patchValue({
-            areaId: res.areaId,
-            descripcionActual: res.descripcionActual,
-            propuestaMejora: res.propuestaMejora
+            areaId: res.area?.id || '',
+            descripcionActual: res.descripcion || '',
+            propuestaMejora: res.propuestaMejora || ''
           });
         }
 
-        if (res.estado !== 'BORRADOR') {
+        if (res.estado?.toUpperCase() !== 'BORRADOR') {
           this.isReadOnly = true;
           // No deshabilitamos el form entero porque el clrStepper requiere status=VALID para avanzar.
-          // this.incidenciaForm.disable(); 
+          // this.incidenciaForm.disable();
           this.clearFormValidators(this.incidenciaForm);
+        } else {
+          this.incidenciasService.getArchivosIncidencia(id).subscribe({
+            next: (archivos) => {
+              this.archivosExistentes = archivos;
+            },
+            error: (err) => console.error('Error cargando archivos', err)
+          });
         }
         this.isLoading = false;
       },
@@ -137,9 +167,7 @@ export class RegistroIncidenciaComponent implements OnInit {
         fechaIncidencia: [''],
         lugar: [''],
         descripcion: [''],
-        testigoNombre: [''],
-        testigoTelefono: [''],
-        testigoCorreo: [''],
+        testigos: this.fb.array([]),
         // Reclamo
         tipoServicioId: [''],
         ubicacionGps: [''],
@@ -170,13 +198,30 @@ export class RegistroIncidenciaComponent implements OnInit {
 
   get evidenciasValidas(): boolean {
     if (this.tipoSeleccionado === 'RECLAMO' || this.tipoSeleccionado === 'DENUNCIA') {
-      return this.files.length > 0;
+      return this.files.length > 0 || this.archivosExistentes.length > 0;
     }
     return true;
   }
 
   onFilesChanged(files: File[]): void {
     this.files = files;
+  }
+
+  onEliminarArchivoExistente(archivoId: number): void {
+    if (this.incidenciaId) {
+      if (confirm('¿Está seguro de eliminar esta evidencia?')) {
+        this.incidenciasService.eliminarArchivoIncidencia(this.incidenciaId, archivoId).subscribe({
+          next: () => {
+            alert('Evidencia eliminada correctamente.');
+            this.archivosExistentes = this.archivosExistentes.filter(a => a.id !== archivoId);
+          },
+          error: (err) => {
+            console.error('Error eliminando archivo', err);
+            alert('Ocurrió un error al eliminar la evidencia.');
+          }
+        });
+      }
+    }
   }
 
   enviarBorrador(): void {
@@ -216,10 +261,11 @@ export class RegistroIncidenciaComponent implements OnInit {
     const detalle = formValue.detalleIncidencia;
 
     const payload: any = {
-      incidenciaId: this.incidenciaId ? Number(this.incidenciaId) : 0,
+      incidenciaId: this.incidenciaId ? Number(this.incidenciaId) : null,
       tipoIncidencia: tipoIncidenciaId,
       privacidad: privacidadVal,
-      contador: detalle.noContador || '' 
+      contador: detalle.noContador || '',
+      esBorrador: esBorrador
     };
 
     if (formValue.tipoYPrivacidad.tipoIncidencia === 'QUEJA') {
@@ -229,23 +275,26 @@ export class RegistroIncidenciaComponent implements OnInit {
         fechaIncidencia: detalle.fechaIncidencia ? new Date(detalle.fechaIncidencia).toISOString() : null,
         direccionReferencial: detalle.lugar || '',
         descripcion: detalle.descripcion || '',
-        testigo: detalle.testigoNombre ? [
-          {
-            nombre: detalle.testigoNombre,
-            telefono: detalle.testigoTelefono || '',
-            correo: detalle.testigoCorreo || ''
-          }
-        ] : [],
+        testigo: (detalle.testigos && detalle.testigos.length > 0) ? detalle.testigos.map((t: any) => ({
+          nombre: t.testigoNombre,
+          telefono: t.testigoTelefono || '',
+          correo: t.testigoCorreo || ''
+        })).filter((t: any) => t.nombre) : [],
         latitudGps: '',
         longitudGps: ''
       };
+      if (detalle.ubicacionGps) {
+        const parts = detalle.ubicacionGps.split(',');
+        if (parts.length === 2) {
+          payload.detalleQueja.latitudGps = parts[0].trim();
+          payload.detalleQueja.longitudGps = parts[1].trim();
+        }
+      }
     } else if (formValue.tipoYPrivacidad.tipoIncidencia === 'RECLAMO') {
       payload.detalleReclamo = {
         tipoServicioId: detalle.tipoServicioId ? Number(detalle.tipoServicioId) : null,
         latitudGps: '',
         longitudGps: '',
-        direccion: detalle.direccion || '',
-        noContador: detalle.noContador || '',
         descripcion: detalle.descripcion || ''
       };
       if (detalle.ubicacionGps) {
@@ -260,9 +309,17 @@ export class RegistroIncidenciaComponent implements OnInit {
         tipoDenunciaId: detalle.tipoDenunciaId ? Number(detalle.tipoDenunciaId) : null,
         denunciados: detalle.denunciados ? [{ nombre: detalle.denunciados }] : [],
         fechaHoraHechos: detalle.fechaHoraHechos ? new Date(detalle.fechaHoraHechos).toISOString() : null,
-        direccion: detalle.direccion || '',
-        relato: detalle.relato || ''
+        relato: detalle.relato || '',
+        latitudGps: '',
+        longitudGps: ''
       };
+      if (detalle.ubicacionGps) {
+        const parts = detalle.ubicacionGps.split(',');
+        if (parts.length === 2) {
+          payload.detalleDenuncia.latitudGps = parts[0].trim();
+          payload.detalleDenuncia.longitudGps = parts[1].trim();
+        }
+      }
     } else if (formValue.tipoYPrivacidad.tipoIncidencia === 'SUGERENCIA') {
       payload.detalleSugerencia = {
         areaId: detalle.areaId ? Number(detalle.areaId) : null,
@@ -271,7 +328,9 @@ export class RegistroIncidenciaComponent implements OnInit {
       };
     }
 
-    const request$ = this.incidenciaId 
+    console.log('Payload a enviar:', JSON.stringify(payload, null, 2));
+
+    const request$ = this.incidenciaId
       ? this.incidenciasService.actualizarIncidencia(this.incidenciaId, payload, this.files)
       : this.incidenciasService.crearIncidencia(payload, this.files);
 
@@ -286,7 +345,7 @@ export class RegistroIncidenciaComponent implements OnInit {
         let errorMsg = 'Ocurrió un error al enviar la incidencia.';
         if (err.error && err.error.message) {
           errorMsg = err.error.message;
-          // If there are field validation errors, show them
+          // Si hay errores de validación de campos, mostrarlos
           if (err.error.errors && Array.isArray(err.error.errors)) {
             errorMsg += '\n' + err.error.errors.join('\n');
           }

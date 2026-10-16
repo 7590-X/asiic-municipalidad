@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ClarityModule } from '@clr/angular';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-sidebar-nav',
@@ -11,8 +12,13 @@ import { ClarityModule } from '@clr/angular';
   styleUrls: ['./sidebar-nav.component.scss'],
 })
 export class SidebarNavComponent {
+  private authService = inject(AuthService);
   @Input() collapsed = false;
   @Output() collapsedChange = new EventEmitter<boolean>();
+
+  readonly isAdmin = computed(() => {
+    return this.authService.isAdmin();
+  });
 
   onCollapseChange(isCollapsed: boolean): void {
     this.collapsed = isCollapsed;

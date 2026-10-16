@@ -3,7 +3,8 @@ package com.assic.muni.application.cqrs.handler;
 import com.assic.muni.application.cqrs.cmd.RegistrarVecinoCmd;
 import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.application.port.out.IdentityProviderPort;
-import com.assic.muni.domain.event.VecinoCreadoEvent;
+import com.assic.muni.application.port.out.dto.KCUsuario;
+import com.assic.muni.domain.event.CuentaCreadaEvent;
 import com.assic.muni.domain.model.*;
 import com.assic.muni.domain.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<Integer, RegistrarVecinoCmd> {
+public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<String, RegistrarVecinoCmd> {
 
     private final VecinoRepository vecinoRepository;
     private final AsPersonaRepository asPersonaRepository;
@@ -32,7 +33,7 @@ public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<Integer, Regist
 
     @Override
     @Transactional
-    public Integer handle(RegistrarVecinoCmd cmd) {
+    public String handle(RegistrarVecinoCmd cmd) {
 
         int validacion = asPersonaRepository.validateByPeCuiAndPeCoCorreo(cmd.getCui(), cmd.getCorreo());
         if (validacion != 0) {
@@ -46,10 +47,17 @@ public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<Integer, Regist
             }
         }
 
-        String userId = identityProviderPort.createNewIdentityUser(cmd);
+        String userId = identityProviderPort.createNewIdentityUser(new KCUsuario(
+                cmd.getCui(),
+                cmd.getCorreo(),
+                cmd.getNombres(),
+                cmd.getApellidos(),
+                false,
+                true
+        ));
 
         try {
-            AsCatalogo tipoPersona = catalogoRepository.findByCaSeudo("PEIN")
+            Short tipoPersona = catalogoRepository.findIdByCaSeudo("PEIN")
                     .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar la identidad del vecino"));
 
             String ip = (cmd.getIpRegistro() != null && !cmd.getIpRegistro().isBlank())
@@ -64,7 +72,7 @@ public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<Integer, Regist
                     .peApellido(cmd.getApellidos())
                     .peGenero(cmd.getGenero().toUpperCase())
                     .peEstadoCivil(cmd.getEstadoCivilId())
-                    .peTipPersona(tipoPersona.getId())
+                    .peTipPersona(tipoPersona)
                     .build());
 
             AsCorreo correo = asCorreoRepository.save(AsCorreo.builder()
@@ -111,8 +119,8 @@ public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<Integer, Regist
                     .usTipo(tipoUsuario)
                     .usEstado("I") // Se activa hasta que se confirma la cuenta
                     .usIpRegistro(ip)
+                    .usCorreo(correo)
                     .usPersona(persona)
-                    .usUsrRegistro(userId)
                     .build());
             log.info("[ACCOUNT_CREATED] Cuenta de usuario creado con UUID:{}, ID Vecino: {}", userId, vecino.getId());
         } catch (RuntimeException e) {
@@ -120,9 +128,9 @@ public class RegistrarVecinoCmdHandler implements CQRSCmdHandler<Integer, Regist
             identityProviderPort.deleteIdentityUser(userId);
             throw e;
         }
-        eventPublisher.publishEvent(new VecinoCreadoEvent(
+        eventPublisher.publishEvent(new CuentaCreadaEvent(
                 userId, cmd.getCorreo(), (cmd.getNombres() + " " + cmd.getApellidos())
         ));
-        return null;
+        return userId;
     }
 }

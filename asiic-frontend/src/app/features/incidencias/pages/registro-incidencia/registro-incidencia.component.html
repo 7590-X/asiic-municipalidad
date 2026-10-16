@@ -32,9 +32,9 @@
 
     <!-- Panel derecho: stepper -->
     <div class="rv-main">
-      
+
       <form clrStepper [formGroup]="incidenciaForm" *ngIf="!isSubmitting">
-        
+
         <!-- Paso 1: Tipo y Privacidad -->
         <clr-stepper-panel formGroupName="tipoYPrivacidad">
           <clr-step-title>Tipo y Privacidad</clr-step-title>
@@ -54,8 +54,8 @@
           <clr-step-description>Descripción de lo sucedido</clr-step-description>
           <clr-step-content *clrIfExpanded>
             <fieldset [disabled]="isReadOnly" style="border:none; padding:0; margin:0;">
-              <app-detalle-incidencia 
-                [stepForm]="detalleIncidenciaForm" 
+              <app-detalle-incidencia
+                [stepForm]="detalleIncidenciaForm"
                 [tipoIncidencia]="tipoSeleccionado">
               </app-detalle-incidencia>
             </fieldset>
@@ -69,10 +69,12 @@
           <clr-step-description>Archivos adjuntos</clr-step-description>
           <clr-step-content *clrIfExpanded>
             <fieldset [disabled]="isReadOnly" style="border:none; padding:0; margin:0;">
-              <app-evidencias 
+              <app-evidencias
                 [stepForm]="evidenciasForm"
                 [tipoIncidencia]="tipoSeleccionado"
-                (filesChanged)="onFilesChanged($event)">
+                [archivosExistentes]="archivosExistentes"
+                (filesChanged)="onFilesChanged($event)"
+                (eliminarArchivo)="onEliminarArchivoExistente($event)">
               </app-evidencias>
             </fieldset>
 

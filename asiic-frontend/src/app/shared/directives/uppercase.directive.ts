@@ -1,4 +1,4 @@
-import { Directive, HostListener, Optional, Self, ElementRef } from '@angular/core';
+import { Directive, HostListener, ElementRef, inject } from '@angular/core';
 import { NgControl } from '@angular/forms';
 
 @Directive({
@@ -7,10 +7,10 @@ import { NgControl } from '@angular/forms';
 })
 export class UppercaseDirective {
 
-  constructor(
-    private el: ElementRef,
-    @Optional() @Self() private ngControl: NgControl
-  ) { }
+  private el = inject(ElementRef);
+  private ngControl = inject(NgControl, { optional: true, self: true });
+
+  constructor() { }
 
   @HostListener('input', ['$event.target'])
   public onInput(target: EventTarget | null): void {
@@ -24,7 +24,7 @@ export class UppercaseDirective {
 
     if (input.value !== uppercased) {
       input.value = uppercased;
-      
+
       if (this.ngControl && this.ngControl.control) {
         this.ngControl.control.setValue(uppercased, { emitModelToViewChange: false });
       }

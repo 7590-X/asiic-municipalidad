@@ -8,8 +8,10 @@ import com.assic.muni.application.port.out.SftpStoragePort;
 import com.assic.muni.application.util.JwtExtractor;
 import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.domain.model.AsArchivo;
+import com.assic.muni.domain.model.AsIncidenciaArchivoId;
 import com.assic.muni.domain.repository.AsArchivoRepository;
 import com.assic.muni.domain.repository.AsIncidenciaRepository;
+import com.assic.muni.domain.repository.AsIncidenciaArchivoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -25,18 +27,18 @@ public class ArchivosQueryHandler {
     private final AsArchivoRepository archivoRepository;
     private final AsIncidenciaRepository incidenciaRepository;
     private final FileStoragePort fileStoragePort;
-
+    private final AsIncidenciaArchivoRepository incidenciaArchivoRepository;
 
     public List<ArchivoDto> obtenerMisArchivosDeIncidencia(int incidenciaId) {
-        String subject = JwtExtractor.extrarJwtSubject();
-        List<AsArchivo> archivos = archivoRepository.findByIncidenciaIdAndUserUUID(incidenciaId, subject);
+        String userId = JwtExtractor.extrarJwtSubject();
+        List<AsArchivo> archivos = archivoRepository.findByIncidenciaIdAndUserUUID(incidenciaId, userId);
         if (archivos.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron archivos para la incidencia");
         }
         return archivos.stream().map(ArchivoMapper::frontEntityToDto).toList();
     }
 
-    public List<ArchivoDto> obtenerArchivosDeIncidencia(int incidenciaId) {
+    private List<ArchivoDto> obtenerArchivosDeIncidencia(int incidenciaId) {
         List<AsArchivo> archivos = archivoRepository.findByIncidenciaId(incidenciaId);
         if (archivos.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron archivos para la incidencia");
@@ -44,9 +46,19 @@ public class ArchivosQueryHandler {
         return archivos.stream().map(ArchivoMapper::frontEntityToDto).toList();
     }
 
+    public List<ArchivoDto> obtenerArchivosDeIncidenciaAsignadaAnalista(int incidenciaId){
+        final String userId = JwtExtractor.extrarJwtSubject();
+        final boolean asignada = incidenciaRepository.existsByIdAndInAnalista(incidenciaId,userId);
+        if(!asignada){
+            throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron archivos para la incidencia o no fue asignada al analista");
+        }
+        return obtenerArchivosDeIncidencia(incidenciaId);
+    }
+
     public ArchivoDto descargarMiArchivo(int incidenciaId, int archivoId) {
         String subject = JwtExtractor.extrarJwtSubject();
-        Optional<AsArchivo> archivo = archivoRepository.findByIncidenciaAndArchivoAndUserUUID(incidenciaId, archivoId, subject);
+        Optional<AsArchivo> archivo = archivoRepository.findByIncidenciaAndArchivoAndUserUUID(incidenciaId, archivoId,
+                subject);
         if (archivo.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontró el archivo");
         }
@@ -54,22 +66,41 @@ public class ArchivosQueryHandler {
         return ArchivoMapper.frontEntityToDto(archivo.get(), b);
     }
 
+    public ArchivoDto descargarArchivoComoAnalista(int incidenciaId, int archivoId){
+        String userId = JwtExtractor.extrarJwtSubject();
+        boolean existsBy = incidenciaArchivoRepository.existsById_AiIncidenciaAndId_AiArchivoAndAsIncidencia_InAnalista(incidenciaId, archivoId, userId);
+        if (!existsBy) {
+            throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontró el archivo");
+        }
+        Optional<AsArchivo> archivo = archivoRepository.findById(archivoId);
+        if (archivo.isEmpty()) {
+            throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontró el archivo");
+        }
+        byte[] b = fileStoragePort.getFile(archivoId);
+        return ArchivoMapper.frontEntityToDto(archivo.get(), b);
+    }
+
     public void eliminarArchivoDeIncidencia(int incidenciaId, int archivoId) {
         String subject = JwtExtractor.extrarJwtSubject();
 
         boolean exists = archivoRepository.existsByIncidenciaAndArchivoAndUserUUID(incidenciaId, archivoId, subject);
-        if(!exists){
+        if (!exists) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontró el archivo");
         }
 
         boolean esBorrador = incidenciaRepository.existsByIdAndInEstado(incidenciaId, IncidenciaState.BORRADOR);
-        if(!esBorrador){
+        if (!esBorrador) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, "No se puede eliminar un archivo de una incidencia que no está en estado borrador");
         }
+
+        // Eliminar en la tabla incidencia_archivo
+        incidenciaArchivoRepository.deleteById(new AsIncidenciaArchivoId(archivoId, incidenciaId));
+
         // Eliminar SFTP
         boolean deleted = fileStoragePort.deleteFile(archivoId);
-        if(!deleted){
-            throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo eliminar el archivo, contacte con soporte");
+        if (!deleted) {
+            throw new ServiceException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "No se pudo eliminar el archivo, contacte con soporte");
         }
     }
 }

@@ -70,7 +70,7 @@ export class ConfirmarCuentaComponent implements OnInit {
 
     const payload = {
       token: this.token(), //el token de la URL
-      password: btoa(password) //La contraseña convertida en base64
+      password: password //La contraseña enviada plana (Backend valida regex)
     };
 
     const subscription = this.oauthService.confirmarCuenta(payload).subscribe({
@@ -82,7 +82,14 @@ export class ConfirmarCuentaComponent implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.submitBtnState = ClrLoadingState.ERROR;
-        this.notification.error(err.error?.message || 'Error al confirmar la cuenta');
+
+        let errorMsg = err.error?.message || 'Error al confirmar la cuenta';
+
+        if (typeof errorMsg === 'string' && errorMsg.includes('JWT expired')) {
+          errorMsg = 'El enlace de confirmación ha expirado. Por favor, solicite un nuevo acceso.';
+        }
+
+        this.notification.error(errorMsg);
       }
     });
     this.destroyRef.onDestroy(() => subscription.unsubscribe())

@@ -1,18 +1,18 @@
 <div [formGroup]="stepForm" class="rv-grid">
-  
+
   <div *ngIf="loadingCatalogos()" class="rv-full text-center p-4" style="text-align: center; padding: 2rem;">
     <clr-spinner>Cargando opciones...</clr-spinner>
   </div>
 
   <ng-container *ngIf="!loadingCatalogos()">
-    
+
     <!-- === SIEMPRE REQUERIDO === -->
     <clr-select-container class="rv-full mb-3" style="margin-bottom: 1rem;">
       <label>No. de Contador (Domicilio vinculado)</label>
       <select clrSelect formControlName="noContador">
         <option value="">Seleccione un contador...</option>
-        <option *ngFor="let c of contadores()" [value]="c.do_contador">
-          {{ c.do_contador }} - {{ c.do_direccion.di_direccion }}, {{ c.do_direccion.di_locacion?.lo_descripcion || '' }}
+        <option *ngFor="let c of contadores()" [value]="c.contador">
+          {{ c.contador }} - {{ c.direccion?.descripDireccion }}
         </option>
       </select>
       <clr-control-helper>Elija la locación relacionada a esta solicitud</clr-control-helper>
@@ -43,24 +43,48 @@
         <input clrInput type="text" formControlName="lugar" placeholder="Ej. Ventanilla 3" />
       </clr-input-container>
 
+      <div style="display: flex; align-items: flex-end; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <clr-input-container style="margin-top: 0; flex-grow: 1;">
+          <label>Ubicación GPS (Opcional)</label>
+          <input clrInput type="text" formControlName="ubicacionGps" placeholder="Latitud, Longitud" style="width: 100%;" />
+        </clr-input-container>
+        <button type="button" class="btn btn-sm btn-outline-primary" style="margin-bottom: 0;" (click)="obtenerUbicacion()">
+          <cds-icon shape="map-marker"></cds-icon> Ubicar
+        </button>
+      </div>
+
       <clr-textarea-container class="rv-full">
         <label>Descripción</label>
         <textarea clrTextarea formControlName="descripcion"></textarea>
       </clr-textarea-container>
 
-      <h4 class="rv-full mt-4">Testigo (Opcional)</h4>
-      <clr-input-container class="rv-full">
-        <label>Nombre del Testigo</label>
-        <input clrInput type="text" formControlName="testigoNombre" />
-      </clr-input-container>
-      <clr-input-container>
-        <label>Teléfono del Testigo</label>
-        <input clrInput type="text" formControlName="testigoTelefono" />
-      </clr-input-container>
-      <clr-input-container>
-        <label>Correo del Testigo</label>
-        <input clrInput type="text" formControlName="testigoCorreo" />
-      </clr-input-container>
+      <h4 class="rv-full mt-4" style="display: flex; justify-content: space-between; align-items: center;">
+        Testigos (Opcional)
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="agregarTestigo()">Agregar Testigo</button>
+      </h4>
+
+      <div formArrayName="testigos" class="rv-full">
+        <div *ngFor="let testigo of testigosArray.controls; let i = index" [formGroupName]="i" style="border: 1px solid #ddd; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <strong>Testigo {{i + 1}}</strong>
+            <button type="button" class="btn btn-sm btn-danger" (click)="removerTestigo(i)">Quitar</button>
+          </div>
+          <div class="rv-grid">
+            <clr-input-container class="rv-full">
+              <label>Nombre del Testigo</label>
+              <input clrInput type="text" formControlName="testigoNombre" />
+            </clr-input-container>
+            <clr-input-container>
+              <label>Teléfono del Testigo</label>
+              <input clrInput type="text" formControlName="testigoTelefono" />
+            </clr-input-container>
+            <clr-input-container>
+              <label>Correo del Testigo</label>
+              <input clrInput type="text" formControlName="testigoCorreo" />
+            </clr-input-container>
+          </div>
+        </div>
+      </div>
     </ng-container>
 
     <!-- === RECLAMO === -->
@@ -73,10 +97,15 @@
         </select>
       </clr-select-container>
 
-      <clr-input-container>
-        <label>Ubicación GPS</label>
-        <input clrInput type="text" formControlName="ubicacionGps" placeholder="Latitud, Longitud" />
-      </clr-input-container>
+      <div style="display: flex; align-items: flex-end; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <clr-input-container style="margin-top: 0; flex-grow: 1;">
+          <label>Ubicación GPS</label>
+          <input clrInput type="text" formControlName="ubicacionGps" placeholder="Latitud, Longitud" style="width: 100%;" />
+        </clr-input-container>
+        <button type="button" class="btn btn-sm btn-outline-primary" style="margin-bottom: 0;" (click)="obtenerUbicacion()">
+          <cds-icon shape="map-marker"></cds-icon> Ubicar
+        </button>
+      </div>
 
       <clr-input-container class="rv-full">
         <label>Dirección (Opcional)</label>

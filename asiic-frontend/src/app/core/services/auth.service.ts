@@ -102,13 +102,21 @@ export class AuthService {
    */
   getRole(): string | null {
     const roles = this.userRoles();
-    if (roles.includes('Administrador') || roles.includes('ADMINISTRADOR')) {
+    if (roles.includes('Administrador') || roles.includes('ADMINISTRADOR') || roles.includes('sys_admin')) {
       return 'Administrador';
     }
     if (roles.includes('Vecino') || roles.includes('VECINO')) {
       return 'Vecino';
     }
     return roles[0] || null;
+  }
+
+  /**
+   * Helper paramétrico para determinar si es un admin
+   */
+  isAdmin(): boolean {
+    const roles = this.userRoles();
+    return roles.some(r => r.toLowerCase().includes('admin'));
   }
 
   private saveSession(token: string, remember: boolean): void {
@@ -149,11 +157,10 @@ export class AuthService {
   private redirectToDashboard(roles: string[]): void {
     // Manejo de roles para redirección
     const normalizedRoles = roles.map((r) => r.toLowerCase());
-
-    if (normalizedRoles.some(r => r.includes('vecino'))) {
-      this.router.navigate(['/vecino/dashboard']).catch(() => this.router.navigate(['/']));
-    } else if (normalizedRoles.some(r => r.includes('admin'))) {
+    if (normalizedRoles.some(r => r.includes('admin') || r === 'ranta' || r === 'roper' || r === 'sys_admin')) {
       this.router.navigate(['/admin/dashboard']).catch(() => this.router.navigate(['/']));
+    } else if (normalizedRoles.some(r => r.includes('vecino') || r === 'rveco')) {
+      this.router.navigate(['/vecino/dashboard']).catch(() => this.router.navigate(['/']));
     } else {
       this.router.navigate(['/']);
     }

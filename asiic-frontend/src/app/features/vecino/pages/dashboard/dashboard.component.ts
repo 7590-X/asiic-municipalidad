@@ -1,6 +1,8 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { ClarityModule } from '@clr/angular';
 import { AuthService } from '../../../../core/services/auth.service';
 import { IncidenciasService } from '../../../incidencias/services/incidencias.service';
@@ -62,23 +64,26 @@ export class DashboardComponent implements OnInit {
   readonly tramites = signal<TramiteReciente[]>([]);
   readonly loading = signal<boolean>(true);
 
+  resumenModalOpen = false;
+  resumenSeleccionado: any = null;
+
   // Métricas para tarjetas de resumen
   readonly metrics = computed(() => {
     const todos = this.tramites();
-    const activas = todos.filter(t => 
-      t.estado !== EIncidenciaEstado.FINALIZADA && 
-      t.estado !== EIncidenciaEstado.SOLUCIONADA && 
-      t.estado !== EIncidenciaEstado.RECHAZADA
-    ).length;
-    
-    const quejasEnProceso = todos.filter(t => 
-      (t.tipo === 'Queja' || t.tipo === 'Reclamo' || t.tipo === 'QUEJA' || t.tipo === 'RECLAMO') && 
-      t.estado !== EIncidenciaEstado.BORRADOR && 
-      t.estado !== EIncidenciaEstado.FINALIZADA && 
+    const activas = todos.filter(t =>
+      t.estado !== EIncidenciaEstado.FINALIZADA &&
       t.estado !== EIncidenciaEstado.SOLUCIONADA &&
       t.estado !== EIncidenciaEstado.RECHAZADA
     ).length;
-    
+
+    const quejasEnProceso = todos.filter(t =>
+      (t.tipo === 'Queja' || t.tipo === 'Reclamo' || t.tipo === 'QUEJA' || t.tipo === 'RECLAMO') &&
+      t.estado !== EIncidenciaEstado.BORRADOR &&
+      t.estado !== EIncidenciaEstado.FINALIZADA &&
+      t.estado !== EIncidenciaEstado.SOLUCIONADA &&
+      t.estado !== EIncidenciaEstado.RECHAZADA
+    ).length;
+
     return {
       solicitudesActivas: activas,
       solicitudesTotal: todos.length,
@@ -140,5 +145,54 @@ export class DashboardComponent implements OnInit {
       default:
         return 'label-blue';
     }
+  }
+
+  abrirResumen(gestion: any): void {
+    this.loading.set(true);
+    forkJoin({
+      incidencia: this.incidenciasService.getIncidenciaById(gestion.id),
+      archivos: this.incidenciasService.getArchivosIncidencia(gestion.id)
+    }).subscribe({
+      next: (data) => {
+        const incidencia = data.incidencia;
+        const archivos = data.archivos || [];
+
+        if (archivos.length > 0) {
+          const peticiones = archivos.map((archivo: any) =>
+            this.incidenciasService.descargarArchivoIncidencia(gestion.id, archivo.id).pipe(
+              map(blob => {
+                const isImage = archivo.formato?.toLowerCase().match(/(jpg|jpeg|png|gif|webp)$/);
+                return {
+                  ...archivo,
+                  url: isImage ? URL.createObjectURL(blob) : null
+                };
+              }),
+              catchError(() => of({ ...archivo, url: null }))
+            )
+          );
+
+          forkJoin(peticiones).subscribe(archivosConUrl => {
+            this.resumenSeleccionado = { ...incidencia, archivosAdjuntos: archivosConUrl };
+            this.resumenModalOpen = true;
+            this.loading.set(false);
+          });
+        } else {
+          this.resumenSeleccionado = { ...incidencia, archivosAdjuntos: [] };
+          this.resumenModalOpen = true;
+          this.loading.set(false);
+        }
+      },
+      error: (err) => {
+        console.error('Error cargando detalles del resumen', err);
+        alert('No se pudieron cargar los detalles para el resumen.');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  imprimirResumen(): void {
+    setTimeout(() => {
+      window.print();
+    }, 100);
   }
 }

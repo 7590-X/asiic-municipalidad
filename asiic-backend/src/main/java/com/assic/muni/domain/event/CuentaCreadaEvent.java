@@ -1,5 +1,5 @@
 package com.assic.muni.domain.event;
 
-public record VecinoCreadoEvent(
+public record CuentaCreadaEvent(
     String userId, String email, String fullName) {
 }

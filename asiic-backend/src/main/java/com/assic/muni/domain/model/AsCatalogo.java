@@ -36,4 +36,7 @@ public class AsCatalogo {
     @Column(name = "ca_seudo", insertable = false, updatable = false)
     private String caSeudo;
 
+    @Column(name = "ca_pk_externa")
+    private String caPkExterna;
+
 }

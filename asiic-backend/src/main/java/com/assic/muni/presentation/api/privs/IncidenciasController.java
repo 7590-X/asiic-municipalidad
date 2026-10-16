@@ -4,6 +4,7 @@ import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
 import com.assic.muni.application.cqrs.dto.ArchivoDto;
 import com.assic.muni.application.cqrs.dto.IncidenciaDto;
+import com.assic.muni.application.cqrs.dto.IncidenciaFeedback;
 import com.assic.muni.application.cqrs.handler.ArchivosQueryHandler;
 import com.assic.muni.application.cqrs.handler.IncidenciaQueryHandler;
 import com.assic.muni.application.cqrs.handler.UpsertIncidenciaCmdHandler;
@@ -85,7 +86,7 @@ public class IncidenciasController {
         return ResponseEntity.ok(dtos);
     }
 
-    @GetMapping("me/{incidenciaId}/archivos")
+    @GetMapping("/me/{incidenciaId}/archivos")
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
     @Operation(summary = "Obtener mis archivos de una incidencia por su ID")
     public ResponseEntity<List<ArchivoDto>> obtenerArchivosDeIncidenciaPorId(@PathVariable Integer incidenciaId) {
@@ -123,7 +124,7 @@ public class IncidenciasController {
                     content = @Content
             )
     })
-    @GetMapping("me/{incidenciaId}/archivos/{archivoId}")
+    @GetMapping("/me/{incidenciaId}/archivos/{archivoId}")
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
     public ResponseEntity<Resource> descargarMiArchivoDeIncidencia(@PathVariable Integer incidenciaId, @PathVariable Integer archivoId) {
         ArchivoDto dto = archivosQueryHandler.descargarMiArchivo(incidenciaId, archivoId);
@@ -144,7 +145,7 @@ public class IncidenciasController {
                 .body(resource);
     }
 
-    @Operation(summary = "Elimina una evidencia de una incidencia", description = "Elimina una evidencia de una incidencia")
+    @Operation(summary = "Elimina una evidencia de una incidencia")
     @DeleteMapping("me/{incidenciaId}/archivos/{archivoId}")
     @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
     public ResponseEntity<ApiResponseDto> eliminarEvidencia(@PathVariable Integer incidenciaId, @PathVariable Integer archivoId) {
@@ -152,5 +153,12 @@ public class IncidenciasController {
         return ResponseEntity.ok()
                 .body(new ApiResponseDto(HttpStatus.NO_CONTENT.value(), HttpStatus.NO_CONTENT.getReasonPhrase(), ZonedDateTime.now(),
                         "Evidencia eliminada correctamente", null));
+    }
+
+    @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
+    @Operation(summary = "Obtiene el feedback de rechazo de una incidencia")
+    @GetMapping("/me/{incidenciaId}/feedback/rechazo")
+    public ResponseEntity<List<IncidenciaFeedback>> obtenerFeedbackRechazoIncidencia(@PathVariable Integer incidenciaId) {
+        return ResponseEntity.ok(incidenciaQueryHandler.obtenerMiIncidenciaFeedback(incidenciaId));
     }
 }

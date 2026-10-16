@@ -13,7 +13,9 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 export class EvidenciasComponent {
   @Input({ required: true }) stepForm!: FormGroup;
   @Input({ required: true }) tipoIncidencia: string = '';
+  @Input() archivosExistentes: any[] = [];
   @Output() filesChanged = new EventEmitter<File[]>();
+  @Output() eliminarArchivo = new EventEmitter<number>();
 
   files: File[] = [];
   maxFileSize = 10 * 1024 * 1024; // 10MB
@@ -30,7 +32,7 @@ export class EvidenciasComponent {
   handleFiles(files: FileList | File[]): void {
     this.fileError = '';
     const arrayFiles = Array.from(files);
-    
+
     for (let file of arrayFiles) {
       if (file.size > this.maxFileSize) {
         this.fileError = `El archivo ${file.name} excede los 10MB permitidos.`;
@@ -48,5 +50,9 @@ export class EvidenciasComponent {
   removeFile(index: number): void {
     this.files.splice(index, 1);
     this.filesChanged.emit(this.files);
+  }
+
+  removeArchivoExistente(id: number): void {
+    this.eliminarArchivo.emit(id);
   }
 }
