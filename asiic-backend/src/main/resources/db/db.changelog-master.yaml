@@ -55,3 +55,9 @@ databaseChangeLog:
       file: db/changelog/261012-1-sp-asignacion-incidencias.sql
   - include:
       file: db/changelog/261013-1-tabla-rechazos.sql
+  - include:
+      file: db/changelog/261014-1-sp-asignacion-agente-campo.sql
+  - include:
+      file: db/changelog/261015-1-alterar-estructura-munis-usuarios.sql
+  - include:
+      file: db/changelog/261015-2-as-usuario-catelo.sql

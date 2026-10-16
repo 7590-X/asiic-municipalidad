@@ -31,6 +31,10 @@ public class AsMuniUsuario {
     @JoinColumn(name = "mu_usuario", insertable = false, updatable = false)
     private AsUsuario muUsuario;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "mu_tipo_usr", insertable = false, updatable = false)
+    private AsCatalogo muTipoUsr;
+
     @Size(max = 1)
     @Column(name = "mu_estado", length = 1)
     private String muEstado;

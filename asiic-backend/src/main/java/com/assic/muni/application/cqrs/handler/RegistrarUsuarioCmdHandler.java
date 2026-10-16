@@ -38,36 +38,42 @@ public class RegistrarUsuarioCmdHandler implements CQRSCmdHandler<String, Regist
     @Override
     @Transactional
     public String handle(RegistrarUsuarioCmd cmd) {
-
+        // Validar correo disponible
         boolean existsCorreo = usuarioRepository.existsByUsCorreo_CoCorreo(cmd.correo());
         if (existsCorreo) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, "El correo ya fue registrado para otro usuario");
         }
 
+        // Crear nueva cuenta en KC
         final String username = generarCodigoAleatorio(10);
         String userId = identityProviderPort.createNewIdentityUser(new KCUsuario(
                 username, cmd.correo(), cmd.nombres(), cmd.apellidos(), false, true
         ));
-        try {
-            Short tipoPersona = catalogoRepository.findIdByCaSeudo("PEIN") // Persona Individual
-                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar la identidad del vecino"));
 
+        try {
+            // Asignar tipo de persona individual
+            Short tipoPersona = catalogoRepository.findIdByCaSeudo("PEIN")
+                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar la identidad del vecino"));
             AsPersona persona = personaRepository.save(AsPersona.builder()
                     .peNombre(cmd.nombres())
                     .peApellido(cmd.apellidos())
                     .peTipPersona(tipoPersona)
                     .build());
 
-            AsCatalogo tipoUsuario = catalogoRepository.findByCaSeudo("RANTA") // Usuario Interno
-                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar el tipo de usuario"));
-
-
+            // Obtener datos para crear usuario
+            AsCatalogo tipoUsuario = catalogoRepository.findByCaSeudo("UINT") // Usuario Interno
+                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar el grupo del usuario"));
 
             AsCorreo correo = correoRepository.saveAndFlush(AsCorreo.builder()
                     .coCorreo(cmd.correo())
                     .build());
 
-            List<RoleRepresentation> roles =  identityProviderPort.asignarRoles(userId, cmd.roles());
+            // Asignar roles
+            List<RoleRepresentation> roles = identityProviderPort.asignarRoles(userId, cmd.roles());
+
+            // Obtener IDs de roles en catálogo
+            List<Short> rolesId = catalogoRepository.findIdByCaPkExternaIn(cmd.roles());
+
             JsonNode jsonRoles = objectMapper.valueToTree(roles);
 
             usuarioRepository.saveAndFlush(AsUsuario.builder()
@@ -82,10 +88,12 @@ public class RegistrarUsuarioCmdHandler implements CQRSCmdHandler<String, Regist
                     .usJsonRoles(jsonRoles)
                     .build());
 
-            muniUsuarioRepository.saveAll(cmd.municipalidades().stream()
-                    .map(m -> AsMuniUsuario.builder()
-                            .id(new AsMuniUsuarioId(m, userId))
-                            .build()).toList());
+            rolesId.forEach(r -> {
+                muniUsuarioRepository.saveAll(cmd.municipalidades().stream()
+                        .map(m -> AsMuniUsuario.builder()
+                                .id(new AsMuniUsuarioId(m, userId, r))
+                                .build()).toList());
+            });
 
         } catch (RuntimeException e) {
             identityProviderPort.deleteIdentityUser(userId);
