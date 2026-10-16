@@ -1,5 +1,6 @@
 package com.assic.muni.application.cqrs.handler;
 
+import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
 import com.assic.muni.application.cqrs.dto.IncidenciaDto;
 import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.application.mapper.IncidenciaMapper;
@@ -13,6 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,6 +25,7 @@ public class IncidenciaPipelineHandler {
 
     private final AsIncidenciaRepository incidenciaRepository;
     private final IncidenciaStateMachinePort incidenciaStateMachinePort;
+    private final UpsertIncidenciaCmdHandler upsertIncidenciaCmdHandler;
     private final ObjectMapper objectMapper;
 
     public void pipelineChangeState(Integer incidenciaId, IncidenciaEvent event) {
@@ -48,5 +52,14 @@ public class IncidenciaPipelineHandler {
         return list.stream()
                 .map((i) -> IncidenciaMapper.entityToIncidenciaDto(i, objectMapper))
                 .toList();
+    }
+
+    @Transactional
+    public void pipelineApelarIncidencia(int incidenciaId, IncidenciaPayloadCmd payload, List<MultipartFile> evidencias){
+        if(incidenciaId != payload.getIncidenciaId()){
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "El id de la incidencia no coincide con el id del payload");
+        }
+        upsertIncidenciaCmdHandler.handle(payload, evidencias);
+        pipelineChangeState(payload.getIncidenciaId(), IncidenciaEvent.APELAR_INCIDENCIA);
     }
 }

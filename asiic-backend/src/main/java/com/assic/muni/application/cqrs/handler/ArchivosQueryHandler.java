@@ -66,6 +66,20 @@ public class ArchivosQueryHandler {
         return ArchivoMapper.frontEntityToDto(archivo.get(), b);
     }
 
+    public ArchivoDto descargarArchivoComoAnalista(int incidenciaId, int archivoId){
+        String userId = JwtExtractor.extrarJwtSubject();
+        boolean existsBy = incidenciaArchivoRepository.existsById_AiIncidenciaAndId_AiArchivoAndAsIncidencia_InAnalista(incidenciaId, archivoId, userId);
+        if (!existsBy) {
+            throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontró el archivo");
+        }
+        Optional<AsArchivo> archivo = archivoRepository.findById(archivoId);
+        if (archivo.isEmpty()) {
+            throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontró el archivo");
+        }
+        byte[] b = fileStoragePort.getFile(archivoId);
+        return ArchivoMapper.frontEntityToDto(archivo.get(), b);
+    }
+
     public void eliminarArchivoDeIncidencia(int incidenciaId, int archivoId) {
         String subject = JwtExtractor.extrarJwtSubject();
 

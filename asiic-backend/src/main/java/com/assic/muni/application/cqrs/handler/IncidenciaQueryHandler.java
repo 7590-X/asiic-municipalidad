@@ -1,12 +1,17 @@
 package com.assic.muni.application.cqrs.handler;
 
 import com.assic.muni.application.cqrs.dto.IncidenciaDto;
+import com.assic.muni.application.cqrs.dto.IncidenciaFeedback;
 import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.application.mapper.IncidenciaMapper;
 import com.assic.muni.application.util.JwtExtractor;
+import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.domain.model.AsIncidencia;
+import com.assic.muni.domain.model.AsRechazo;
 import com.assic.muni.domain.repository.AsIncidenciaRepository;
+import com.assic.muni.domain.repository.AsRechazoRepository;
 import com.assic.muni.domain.repository.AsUsuarioRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +27,7 @@ public class IncidenciaQueryHandler {
     private final AsIncidenciaRepository incidenciaRepository;
     private final AsUsuarioRepository usuarioRepository;
     private final ObjectMapper objectMapper;
+    private final AsRechazoRepository asRechazoRepository;
 
     /**
      * Obtiene el detalle de una queja por su ID validando la pertenencia al vecino autenticado
@@ -51,19 +57,18 @@ public class IncidenciaQueryHandler {
         return incidencias.stream().map(incidencia -> IncidenciaMapper.entityToIncidenciaDto(incidencia, objectMapper)).toList();
     }
 
-    /**
-     * Obtiene el detalle de una queja por su ID para perfiles administrativos / analistas
-     *
-     * @param id ID de la incidencia
-     * @return IncidenciaQuejaDto con sus relaciones *Obj mapeadas en objetos estructurados
-     */
-    @Transactional(readOnly = true)
-    public IncidenciaDto obtenerQuejaAdminPorId(Integer id) {
-        AsIncidencia incidencia = incidenciaRepository.findQuejaDetalleById(id)
-                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND,
-                        "La queja no fue encontrada"));
+    public List<IncidenciaFeedback> obtenerMiIncidenciaFeedback(int incidenciaId) {
+        final String subject = JwtExtractor.extrarJwtSubject();
 
-        return IncidenciaMapper.entityToIncidenciaDto(incidencia, objectMapper);
+        final boolean exists = incidenciaRepository.existsByIdAndInEstado(incidenciaId, IncidenciaState.RECHAZADA);
+        if (!exists) {
+            throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontró incidencia o no se encuentra rechazada");
+        }
+        final int vecinoId = verificacionExistenciaVecino(subject);
+        AsRechazo feedback = asRechazoRepository.findByReIncidenciaOnlyMax(incidenciaId, vecinoId)
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "No se encontró feedback para la incidencia"));
+        return objectMapper.convertValue(feedback.getReDatos(), new TypeReference<>() {
+        });
     }
 
     /**

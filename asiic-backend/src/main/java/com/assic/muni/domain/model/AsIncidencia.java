@@ -148,6 +148,9 @@ public class AsIncidencia {
     @Column(name = "in_analista")
     private String inAnalistaId;
 
+    @Column(name = "in_agente")
+    private String inAgente;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "in_jsons", columnDefinition = "jsonb")
     private JsonNode inJsons;
