@@ -27,5 +27,6 @@ public class AsMuniUsuarioId implements Serializable {
     @Column(name = "mu_usuario", nullable = false, length = 36)
     private String muUsuario;
 
-
+    @Column(name = "mu_tipo_usr")
+    private Short muTipoUsr;
 }

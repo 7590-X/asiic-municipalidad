@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AsCatalogoRepository extends JpaRepository<AsCatalogo, Short> {
@@ -15,12 +16,15 @@ public interface AsCatalogoRepository extends JpaRepository<AsCatalogo, Short> {
 
     @Query("""
             select d.id from AsCatalogo d where d.caSeudo = :caSeudo
-                    """)
+            """)
     Optional<Short> findIdByCaSeudo(@Param("caSeudo") String caSeudo);
 
     @Query("""
             select count(c) > 0 from AsCatalogo c where c.caTabla.id = :tabla and c.id = :id
-                """)
+            """)
     boolean existsByTableAndId(@Param("tabla") short tabla, @Param("id") short id);
+
+    @Query("select c.id from AsCatalogo c where c.caPkExterna in :caPkExterna")
+    List<Short> findIdByCaPkExternaIn(@Param("caPkExterna") List<String> caPkExterna);
 
 }
