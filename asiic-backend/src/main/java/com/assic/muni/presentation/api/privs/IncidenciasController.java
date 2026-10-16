@@ -155,6 +155,7 @@ public class IncidenciasController {
                         "Evidencia eliminada correctamente", null));
     }
 
+    @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
     @Operation(summary = "Obtiene el feedback de rechazo de una incidencia")
     @GetMapping("/me/{incidenciaId}/feedback/rechazo")
     public ResponseEntity<List<IncidenciaFeedback>> obtenerFeedbackRechazoIncidencia(@PathVariable Integer incidenciaId) {
