@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public final class IncidenciaMapper {
 
     public static AsIncidencia fromDtoToQueja(short privacidad, int vecinoId, short unidadId,
-            IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode evidencias) {
+                                              IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode evidencias) {
         DetalleQuejaDto detalle = payload.getDetalleQueja();
         AsIncidencia incidencia = mapearCamposComunes(privacidad, vecinoId, payload, toUpsert);
         incidencia.setInDireccion(detalle.getDireccionReferencial());
@@ -32,7 +32,7 @@ public final class IncidenciaMapper {
     }
 
     public static AsIncidencia fromDtoToReclamo(short privacidad, int vecinoId, short servicio,
-            IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
+                                                IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
         IncidenciaPayloadCmd.DetalleReclamoDto detalle = payload.getDetalleReclamo();
         AsIncidencia incidencia = mapearCamposComunes(privacidad, vecinoId, payload, toUpsert);
         incidencia.setInTipoServicio(servicio);
@@ -43,7 +43,7 @@ public final class IncidenciaMapper {
     }
 
     public static AsIncidencia fromDtoToDenuncia(short privacidad, int vecinoId, short tipoDenuncia,
-            IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode denunciados) {
+                                                 IncidenciaPayloadCmd payload, AsIncidencia toUpsert, JsonNode denunciados) {
         IncidenciaPayloadCmd.DetalleDenunciaDto detalle = payload.getDetalleDenuncia();
         AsIncidencia incidencia = mapearCamposComunes(privacidad, vecinoId, payload, toUpsert);
         incidencia.setInTipoDenuncia(tipoDenuncia);
@@ -56,7 +56,7 @@ public final class IncidenciaMapper {
     }
 
     public static AsIncidencia fromDtoToSugerencia(short privacidad, int vecinoId, short area,
-            IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
+                                                   IncidenciaPayloadCmd payload, AsIncidencia toUpsert) {
         IncidenciaPayloadCmd.DetalleSugerenciaDto detalle = payload.getDetalleSugerencia();
         AsIncidencia incidencia = mapearCamposComunes(privacidad, vecinoId, payload, toUpsert);
         incidencia.setInArea(area);
@@ -77,15 +77,20 @@ public final class IncidenciaMapper {
      * @return Incidencia con los campos comunes asignados
      */
     private static AsIncidencia mapearCamposComunes(short privacidad, int vecinoId, IncidenciaPayloadCmd payload,
-            AsIncidencia toUpsert) {
-        AsIncidencia incidencia = toUpsert != null ? toUpsert : new AsIncidencia();
+                                                    AsIncidencia toUpsert) {
+        AsIncidencia incidencia;
+        if(toUpsert != null){
+            incidencia = toUpsert;
+        } else {
+            incidencia = new AsIncidencia();
+            incidencia.setInEstado(IncidenciaState.BORRADOR);
+        }
+
         incidencia.setId(payload.getIncidenciaId());
         incidencia.setInTipoIncidencia(payload.getTipoIncidencia());
         incidencia.setInPrivacidad(privacidad);
         incidencia.setInVecino(vecinoId);
         incidencia.setInContador(payload.getContador());
-
-        incidencia.setInEstado(IncidenciaState.BORRADOR);
 
         return incidencia;
     }
