@@ -1,3 +1,5 @@
+@use 'styles/forms';
+
 html, body { margin: 0; }
 body { font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif; }
 
@@ -133,3 +135,61 @@ body { font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif; }
     margin: 0;
   }
 }
+
+.badge.badge-success {
+  background-color: #1e8e3e !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+/* ==========================================
+   GLOBAL RESPONSIVE CLARITY OVERRIDES
+   ========================================== */
+
+/* Asegurar que las tablas / datagrids de Clarity hagan scroll horizontal limpio en móviles sin romper el layout */
+clr-datagrid,
+.clr-datagrid,
+.datagrid-table-wrapper,
+.datagrid-host {
+  max-width: 100%;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.datagrid-table {
+  min-width: 600px;
+}
+
+/* Modales Responsivos Globales: Prevenir desbordamientos en pantallas pequeñas */
+@media (max-width: 768px) {
+  .modal-dialog,
+  .clr-modal {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    margin: 0.5rem auto !important;
+  }
+
+  .modal-body {
+    max-height: 75vh !important;
+    overflow-y: auto !important;
+    padding: 1rem 0.85rem !important;
+  }
+
+  .modal-footer {
+    padding: 0.75rem 0.85rem !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+
+  .clr-dg-pagination {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+    font-size: 0.78rem !important;
+
+    .clr-dg-pagination-list {
+      margin-left: 0 !important;
+    }
+  }
+}
+

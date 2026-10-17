@@ -200,5 +200,43 @@ clr-step-content {
   .rv-aside { flex: none; max-width: none; }
   .rv-aside__steps { flex-direction: row; flex-wrap: wrap; }
   .rv-main { padding: 2rem 1.5rem 2.25rem; }
-  clr-step-content .rv-grid { grid-template-columns: 1fr; column-gap: 0; }
+  ::ng-deep .rv-grid { grid-template-columns: 1fr !important; column-gap: 0; }
 }
+
+@media (max-width: 576px) {
+  .rv-page {
+    padding: 1rem 0.5rem;
+  }
+
+  .rv-shell {
+    border-radius: 12px;
+  }
+
+  .rv-main {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .rv-aside {
+    padding: 1.5rem 1.25rem;
+    gap: 1.25rem;
+
+    &__brand img {
+      height: 36px;
+      width: 36px;
+    }
+
+    &__body {
+      h1 { font-size: 1.35rem; }
+      p { font-size: 0.85rem; margin-bottom: 0.75rem; }
+    }
+  }
+
+  .dropzone {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+

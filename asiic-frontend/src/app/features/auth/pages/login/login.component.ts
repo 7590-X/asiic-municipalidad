@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -14,7 +14,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private notification = inject(NotificationService);
@@ -27,6 +27,12 @@ export class LoginComponent {
     password: ['', [Validators.required]],
     recordar: [false]
   });
+
+  ngOnInit(): void {
+    if (this.authService.isAuthenticated()) {
+      this.authService.redirectToDashboard(this.authService.userRoles());
+    }
+  }
 
   submit(): void {
     this.errorMessage.set(null);
@@ -43,6 +49,12 @@ export class LoginComponent {
       next: (response) => {
         this.submitBtnState = ClrLoadingState.SUCCESS;
         this.notification.success(response?.message || 'Inicio de sesión exitoso.');
+        // Respaldo de navegación en caso de latencia de eventos
+        setTimeout(() => {
+          if (this.authService.isAuthenticated()) {
+            this.authService.redirectToDashboard(this.authService.userRoles());
+          }
+        }, 100);
       },
       error: (err: HttpErrorResponse) => {
         this.submitBtnState = ClrLoadingState.ERROR;

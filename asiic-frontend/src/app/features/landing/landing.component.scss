@@ -96,6 +96,59 @@
 
 @media (max-width: 720px) {
   .lp-nav { padding: 1.25rem 1.5rem; }
-  .lp-hero { padding: 1.5rem 1.5rem 3rem; }
+  .lp-hero { padding: 1.5rem 1.5rem 3rem; gap: 2rem; }
   .lp-hero h1 { font-size: 2rem; }
 }
+
+@media (max-width: 480px) {
+  .lp-nav {
+    padding: 1rem;
+    gap: 0.65rem;
+
+    &__emblem { height: 34px; width: 34px; }
+    &__brand strong { font-size: 0.78rem; }
+    &__brand span { font-size: 0.58rem; }
+  }
+
+  .lp-hero {
+    padding: 1rem 1rem 2.5rem;
+    gap: 1.75rem;
+
+    &__text {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      line-height: 1.2;
+    }
+
+    p {
+      font-size: 0.92rem;
+      margin-bottom: 1.5rem;
+    }
+
+    &__actions {
+      flex-direction: column;
+      width: 100%;
+
+      .btn {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    &__cards {
+      flex: 1 1 100%;
+      min-width: 0;
+      width: 100%;
+    }
+  }
+
+  .lp-foot {
+    padding: 1rem;
+    font-size: 0.72rem;
+  }
+}
+

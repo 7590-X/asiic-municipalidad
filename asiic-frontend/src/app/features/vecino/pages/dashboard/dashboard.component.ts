@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ClarityModule } from '@clr/angular';
@@ -8,6 +8,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { IncidenciasService } from '../../../incidencias/services/incidencias.service';
 import { MetricCardComponent } from '../../../../shared/components/metric-card/metric-card.component';
 import { QuickActionCardComponent } from '../../../../shared/components/quick-action-card/quick-action-card.component';
+import { ModalPreviewArchivoComponent } from '../../../../shared/components/modal-preview-archivo/modal-preview-archivo.component';
 
 export enum EIncidenciaEstado {
   BORRADOR = 'Borrador',
@@ -39,13 +40,23 @@ export interface TramiteReciente {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, ClarityModule, MetricCardComponent, QuickActionCardComponent],
+  imports: [CommonModule, RouterLink, ClarityModule, MetricCardComponent, QuickActionCardComponent, ModalPreviewArchivoComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private incidenciasService = inject(IncidenciasService);
+  private router = inject(Router);
+
+  // Modal de Vista Previa
+  previewModalOpen = false;
+  archivoEnPreview: any = null;
+
+  abrirPreview(archivo: any): void {
+    this.archivoEnPreview = archivo;
+    this.previewModalOpen = true;
+  }
 
   readonly currentUser = this.authService.currentUser;
 
@@ -94,6 +105,11 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit() {
+    if (this.authService.isAnalista() || this.authService.isAgenteCampo() || this.authService.isAdmin()) {
+      this.router.navigate([this.authService.getDashboardUrl()]);
+      return;
+    }
+
     this.incidenciasService.getMisIncidencias().subscribe({
       next: (data) => {
         this.tramites.set(data as TramiteReciente[]);
@@ -108,6 +124,7 @@ export class DashboardComponent implements OnInit {
 
   getEstadoBadgeClass(estado: string): string {
     switch (estado) {
+      case EIncidenciaEstado.ACEPTADA:
       case EIncidenciaEstado.CONFIRMADA:
       case EIncidenciaEstado.SOLUCIONADA:
       case EIncidenciaEstado.FINALIZADA:
@@ -126,8 +143,14 @@ export class DashboardComponent implements OnInit {
       case EIncidenciaEstado.BLOQUEADA:
       case EIncidenciaEstado.APELADA:
         return 'badge-danger';
-      default:
+      default: {
+        if (!estado) return 'badge-info';
+        const st = estado.toUpperCase();
+        if (st.includes('ACEPTADA') || st.includes('CONFIRMADA') || st.includes('SOLUCIONADA') || st.includes('FINALIZADA') || st.includes('RESUELTO')) return 'badge-success';
+        if (st.includes('RECHAZADA') || st.includes('BLOQUEADA') || st.includes('APELADA')) return 'badge-danger';
+        if (st.includes('ASIGNADA') || st.includes('SOLUCIONANDO') || st.includes('PROGRESO')) return 'badge-warning';
         return 'badge-info';
+      }
     }
   }
 
@@ -164,10 +187,11 @@ export class DashboardComponent implements OnInit {
                 const isImage = archivo.formato?.toLowerCase().match(/(jpg|jpeg|png|gif|webp)$/);
                 return {
                   ...archivo,
+                  blob,
                   url: isImage ? URL.createObjectURL(blob) : null
                 };
               }),
-              catchError(() => of({ ...archivo, url: null }))
+              catchError(() => of({ ...archivo, blob: null, url: null }))
             )
           );
 
@@ -194,5 +218,26 @@ export class DashboardComponent implements OnInit {
     setTimeout(() => {
       window.print();
     }, 100);
+  }
+
+  enviarBorradorDirecto(tramite: any): void {
+    if (!tramite?.id) return;
+    if (confirm(`¿Deseas enviar formalmente la incidencia #${tramite.id} a revisión municipal?`)) {
+      this.loading.set(true);
+      this.incidenciasService.enviarIncidencia(tramite.id).subscribe({
+        next: () => {
+          this.tramites.update(list =>
+            list.map(t => t.id === tramite.id ? { ...t, estado: 'Enviada' } : t)
+          );
+          this.loading.set(false);
+          alert(`Incidencia #${tramite.id} enviada exitosamente con estado ENVIADA.`);
+        },
+        error: (err) => {
+          console.error('Error al enviar borrador', err);
+          this.loading.set(false);
+          alert(`Error al enviar la incidencia #${tramite.id}. Por favor intenta nuevamente.`);
+        }
+      });
+    }
   }
 }

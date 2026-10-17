@@ -39,6 +39,18 @@ export class HeaderComponent {
     return this.authService.isAdmin();
   });
 
+  readonly isAnalista = computed(() => {
+    return this.authService.isAnalista();
+  });
+
+  readonly isAgente = computed(() => {
+    return this.authService.isAgenteCampo();
+  });
+
+  readonly dashboardLink = computed(() => {
+    return this.authService.getDashboardUrl();
+  });
+
   readonly userInitials = computed(() => {
     const name = this.userName();
     if (!name) return 'VM';

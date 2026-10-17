@@ -1,32 +1,77 @@
 <clr-vertical-nav
-  [clrVerticalNavCollapsible]="true"
-  [clrVerticalNavCollapsed]="collapsed"
+  [clrVerticalNavCollapsible]="!isMobile"
+  [clrVerticalNavCollapsed]="!isMobile && collapsed"
   (clrVerticalNavCollapsedChange)="onCollapseChange($event)"
   class="portal-sidebar-nav"
 >
-  <!-- Enlace directo Inicio -->
+  <!-- Enlace directo Inicio según rol -->
   <a
     clrVerticalNavLink
-    [routerLink]="isAdmin() ? '/admin/dashboard' : '/vecino/dashboard'"
+    [routerLink]="dashboardLink()"
     routerLinkActive="active"
     [routerLinkActiveOptions]="{ exact: true }"
     title="Dashboard Principal"
+    (click)="onLinkClick()"
   >
     <cds-icon shape="home" clrVerticalNavIcon></cds-icon>
     Dashboard Principal
   </a>
 
-  <!-- MENÚ ADMINISTRADOR -->
+  <!-- MENÚ ANALISTA DE SOLICITUDES -->
+  <ng-container *ngIf="isAnalista()">
+    <clr-vertical-nav-group [clrVerticalNavGroupExpanded]="true">
+      <cds-icon shape="tasks" clrVerticalNavIcon></cds-icon>
+      Gestión de Solicitudes
+      <clr-vertical-nav-group-children>
+        <a clrVerticalNavLink routerLink="/analista/incidencias-asignadas" routerLinkActive="active" (click)="onLinkClick()">
+          <cds-icon shape="clipboard" clrVerticalNavIcon></cds-icon>
+          Incidencias Asignadas
+        </a>
+      </clr-vertical-nav-group-children>
+    </clr-vertical-nav-group>
+  </ng-container>
+
+  <!-- MENÚ AGENTE DE CAMPO -->
+  <ng-container *ngIf="isAgente()">
+    <clr-vertical-nav-group [clrVerticalNavGroupExpanded]="true">
+      <cds-icon shape="map-marker" clrVerticalNavIcon></cds-icon>
+      Operaciones de Campo
+      <clr-vertical-nav-group-children>
+        <a clrVerticalNavLink routerLink="/agente/dashboard" routerLinkActive="active" (click)="onLinkClick()">
+          <cds-icon shape="dashboard" clrVerticalNavIcon></cds-icon>
+          Panel de Campo
+        </a>
+        <a clrVerticalNavLink routerLink="/analista/incidencias-asignadas" routerLinkActive="active" (click)="onLinkClick()">
+          <cds-icon shape="tasks" clrVerticalNavIcon></cds-icon>
+          Inspecciones Asignadas
+        </a>
+      </clr-vertical-nav-group-children>
+    </clr-vertical-nav-group>
+  </ng-container>
+
+  <!-- MENÚ ADMINISTRADOR (Municipalidades y Usuarios) -->
   <ng-container *ngIf="isAdmin()">
+    <!-- Grupo Acceso Directo Incidencias Asignadas para Admin si aplica -->
+    <clr-vertical-nav-group [clrVerticalNavGroupExpanded]="false">
+      <cds-icon shape="tasks" clrVerticalNavIcon></cds-icon>
+      Incidencias
+      <clr-vertical-nav-group-children>
+        <a clrVerticalNavLink routerLink="/analista/incidencias-asignadas" routerLinkActive="active" (click)="onLinkClick()">
+          <cds-icon shape="clipboard" clrVerticalNavIcon></cds-icon>
+          Incidencias Asignadas
+        </a>
+      </clr-vertical-nav-group-children>
+    </clr-vertical-nav-group>
+
     <clr-vertical-nav-group [clrVerticalNavGroupExpanded]="true">
       <cds-icon shape="building" clrVerticalNavIcon></cds-icon>
       Municipalidades
       <clr-vertical-nav-group-children>
-        <a clrVerticalNavLink routerLink="/admin/registro-municipalidad" routerLinkActive="active">
+        <a clrVerticalNavLink routerLink="/admin/registro-municipalidad" routerLinkActive="active" (click)="onLinkClick()">
           <cds-icon shape="plus-circle" clrVerticalNavIcon></cds-icon>
           Registrar Municipalidad
         </a>
-        <a clrVerticalNavLink href="javascript:void(0)" routerLinkActive="active">
+        <a clrVerticalNavLink href="javascript:void(0)" routerLinkActive="active" (click)="onLinkClick()">
           <cds-icon shape="list" clrVerticalNavIcon></cds-icon>
           Directorio
         </a>
@@ -37,11 +82,11 @@
       <cds-icon shape="users" clrVerticalNavIcon></cds-icon>
       Usuarios
       <clr-vertical-nav-group-children>
-        <a clrVerticalNavLink routerLink="/admin/registro-usuario" routerLinkActive="active">
+        <a clrVerticalNavLink routerLink="/admin/registro-usuario" routerLinkActive="active" (click)="onLinkClick()">
           <cds-icon shape="user-plus" clrVerticalNavIcon></cds-icon>
           Crear Usuario
         </a>
-        <a clrVerticalNavLink href="javascript:void(0)" routerLinkActive="active">
+        <a clrVerticalNavLink href="javascript:void(0)" routerLinkActive="active" (click)="onLinkClick()">
           <cds-icon shape="users" clrVerticalNavIcon></cds-icon>
           Listado de Usuarios
         </a>
@@ -50,31 +95,30 @@
   </ng-container>
 
   <!-- MENÚ VECINO -->
-  <ng-container *ngIf="!isAdmin()">
+  <ng-container *ngIf="isVecino()">
     <!-- Grupo Gestiones Ciudadanas -->
     <clr-vertical-nav-group [clrVerticalNavGroupExpanded]="true">
       <cds-icon shape="folder" clrVerticalNavIcon></cds-icon>
       Gestiones Vecinales
       <clr-vertical-nav-group-children>
-        <a clrVerticalNavLink routerLink="/vecino/solicitudes" routerLinkActive="active">
+        <a clrVerticalNavLink routerLink="/vecino/solicitudes" routerLinkActive="active" (click)="onLinkClick()">
           <cds-icon shape="file" clrVerticalNavIcon></cds-icon>
           Mis Solicitudes
         </a>
-        <a clrVerticalNavLink routerLink="/vecino/quejas" routerLinkActive="active">
+        <a clrVerticalNavLink routerLink="/vecino/quejas" routerLinkActive="active" (click)="onLinkClick()">
           <cds-icon shape="exclamation-circle" clrVerticalNavIcon></cds-icon>
           Quejas y Reclamos
         </a>
-        <a clrVerticalNavLink routerLink="/vecino/denuncias" routerLinkActive="active">
+        <a clrVerticalNavLink routerLink="/vecino/denuncias" routerLinkActive="active" (click)="onLinkClick()">
           <cds-icon shape="shield" clrVerticalNavIcon></cds-icon>
           Denuncias Ciudadanas
         </a>
-        <a clrVerticalNavLink routerLink="/vecino/sugerencias" routerLinkActive="active">
+        <a clrVerticalNavLink routerLink="/vecino/sugerencias" routerLinkActive="active" (click)="onLinkClick()">
           <cds-icon shape="talk-bubbles" clrVerticalNavIcon></cds-icon>
           Buzón de Sugerencias
         </a>
       </clr-vertical-nav-group-children>
     </clr-vertical-nav-group>
-
-
   </ng-container>
 </clr-vertical-nav>
+

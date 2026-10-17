@@ -1,0 +1,192 @@
+<clr-modal
+  [(clrModalOpen)]="open"
+  (clrModalOpenChange)="$event ? null : cerrar()"
+  [clrModalSize]="'xl'"
+  [clrModalClosable]="true"
+  [clrModalStaticBackdrop]="false"
+  class="modal-preview-archivo"
+>
+  <!-- CABECERA PERSONALIZADA CON CONTROLES INTEGRADOS -->
+  <div class="modal-title modal-title-preview">
+    <div class="title-left">
+      <span class="type-icon-wrapper" [ngClass]="'icon-' + tipoArchivo">
+        <cds-icon
+          [attr.shape]="tipoArchivo === 'image' ? 'image' : (tipoArchivo === 'pdf' ? 'file-group' : 'document')"
+          size="md"
+        ></cds-icon>
+      </span>
+      <div class="file-text">
+        <span class="file-title" [title]="archivo?.nombre">{{ archivo?.nombre || 'Vista Previa de Evidencia' }}</span>
+        <span class="badge" [ngClass]="tipoArchivo === 'pdf' ? 'badge-danger' : (tipoArchivo === 'image' ? 'badge-info' : 'badge-light-blue')">
+          {{ getExtension(archivo?.nombre) }}
+        </span>
+      </div>
+    </div>
+
+    <!-- BARRA DE HERRAMIENTAS RÁPIDAS -->
+    <div class="title-toolbar" *ngIf="!cargando && !error">
+      <!-- Herramientas exclusivas para imágenes -->
+      <div class="btn-group btn-group-sm image-toolbar-tools" *ngIf="tipoArchivo === 'image'">
+        <button
+          type="button"
+          class="btn btn-icon btn-sm btn-link"
+          (click)="zoomOut()"
+          title="Alejar (-)"
+          [disabled]="zoomLevel <= 0.5"
+        >
+          <cds-icon shape="zoom-out"></cds-icon>
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-sm btn-link zoom-indicator-btn"
+          (click)="zoomReset()"
+          title="Restablecer tamaño (100%)"
+        >
+          {{ (zoomLevel * 100) | number:'1.0-0' }}%
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-icon btn-sm btn-link"
+          (click)="zoomIn()"
+          title="Acercar (+)"
+          [disabled]="zoomLevel >= 3.0"
+        >
+          <cds-icon shape="zoom-in"></cds-icon>
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-icon btn-sm btn-link"
+          (click)="rotar()"
+          title="Girar 90°"
+        >
+          <cds-icon shape="redo"></cds-icon>
+        </button>
+      </div>
+
+      <!-- Abrir en ventana externa -->
+      <button
+        type="button"
+        class="btn btn-sm btn-icon btn-outline-primary"
+        (click)="abrirEnPestana()"
+        title="Abrir en nueva pestaña del navegador"
+        *ngIf="rawBlobUrl"
+      >
+        <cds-icon shape="pop-out"></cds-icon>
+      </button>
+
+      <!-- Descargar -->
+      <button
+        type="button"
+        class="btn btn-sm btn-icon btn-primary"
+        (click)="descargarArchivo()"
+        title="Descargar archivo al equipo"
+      >
+        <cds-icon shape="download"></cds-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- CUERPO DE LA VISTA PREVIA -->
+  <div class="modal-body modal-body-preview">
+    <!-- SPINNER DE CARGA -->
+    <div *ngIf="cargando" class="preview-loading-state">
+      <div class="spinner spinner-lg"></div>
+      <p class="loading-text">Cargando documento para previsualización en alta definición...</p>
+      <span class="loading-subtext">Por favor espere un momento</span>
+    </div>
+
+    <!-- MENSAJE DE ERROR -->
+    <div *ngIf="!cargando && error" class="preview-error-state">
+      <cds-icon shape="exclamation-triangle" size="xl" class="error-icon"></cds-icon>
+      <h4>No se pudo desplegar la vista previa</h4>
+      <p>{{ error }}</p>
+      <button type="button" class="btn btn-outline-primary btn-sm mt-2" (click)="cargarVistaPrevia()">
+        <cds-icon shape="refresh"></cds-icon> Reintentar carga
+      </button>
+    </div>
+
+    <!-- VISUALIZADOR DE IMAGEN -->
+    <div
+      *ngIf="!cargando && !error && tipoArchivo === 'image'"
+      class="preview-canvas-container"
+      (click)="toggleZoom()"
+      title="Haga clic para alternar zoom rápido"
+    >
+      <div class="preview-image-wrapper">
+        <img
+          [src]="previewSafeUrl"
+          [alt]="archivo?.nombre"
+          class="preview-image"
+          [style.transform]="'scale(' + zoomLevel + ') rotate(' + rotation + 'deg)'"
+        />
+      </div>
+      <div class="canvas-hint">
+        <cds-icon shape="info-circle" size="sm"></cds-icon>
+        Haga clic en la imagen para acercar o alejar, o utilice la barra superior
+      </div>
+    </div>
+
+    <!-- VISUALIZADOR DE DOCUMENTO PDF -->
+    <div *ngIf="!cargando && !error && tipoArchivo === 'pdf'" class="preview-pdf-container">
+      <iframe
+        *ngIf="previewSafeUrl"
+        [src]="previewSafeUrl"
+        class="pdf-iframe"
+        title="Visor interactivo de documento PDF"
+      ></iframe>
+      <div class="pdf-fallback-hint">
+        <span>¿Problemas para visualizar?</span>
+        <button type="button" class="btn btn-sm btn-link p-0 ml-1" (click)="abrirEnPestana()">
+          Abrir en visor nativo en una nueva pestaña
+        </button>
+      </div>
+    </div>
+
+    <!-- OTROS FORMATOS (NO IMAGEN, NO PDF) -->
+    <div *ngIf="!cargando && !error && tipoArchivo === 'otro'" class="preview-generic-container">
+      <div class="generic-file-card">
+        <cds-icon shape="document" size="xxl" class="generic-icon"></cds-icon>
+        <h3>{{ archivo?.nombre }}</h3>
+        <p class="text-muted">
+          Este archivo tiene formato <strong>{{ getExtension(archivo?.nombre) }}</strong>. Los navegadores no soportan
+          la visualización incrustada directa para este tipo de archivo.
+        </p>
+        <button type="button" class="btn btn-primary" (click)="descargarArchivo()">
+          <cds-icon shape="download"></cds-icon> Descargar para ver en su equipo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIE DE MODAL -->
+  <div class="modal-footer modal-footer-preview">
+    <div class="footer-meta text-muted font-xs">
+      <span *ngIf="archivo?.formato" class="mr-2"><strong>MIME:</strong> {{ archivo?.formato }}</span>
+      <span *ngIf="archivo?.fechaRegistro"><strong>Registro:</strong> {{ archivo?.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</span>
+    </div>
+
+    <div class="footer-actions">
+      <button type="button" class="btn btn-outline" (click)="cerrar()">
+        Cerrar
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        (click)="abrirEnPestana()"
+        *ngIf="rawBlobUrl"
+      >
+        <cds-icon shape="pop-out"></cds-icon>
+        Nueva Pestaña
+      </button>
+
+      <button type="button" class="btn btn-primary" (click)="descargarArchivo()">
+        <cds-icon shape="download"></cds-icon>
+        Descargar
+      </button>
+    </div>
+  </div>
+</clr-modal>

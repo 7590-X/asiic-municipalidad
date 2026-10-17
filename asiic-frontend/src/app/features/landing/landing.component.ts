@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClarityModule } from '@clr/angular';
 import { StepCardComponent, StepCardData } from '../../shared/components/step-card/step-card.component';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-landing',
@@ -10,7 +11,14 @@ import { StepCardComponent, StepCardData } from '../../shared/components/step-ca
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 })
-export class LandingComponent {
+export class LandingComponent implements OnInit {
+  private authService = inject(AuthService);
+
+  ngOnInit(): void {
+    if (this.authService.isAuthenticated()) {
+      this.authService.redirectToDashboard(this.authService.userRoles());
+    }
+  }
   steps: StepCardData[] = [
     {
       badge: 1,

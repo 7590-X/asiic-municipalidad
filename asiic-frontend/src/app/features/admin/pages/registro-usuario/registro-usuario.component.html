@@ -1,8 +1,8 @@
-<div class="content-container">
-  <div class="content-area">
-    <div style="padding: 2rem;">
-      <h2>Registro de Usuarios</h2>
-      <p style="margin-bottom: 2rem; color: #555;">Complete el siguiente formulario para crear una nueva cuenta de usuario en el sistema municipal. Se enviará un correo con el acceso.</p>
+<div class="admin-form-container">
+  <div class="admin-form-header">
+    <h2>Registro de Usuarios</h2>
+    <p>Complete el siguiente formulario para crear una nueva cuenta de usuario en el sistema municipal. Se enviará un correo con el acceso.</p>
+  </div>
 
       <!-- Alertas -->
       <clr-alert *ngIf="successMessage" [clrAlertType]="'success'" [clrAlertAppLevel]="true">
@@ -72,7 +72,7 @@
           </div>
         </div>
 
-        <div class="mt-4" style="margin-top: 3rem; display: flex; gap: 1rem;">
+        <div class="form-actions">
           <button type="submit" class="btn btn-primary" [clrLoading]="loading">
             Registrar Usuario
           </button>
@@ -81,8 +81,6 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
 </div>
 
 <!-- Modal de Confirmación -->
