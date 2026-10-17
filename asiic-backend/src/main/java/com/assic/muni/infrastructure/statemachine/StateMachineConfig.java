@@ -18,6 +18,7 @@ import java.util.EnumSet;
 public class StateMachineConfig extends StateMachineConfigurerAdapter<IncidenciaState, IncidenciaEvent> {
 
     private final RechazarIncidenciaAction rechazarIncidenciaAction;
+    private final ValidarTipoIncidenciaGuard validarTipoIncidenciaGuard;
 
     @Override
     public void configure(StateMachineConfigurationConfigurer<IncidenciaState, IncidenciaEvent> config) throws Exception {
@@ -156,6 +157,7 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<Incidencia
                 .withExternal()
                 .source(IncidenciaState.ACEPTADA)
                 .event(IncidenciaEvent.CONFIRMAR_INCIDENCIA)
+                .guard(validarTipoIncidenciaGuard)
                 .target(IncidenciaState.CONFIRMADA)
                 .and()
 
