@@ -1,0 +1,419 @@
+<div class="agente-dashboard-container">
+
+  <!-- ALERTA DE ACCIONES -->
+  <clr-alert
+    *ngIf="alertMessage()"
+    [clrAlertType]="alertType()"
+    [clrAlertClosable]="true"
+    (clrAlertClosedChange)="alertMessage.set(null)"
+    class="mb-3"
+  >
+    <clr-alert-item>
+      <span class="alert-text">{{ alertMessage() }}</span>
+    </clr-alert-item>
+  </clr-alert>
+
+  <!-- BANNER DE BIENVENIDA -->
+  <div class="welcome-hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <cds-icon shape="map-marker" size="sm"></cds-icon>
+        <span>Operaciones y Verificación de Campo</span>
+      </div>
+      <h1 class="hero-title">
+        Bienvenido, {{ currentUser()?.name || 'Agente de Campo' }}
+      </h1>
+      <p class="hero-desc">
+        Monitorea tus asignaciones de inspección en territorio, verifica coordenadas y contadores, y registra el levantamiento de evidencias en sitio.
+      </p>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-primary btn-hero" (click)="cargarDatos()">
+          <cds-icon shape="refresh"></cds-icon>
+          Sincronizar Inspecciones
+        </button>
+      </div>
+    </div>
+    <div class="hero-illustration">
+      <div class="stat-bubble">
+        <div class="bubble-number">{{ totalPendientesCampo() }}</div>
+        <div class="bubble-text">Pendientes en Sitio</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TARJETAS DE MÉTRICAS CLAVE -->
+  <div class="clr-row metrics-grid">
+    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
+      <div class="card metric-card card-blue">
+        <div class="card-block">
+          <div class="metric-icon-box icon-blue">
+            <cds-icon shape="folder-open" size="lg"></cds-icon>
+          </div>
+          <div class="metric-details">
+            <div class="metric-value">{{ totalAsignadas() }}</div>
+            <div class="metric-title">Total Asignaciones</div>
+            <div class="metric-sub">Bandeja de campo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
+      <div class="card metric-card card-amber">
+        <div class="card-block">
+          <div class="metric-icon-box icon-amber">
+            <cds-icon shape="map-marker" size="lg"></cds-icon>
+          </div>
+          <div class="metric-details">
+            <div class="metric-value">{{ totalPendientesCampo() }}</div>
+            <div class="metric-title">Pendientes en Sitio</div>
+            <div class="metric-sub">Requieren inspección</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
+      <div class="card metric-card card-green">
+        <div class="card-block">
+          <div class="metric-icon-box icon-green">
+            <cds-icon shape="check-circle" size="lg"></cds-icon>
+          </div>
+          <div class="metric-details">
+            <div class="metric-value">{{ totalRecoleccionFin() }}</div>
+            <div class="metric-title">Recolección Fin.</div>
+            <div class="metric-sub">Evidencias completadas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-3">
+      <div class="card metric-card card-purple">
+        <div class="card-block">
+          <div class="metric-icon-box icon-purple">
+            <cds-icon shape="shield" size="lg"></cds-icon>
+          </div>
+          <div class="metric-details">
+            <div class="metric-value">{{ totalEnProceso() }}</div>
+            <div class="metric-title">En Proceso / Resueltas</div>
+            <div class="metric-sub">Dictamen municipal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN DE INSPECCIONES EN CAMPO -->
+  <div class="card inspection-board mt-4">
+    <div class="card-header board-header">
+      <div class="board-title-group">
+        <cds-icon shape="tasks" size="md"></cds-icon>
+        <h3 class="board-title">Mis Tareas de Inspección en Campo</h3>
+        <span class="badge badge-info">{{ incidenciasFiltradas().length }}</span>
+      </div>
+
+      <!-- FILTROS Y BÚSQUEDA -->
+      <div class="board-filters">
+        <div class="search-input-wrapper">
+          <cds-icon shape="search" size="sm"></cds-icon>
+          <input
+            type="text"
+            placeholder="Buscar por ID, vecino, dirección, contador..."
+            [ngModel]="filtroBusqueda()"
+            (ngModelChange)="filtroBusqueda.set($event)"
+            class="clr-input search-input"
+          />
+        </div>
+
+        <div class="select-wrapper">
+          <select
+            [ngModel]="filtroEstado()"
+            (ngModelChange)="filtroEstado.set($event)"
+            class="clr-select"
+          >
+            <option value="TODOS">Todos los Estados</option>
+            <option value="CAMPO">Asignadas a Campo</option>
+            <option value="RECOLECC">Recolección Finalizada</option>
+            <option value="ACEPTADA">Aceptadas</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-block p-0">
+      <!-- LOADING -->
+      <div *ngIf="loading()" class="loading-box">
+        <span class="spinner"></span>
+        <p>Cargando asignaciones de campo...</p>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div *ngIf="!loading() && incidenciasFiltradas().length === 0" class="empty-box">
+        <cds-icon shape="map" size="xl"></cds-icon>
+        <h4>No tienes inspecciones pendientes</h4>
+        <p>Actualmente no cuentas con órdenes de inspección en campo que coincidan con los filtros aplicados.</p>
+      </div>
+
+      <!-- GRID DE TARJETAS DE INSPECCIÓN (RESPONSIVO MÓVIL Y DESKTOP) -->
+      <div *ngIf="!loading() && incidenciasFiltradas().length > 0" class="inspection-cards-grid">
+        <div *ngFor="let inc of incidenciasFiltradas()" class="inspection-card-item">
+          <!-- CABECERA DE LA TARJETA -->
+          <div class="card-item-top">
+            <div class="top-left">
+              <span class="incident-id">#{{ inc.id }}</span>
+              <span class="label" [ngClass]="getTipoBadgeClass(inc.tipo)">{{ inc.tipo }}</span>
+            </div>
+            <span class="badge" [ngClass]="getEstadoBadgeClass(inc.estado)">{{ inc.estado }}</span>
+          </div>
+
+          <!-- ASUNTO / PROBLEMA -->
+          <div class="card-item-title">
+            {{ inc.asunto || inc.descripcion || 'Sin descripción especificada' }}
+          </div>
+
+          <!-- DATOS DE DOMICILIO Y CONTACTO -->
+          <div class="card-item-details">
+            <div class="detail-row">
+              <cds-icon shape="user" size="sm"></cds-icon>
+              <span class="detail-label">Vecino:</span>
+              <span class="detail-val font-semibold">{{ inc.nombreVecino || 'No especificado' }}</span>
+            </div>
+
+            <div class="detail-row">
+              <cds-icon shape="home" size="sm"></cds-icon>
+              <span class="detail-label">Contador:</span>
+              <span class="detail-val font-mono">{{ inc.contador || 'No asignado' }}</span>
+            </div>
+
+            <div class="detail-row">
+              <cds-icon shape="map-marker" size="sm"></cds-icon>
+              <span class="detail-label">Dirección:</span>
+              <span class="detail-val">{{ inc.direccion || 'Sin dirección referencial' }}</span>
+            </div>
+
+            <div class="detail-row" *ngIf="inc.latitud && inc.longitud">
+              <cds-icon shape="compass" size="sm"></cds-icon>
+              <span class="detail-label">Coordenadas:</span>
+              <a [href]="getMapsUrl(inc.latitud, inc.longitud)" target="_blank" class="detail-val link-maps font-xs">
+                {{ inc.latitud }}, {{ inc.longitud }} (Ver en Mapa)
+              </a>
+            </div>
+
+            <div class="detail-row" *ngIf="inc.telefono">
+              <cds-icon shape="phone-handset" size="sm"></cds-icon>
+              <span class="detail-label">Teléfono:</span>
+              <a [href]="'tel:' + inc.telefono" class="detail-val font-mono">{{ inc.telefono }}</a>
+            </div>
+          </div>
+
+          <!-- BOTONES DE ACCIÓN DE CAMPO -->
+          <div class="card-item-actions">
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-action-card"
+              (click)="abrirDetalle(inc)"
+            >
+              <cds-icon shape="eye"></cds-icon>
+              <span>Ver Detalle y Evidencias</span>
+            </button>
+
+            <button
+              *ngIf="inc.estado?.includes('Campo') || inc.estado === 'ASIGNADA_CAMPO'"
+              type="button"
+              class="btn btn-success btn-action-card"
+              (click)="solicitarFinalizarRecoleccion(inc)"
+              [disabled]="procesandoAccion()"
+            >
+              <cds-icon shape="check"></cds-icon>
+              <span>Finalizar Recolección</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALLE Y EVIDENCIAS DE INSPECCIÓN -->
+  <clr-modal
+    [(clrModalOpen)]="modalDetalleOpen"
+    [clrModalSize]="'lg'"
+    [clrModalClosable]="true"
+    [clrModalStaticBackdrop]="false"
+  >
+    <h3 class="modal-title modal-title-custom">
+      <cds-icon shape="clipboard"></cds-icon>
+      Detalle de Inspección de Campo #{{ selectedIncidencia?.id }}
+      <span class="label ml-2" [ngClass]="getTipoBadgeClass(selectedIncidencia?.tipo)">{{ selectedIncidencia?.tipo }}</span>
+    </h3>
+
+    <div class="modal-body" *ngIf="selectedIncidencia">
+      <!-- INFORMACIÓN DEL REQUERIMIENTO -->
+      <div class="detail-section">
+        <h4 class="section-heading">
+          <cds-icon shape="details"></cds-icon> Descripción del Caso
+        </h4>
+        <div class="detail-text-box">
+          {{ selectedIncidencia?.descripcion || selectedIncidencia?.asunto }}
+        </div>
+      </div>
+
+      <!-- DATOS DE LOCALIZACIÓN Y CIUDADANO -->
+      <div class="detail-section mt-3">
+        <h4 class="section-heading">
+          <cds-icon shape="map-marker"></cds-icon> Ubicación y Contacto Ciudadano
+        </h4>
+        <div class="clr-row detail-grid">
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">Nombre del Vecino:</span>
+            <span class="detail-val font-semibold">{{ selectedIncidencia?.nombreVecino || 'No indicado' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">Teléfono:</span>
+            <span class="detail-val">{{ selectedIncidencia?.telefono || 'No indicado' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">No. Contador Domiciliar:</span>
+            <span class="detail-val font-mono">{{ selectedIncidencia?.contador || 'No asignado' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">Dirección Registrada:</span>
+            <span class="detail-val">{{ selectedIncidencia?.direccion || 'No indicada' }}</span>
+          </div>
+          <div class="clr-col-12 detail-item full-width" *ngIf="selectedIncidencia?.latitud && selectedIncidencia?.longitud">
+            <span class="detail-label">Geolocalización GPS:</span>
+            <div class="gps-box mt-1">
+              <span>Lat: {{ selectedIncidencia?.latitud }}, Long: {{ selectedIncidencia?.longitud }}</span>
+              <a
+                [href]="getMapsUrl(selectedIncidencia?.latitud, selectedIncidencia?.longitud)"
+                target="_blank"
+                class="btn btn-sm btn-outline-primary ml-3"
+              >
+                <cds-icon shape="pop-out"></cds-icon> Abrir en Google Maps
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN DE EVIDENCIAS REGISTRADAS -->
+      <div class="detail-section mt-3">
+        <h4 class="section-heading">
+          <cds-icon shape="paperclip"></cds-icon> Evidencias Adjuntas
+        </h4>
+
+        <div *ngIf="cargandoEvidencias" class="loading-evidencias">
+          <span class="spinner spinner-inline"></span> Consultando archivos de evidencia...
+        </div>
+
+        <div *ngIf="!cargandoEvidencias && evidenciasCargadas.length === 0" class="text-muted-box">
+          No hay evidencias multimedia registradas para esta incidencia.
+        </div>
+
+        <div *ngIf="!cargandoEvidencias && evidenciasCargadas.length > 0" class="evidencias-gallery">
+          <div *ngFor="let archivo of evidenciasCargadas" class="evidencia-card-box">
+            <div *ngIf="archivo.url" class="evidencia-preview" (click)="abrirPreview(archivo)" title="Ver vista previa en grande">
+              <img [src]="archivo.url" [alt]="archivo.nombre" />
+              <div class="preview-overlay">
+                <cds-icon shape="eye" size="md"></cds-icon>
+                <span>Ver en grande</span>
+              </div>
+            </div>
+            <div *ngIf="!archivo.url" class="evidencia-file-icon" (click)="abrirPreview(archivo)" title="Ver documento PDF">
+              <cds-icon [attr.shape]="archivo.nombre?.toLowerCase()?.endsWith('.pdf') ? 'file-group' : 'document'" size="xl"></cds-icon>
+              <div class="preview-overlay">
+                <cds-icon shape="eye" size="md"></cds-icon>
+                <span>Ver documento</span>
+              </div>
+            </div>
+            <div class="evidencia-info">
+              <div class="evidencia-nombre" [title]="archivo.nombre">{{ archivo.nombre }}</div>
+              <div class="evidencia-meta text-muted" *ngIf="archivo.formato || archivo.fechaRegistro">
+                <span *ngIf="archivo.formato" class="badge badge-light-blue">{{ archivo.formato }}</span>
+                <span *ngIf="archivo.fechaRegistro" class="font-xs ml-1">{{ archivo.fechaRegistro | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="evidencia-actions-bar">
+                <button type="button" class="btn-evidencia-preview" (click)="abrirPreview(archivo)" title="Vista previa interactiva">
+                  <cds-icon shape="eye" size="sm"></cds-icon>
+                  <span>Vista Previa</span>
+                </button>
+                <button type="button" class="btn-evidencia-download" (click)="descargarEvidencia(archivo)" title="Descargar archivo">
+                  <cds-icon shape="download" size="sm"></cds-icon>
+                  <span>Descargar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline-secondary" (click)="cerrarDetalle()">
+        Cerrar
+      </button>
+      <button
+        *ngIf="selectedIncidencia?.estado?.includes('Campo') || selectedIncidencia?.estado === 'ASIGNADA_CAMPO'"
+        type="button"
+        class="btn btn-success"
+        (click)="solicitarFinalizarRecoleccion(selectedIncidencia)"
+        [disabled]="procesandoAccion()"
+      >
+        <cds-icon shape="check"></cds-icon>
+        Finalizar Recolección en Sitio
+      </button>
+    </div>
+  </clr-modal>
+
+  <!-- MODAL DE CONFIRMACIÓN: FINALIZAR RECOLECCIÓN EN SITIO -->
+  <clr-modal
+    [(clrModalOpen)]="confirmFinalizarOpen"
+    [clrModalSize]="'md'"
+    [clrModalClosable]="!procesandoAccion()"
+    [clrModalStaticBackdrop]="true"
+  >
+    <h3 class="modal-title modal-title-confirm">
+      <cds-icon shape="check-circle" class="text-success"></cds-icon>
+      Confirmar Finalización de Inspección
+    </h3>
+
+    <div class="modal-body">
+      <p>
+        ¿Confirmas que se completó la inspección ocular y recolección de evidencias para la incidencia
+        <strong>#{{ incidenciaAFinalizar?.id }}</strong> en el domicilio con contador <strong>{{ incidenciaAFinalizar?.contador }}</strong>?
+      </p>
+      <p class="text-muted font-sm">
+        Esta acción notificará al sistema que la recolección fue completada y cambiará el estado a <strong>"Recolección Finalizada"</strong> para que el analista municipal emita su resolución final.
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn btn-outline"
+        (click)="cancelarConfirmacion()"
+        [disabled]="procesandoAccion()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn btn-success"
+        (click)="ejecutarFinalizarRecoleccion()"
+        [disabled]="procesandoAccion()"
+      >
+        <span *ngIf="procesandoAccion()" class="spinner spinner-inline"></span>
+        Sí, Finalizar Recolección
+      </button>
+    </div>
+  </clr-modal>
+
+  <!-- MODAL UNIVERSAL DE VISTA PREVIA PARA IMÁGENES Y DOCUMENTOS PDF -->
+  <app-modal-preview-archivo
+    [(open)]="previewModalOpen"
+    [archivo]="archivoEnPreview"
+    [incidenciaId]="selectedIncidencia?.id"
+    (descargar)="descargarEvidencia($event)"
+  ></app-modal-preview-archivo>
+
+</div>

@@ -10,23 +10,31 @@
       <cds-icon shape="bars"></cds-icon>
     </button>
 
-    <a [routerLink]="isAdmin() ? '/admin/dashboard' : '/vecino/dashboard'" class="nav-link brand-link">
+    <a [routerLink]="dashboardLink()" class="nav-link brand-link">
       <img src="muni-emblem-white.svg" alt="Escudo Municipal" class="brand-logo" *ngIf="!isAdmin()" />
       <div class="brand-text">
-        <ng-container *ngIf="!isAdmin()">
+        <ng-container *ngIf="isAnalista()">
           <span class="title">MUNICIPALIDAD DE GUATEMALA</span>
-          <span class="subtitle">PORTAL VECINAL ASIIC</span>
+          <span class="subtitle">PORTAL DEL ANALISTA ASIIC</span>
+        </ng-container>
+        <ng-container *ngIf="isAgente()">
+          <span class="title">MUNICIPALIDAD DE GUATEMALA</span>
+          <span class="subtitle">OPERACIONES DE CAMPO ASIIC</span>
         </ng-container>
         <ng-container *ngIf="isAdmin()">
           <span class="title">PORTAL ADMINISTRATIVO ASIIC</span>
           <span class="subtitle" style="font-weight: 500;">SISTEMA CENTRAL</span>
+        </ng-container>
+        <ng-container *ngIf="!isAdmin() && !isAnalista() && !isAgente()">
+          <span class="title">MUNICIPALIDAD DE GUATEMALA</span>
+          <span class="subtitle">PORTAL VECINAL ASIIC</span>
         </ng-container>
       </div>
     </a>
   </div>
 
   <div class="header-nav">
-    <a [routerLink]="isAdmin() ? '/admin/dashboard' : '/vecino/dashboard'" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+    <a [routerLink]="dashboardLink()" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
       <span class="nav-text">Dashboard</span>
     </a>
   </div>

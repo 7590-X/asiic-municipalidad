@@ -157,3 +157,58 @@
     border-left: 4px solid #0079b8;
   }
 }
+
+// ==========================================
+// RESPONSIVE DESIGN ENHANCEMENTS
+// ==========================================
+@media (max-width: 768px) {
+  .gestiones-page {
+    padding: 0.75rem;
+
+    .page-header h2 {
+      font-size: 1.3rem;
+    }
+  }
+
+  .timeline-container {
+    padding: 1rem 0.75rem;
+
+    .timeline-steps {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.25rem;
+      padding-left: 0.5rem;
+
+      .timeline-step {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.85rem;
+        width: 100%;
+        position: relative;
+
+        .step-icon {
+          width: 38px;
+          height: 38px;
+          margin-bottom: 0;
+        }
+
+        .step-connector {
+          top: 38px;
+          left: 18px;
+          width: 3px;
+          height: calc(100% + 1.25rem);
+        }
+      }
+    }
+
+    .timeline-actions {
+      flex-direction: column;
+      button { width: 100%; }
+    }
+  }
+
+  ::ng-deep .modal-dialog {
+    max-width: 95vw !important;
+    margin: 0.5rem auto !important;
+  }
+}

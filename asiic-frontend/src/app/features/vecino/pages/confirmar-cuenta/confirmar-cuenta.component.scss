@@ -54,6 +54,27 @@
   }
 }
 
+@media (max-width: 576px) {
+  .rv-page {
+    padding: 1rem 0.5rem;
+  }
+
+  .rv-shell {
+    border-radius: 12px;
+  }
+
+  .rv-main {
+    padding: 1.5rem 1rem 1.75rem;
+  }
+
+  .submit-container {
+    button {
+      width: 100%;
+    }
+  }
+}
+
+
 /* ---------- Layout helpers ---------- */
 .form-container {
   padding-top: 2rem;

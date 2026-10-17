@@ -1,5 +1,8 @@
+import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { vecinoDashboardGuard, analistaGuard, agenteGuard, adminGuard } from './core/guards/role.guard';
+import { AuthService } from './core/services/auth.service';
 
 export const routes: Routes = [
   {
@@ -34,6 +37,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
+        canActivate: [vecinoDashboardGuard],
         loadComponent: () =>
           import('./features/vecino/pages/dashboard/dashboard.component')
             .then((m) => m.DashboardComponent),
@@ -87,12 +91,66 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    redirectTo: 'vecino/dashboard',
+    redirectTo: () => {
+      const auth = inject(AuthService);
+      return auth.getDashboardUrl();
+    },
     pathMatch: 'full',
   },
   {
+    path: 'agente',
+    canActivate: [authGuard, agenteGuard],
+    loadComponent: () =>
+      import('./shared/layouts/portal-layout/portal-layout.component')
+        .then((m) => m.PortalLayoutComponent),
+    children: [
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/agente/pages/dashboard-agente/dashboard-agente.component')
+            .then((m) => m.DashboardAgenteComponent),
+      },
+      {
+        path: 'incidencias-asignadas',
+        redirectTo: '/analista/incidencias-asignadas',
+        pathMatch: 'full',
+      }
+    ]
+  },
+  {
+    path: 'analista',
+    canActivate: [authGuard, analistaGuard],
+    loadComponent: () =>
+      import('./shared/layouts/portal-layout/portal-layout.component')
+        .then((m) => m.PortalLayoutComponent),
+    children: [
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/analista/pages/dashboard-analista/dashboard-analista.component')
+            .then((m) => m.DashboardAnalistaComponent),
+      },
+      {
+        path: 'incidencias-asignadas',
+        loadComponent: () =>
+          import('./features/analista/pages/incidencias-asignadas/incidencias-asignadas.component')
+            .then((m) => m.IncidenciasAsignadasComponent),
+      }
+    ]
+  },
+  {
     path: 'admin',
-    canActivate: [authGuard],
+    canActivate: [authGuard, adminGuard],
     loadComponent: () =>
       import('./shared/layouts/portal-layout/portal-layout.component')
         .then((m) => m.PortalLayoutComponent),
@@ -114,8 +172,18 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/pages/registro-usuario/registro-usuario.component')
             .then((m) => m.RegistroUsuarioComponent),
+      },
+      {
+        path: 'incidencias-asignadas',
+        redirectTo: '/analista/incidencias-asignadas',
+        pathMatch: 'full',
       }
     ]
+  },
+  {
+    path: 'incidencias-asignadas',
+    redirectTo: 'analista/incidencias-asignadas',
+    pathMatch: 'full'
   },
   { path: '**', redirectTo: '' },
 ];

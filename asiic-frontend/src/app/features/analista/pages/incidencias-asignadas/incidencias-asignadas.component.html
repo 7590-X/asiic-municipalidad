@@ -1,0 +1,941 @@
+<div class="incidencias-asignadas-page">
+
+  <!-- CABECERA PRINCIPAL -->
+  <div class="header-container">
+    <div class="title-section">
+      <div class="title-with-badge">
+        <h2>
+          <cds-icon shape="tasks" size="lg" class="header-icon"></cds-icon>
+          Incidencias Asignadas
+        </h2>
+        <span class="badge badge-info">{{ totalAsignadas() }} asignadas</span>
+      </div>
+      <p class="subtitle">
+        Bandeja de dictamen y gestión del ciclo de vida para el Analista de Solicitudes.
+      </p>
+    </div>
+
+    <div class="actions-section">
+      <a routerLink="/analista/dashboard" class="btn btn-outline btn-sm">
+        <cds-icon shape="home"></cds-icon> Volver al Dashboard
+      </a>
+      <button class="btn btn-outline btn-sm" (click)="cargarIncidencias()" [disabled]="loading()">
+        <cds-icon shape="refresh" [class.spinning]="loading()"></cds-icon> Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- TARJETAS DE MÉTRICAS RÁPIDAS -->
+  <div class="clr-row metrics-row">
+    <div class="clr-col-12 clr-col-sm-6 clr-col-md-3">
+      <div class="card metric-card card-total">
+        <div class="card-block">
+          <div class="metric-icon-box bg-total">
+            <cds-icon shape="clipboard"></cds-icon>
+          </div>
+          <div class="metric-data">
+            <div class="metric-value">{{ totalAsignadas() }}</div>
+            <div class="metric-label">Total en Bandeja</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-md-2-4 clr-col-lg">
+      <div class="card metric-card card-asignada">
+        <div class="card-block">
+          <div class="metric-icon-box bg-asignada">
+            <cds-icon shape="clock"></cds-icon>
+          </div>
+          <div class="metric-data">
+            <div class="metric-value">{{ totalEstadoAsignada() }}</div>
+            <div class="metric-label">Asignadas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-md-2-4 clr-col-lg">
+      <div class="card metric-card card-campo">
+        <div class="card-block">
+          <div class="metric-icon-box bg-campo">
+            <cds-icon shape="map-marker"></cds-icon>
+          </div>
+          <div class="metric-data">
+            <div class="metric-value">{{ totalEstadoCampo() }}</div>
+            <div class="metric-label">En Campo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-md-2-4 clr-col-lg">
+      <div class="card metric-card card-recoleccion">
+        <div class="card-block">
+          <div class="metric-icon-box bg-recoleccion">
+            <cds-icon shape="check-circle"></cds-icon>
+          </div>
+          <div class="metric-data">
+            <div class="metric-value">{{ totalEstadoRecoleccion() }}</div>
+            <div class="metric-label">Recolección Fin.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-md-2-4 clr-col-lg">
+      <div class="card metric-card card-apelacion">
+        <div class="card-block">
+          <div class="metric-icon-box bg-apelacion">
+            <cds-icon shape="replay"></cds-icon>
+          </div>
+          <div class="metric-data">
+            <div class="metric-value">{{ totalEstadoApelacion() }}</div>
+            <div class="metric-label">Apelación Asig.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANNER DE ALERTAS DINÁMICAS -->
+  <div *ngIf="alertMessage()" class="alert-container">
+    <div class="alert" [ngClass]="'alert-' + alertType()" role="alert">
+      <div class="alert-items">
+        <div class="alert-item static">
+          <div class="alert-icon-wrapper">
+            <cds-icon class="alert-icon"
+              [attr.shape]="alertType() === 'success' ? 'check-circle' : 'exclamation-circle'"></cds-icon>
+          </div>
+          <span class="alert-text">{{ alertMessage() }}</span>
+        </div>
+      </div>
+      <button type="button" class="close" aria-label="Close" (click)="alertMessage.set(null)">
+        <cds-icon aria-hidden="true" shape="close"></cds-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- SECCIÓN DE FILTROS Y TABLA -->
+  <div class="card table-card">
+    <div class="card-header table-filter-header">
+      <div class="filter-controls">
+        <!-- Búsqueda rápida -->
+        <div class="search-input-box">
+          <cds-icon shape="search" class="search-icon"></cds-icon>
+          <input type="text" placeholder="Buscar por código, vecino, asunto..." [ngModel]="filtroBusqueda()"
+            (ngModelChange)="filtroBusqueda.set($event)" class="clr-input search-input" />
+        </div>
+
+        <!-- Filtro Tipo de Incidencia -->
+        <div class="select-box">
+          <label class="filter-label">Tipo:</label>
+          <div class="clr-select-wrapper">
+            <select [ngModel]="filtroTipo()" (ngModelChange)="filtroTipo.set($event)" class="clr-select">
+              <option value="TODOS">Todos los tipos</option>
+              <option value="QUEJA">Queja</option>
+              <option value="RECLAMO">Reclamo</option>
+              <option value="DENUNCIA">Denuncia</option>
+              <option value="SUGERENCIA">Sugerencia</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Filtro Estado -->
+        <div class="select-box">
+          <label class="filter-label">Estado:</label>
+          <div class="clr-select-wrapper">
+            <select [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)" class="clr-select">
+              <option value="TODOS">Todos los estados</option>
+              <option value="ASIGNADA">Incidencia Asignada</option>
+              <option value="APELACION">Apelación Asignada</option>
+              <option value="RECOLECCION">Recolección Finalizada</option>
+            </select>
+          </div>
+        </div>
+        <!-- Selector de Vista: Tarjetas vs Tabla -->
+        <div class="view-mode-toggle">
+          <button type="button" class="btn btn-sm" [class.btn-primary]="vistaModo() === 'cards'"
+            [class.btn-outline-primary]="vistaModo() !== 'cards'" (click)="vistaModo.set('cards')"
+            title="Vista en tarjetas (recomendada en móvil)">
+            <cds-icon shape="grid-view"></cds-icon>
+            <span class="btn-toggle-label">Tarjetas</span>
+          </button>
+          <button type="button" class="btn btn-sm" [class.btn-primary]="vistaModo() === 'table'"
+            [class.btn-outline-primary]="vistaModo() !== 'table'" (click)="vistaModo.set('table')"
+            title="Vista en tabla clásica">
+            <cds-icon shape="table"></cds-icon>
+            <span class="btn-toggle-label">Tabla</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENEDOR DE DATOS: TARJETAS O TABLA SEGÚN MODO -->
+    <div class="card-block p-0">
+      <!-- VISTA EN TARJETAS (IDEAL PARA MÓVILES Y PANTALLAS PEQUEÑAS) -->
+      <div *ngIf="vistaModo() === 'cards'" class="mobile-cards-container">
+        <div *ngIf="loading()" class="loading-cards">
+          <span class="spinner"></span>
+          <p>Cargando incidencias asignadas...</p>
+        </div>
+
+        <div *ngIf="!loading() && incidenciasFiltradas().length === 0" class="empty-cards-box">
+          <cds-icon shape="inbox" size="xl"></cds-icon>
+          <h4>No hay incidencias asignadas</h4>
+          <p>Todas las incidencias asignadas han sido dictaminadas o no coinciden con los filtros aplicados.</p>
+        </div>
+
+        <div *ngIf="!loading() && incidenciasFiltradas().length > 0" class="incidencias-cards-grid">
+          <div *ngFor="let inc of incidenciasFiltradas()" class="incidencia-mobile-item">
+            <div class="item-header">
+              <span class="incident-code">#{{ inc.id }}</span>
+              <span class="label" [ngClass]="getTipoBadgeClass(inc.tipo)">{{ inc.tipo }}</span>
+              <span class="badge" [ngClass]="getEstadoBadgeClass(inc.estado)">{{ inc.estado }}</span>
+            </div>
+
+            <div class="item-body">
+              <div class="item-subject">{{ inc.asunto || inc.descripcion }}</div>
+
+              <div class="item-meta">
+                <div class="meta-row">
+                  <cds-icon shape="user" size="sm"></cds-icon>
+                  <span class="meta-text">{{ inc.nombreVecino || inc.vecino?.nombreCompleto || 'Vecino no especificado'
+                    }}</span>
+                </div>
+                <div class="meta-row">
+                  <cds-icon shape="calendar" size="sm"></cds-icon>
+                  <span class="meta-text">{{ inc.fechaRegistro ? (inc.fechaRegistro | date:'dd/MM/yyyy HH:mm') :
+                    inc.fecha }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="item-footer">
+              <button type="button" class="btn btn-outline-primary btn-block btn-ver-detalle-mobile"
+                (click)="abrirDetalle(inc)">
+                <cds-icon shape="eye"></cds-icon>
+                Ver Detalle / Dictaminar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA EN TABLA DATAGRID (CON ANCHO MÍNIMO SEGURO PARA PREVENIR SOLAPAMIENTOS) -->
+      <div [style.display]="vistaModo() === 'table' ? 'block' : 'none'" class="datagrid-wrapper-safe">
+        <clr-datagrid class="analista-datagrid" [clrDgLoading]="loading()">
+          <!-- Columnas requeridas por el caso de uso -->
+          <clr-dg-column class="col-id" [clrDgField]="'id'">Código</clr-dg-column>
+          <clr-dg-column class="col-tipo" [clrDgField]="'tipo'">Tipo</clr-dg-column>
+          <clr-dg-column class="col-fecha" [clrDgField]="'fechaRegistro'" [clrDgSortOrder]="-1">Fecha Registro</clr-dg-column>
+          <clr-dg-column class="col-asunto" [clrDgField]="'asunto'">Asunto</clr-dg-column>
+          <clr-dg-column class="col-estado" [clrDgField]="'estado'">Estado</clr-dg-column>
+          <clr-dg-column class="col-vecino" [clrDgField]="'nombreVecino'">Nombre Vecino</clr-dg-column>
+          <clr-dg-column class="col-actions">Acciones</clr-dg-column>
+
+          <!-- Filas de datos -->
+          <clr-dg-row *clrDgItems="let inc of incidenciasFiltradas()" [clrDgItem]="inc">
+            <!-- Código Incidencia -->
+            <clr-dg-cell class="col-id">
+              <span class="incident-code">#{{ inc.id }}</span>
+            </clr-dg-cell>
+
+            <!-- Tipo Incidencia -->
+            <clr-dg-cell class="col-tipo">
+              <span class="label" [ngClass]="getTipoBadgeClass(inc.tipo)">
+                {{ inc.tipo }}
+              </span>
+            </clr-dg-cell>
+
+            <!-- Fecha Registro -->
+            <clr-dg-cell class="col-fecha">
+              <div class="date-cell">
+                <cds-icon shape="calendar" size="sm"></cds-icon>
+                <span class="date-text">{{ inc.fechaRegistro ? (inc.fechaRegistro | date:'dd/MM/yyyy HH:mm') : inc.fecha }}</span>
+              </div>
+            </clr-dg-cell>
+
+            <!-- Asunto -->
+            <clr-dg-cell class="col-asunto">
+              <div class="subject-cell" [title]="inc.asunto || inc.descripcion">
+                {{ inc.asunto || inc.descripcion }}
+              </div>
+            </clr-dg-cell>
+
+            <!-- Estado -->
+            <clr-dg-cell class="col-estado">
+              <span class="badge" [ngClass]="getEstadoBadgeClass(inc.estado)">
+                {{ inc.estado }}
+              </span>
+            </clr-dg-cell>
+
+            <!-- Nombre Vecino -->
+            <clr-dg-cell class="col-vecino">
+              <div class="vecino-cell">
+                <cds-icon shape="user" size="sm"></cds-icon>
+                <span>{{ inc.nombreVecino || inc.vecino?.nombreCompleto || 'No especificado' }}</span>
+              </div>
+            </clr-dg-cell>
+
+            <!-- Acciones: Botón Ver Detalle -->
+            <clr-dg-cell class="col-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary btn-ver-detalle" (click)="abrirDetalle(inc)"
+                title="Ver Detalle de Incidencia">
+                <cds-icon shape="eye"></cds-icon>
+                <span>Ver Detalle</span>
+              </button>
+            </clr-dg-cell>
+          </clr-dg-row>
+
+          <!-- Mensaje de tabla vacía -->
+          <clr-dg-placeholder>
+            <div class="empty-placeholder">
+              <cds-icon shape="inbox" size="xl"></cds-icon>
+              <h4>No hay incidencias asignadas</h4>
+              <p>Todas las incidencias asignadas han sido dictaminadas o no coinciden con los filtros aplicados.</p>
+            </div>
+          </clr-dg-placeholder>
+
+          <!-- Paginación -->
+          <clr-dg-footer>
+            <clr-dg-pagination #pagination [clrDgPageSize]="10">
+              <clr-dg-page-size [clrPageSizeOptions]="[10, 20, 50]">Incidencias por página</clr-dg-page-size>
+              {{ pagination.firstItem + 1 }} - {{ pagination.lastItem + 1 }} de {{ pagination.totalItems }} registros
+            </clr-dg-pagination>
+          </clr-dg-footer>
+        </clr-datagrid>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- DIÁLOGO DE INFORMACIÓN DE LA INCIDENCIA SEGÚN TIPO                        -->
+<!-- ========================================================================= -->
+<clr-modal [(clrModalOpen)]="detalleModalOpen" [clrModalSize]="'xl'" [clrModalClosable]="true"
+  *ngIf="selectedIncidencia" class="modal-detalle-incidencia">
+  <!-- Título del Diálogo -->
+  <h3 class="modal-title modal-title-custom">
+    <div class="modal-title-left">
+      <cds-icon shape="details" size="md"></cds-icon>
+      <span>Detalle de Incidencia #{{ selectedIncidencia?.id }}</span>
+      <span class="label" [ngClass]="getTipoBadgeClass(selectedIncidencia?.tipo)">
+        {{ selectedIncidencia?.tipo }}
+      </span>
+    </div>
+    <span class="badge" [ngClass]="getEstadoBadgeClass(selectedIncidencia?.estado)">
+      {{ selectedIncidencia?.estado }}
+    </span>
+  </h3>
+
+  <!-- CUERPO DEL DIÁLOGO -->
+  <div class="modal-body modal-body-custom">
+
+    <!-- DATOS COMUNES DEL DOMICILIO Y SOLICITANTE -->
+    <div class="detail-section">
+      <h4 class="section-heading">
+        <cds-icon shape="home"></cds-icon> Datos Generales y Domicilio
+      </h4>
+      <div class="clr-row detail-grid">
+        <div class="clr-col-12 clr-col-md-3 detail-item">
+          <span class="detail-label">Código Incidencia:</span>
+          <span class="detail-value highlight">#{{ selectedIncidencia?.id }}</span>
+        </div>
+        <div class="clr-col-12 clr-col-md-3 detail-item">
+          <span class="detail-label">Tipo Incidencia:</span>
+          <span class="detail-value">{{ selectedIncidencia?.tipo }}</span>
+        </div>
+        <div class="clr-col-12 clr-col-md-3 detail-item">
+          <span class="detail-label">Contador:</span>
+          <span class="detail-value">{{ selectedIncidencia?.contador || selectedIncidencia?.domicilio?.contador || 'N/A'
+            }}</span>
+        </div>
+        <div class="clr-col-12 clr-col-md-3 detail-item">
+          <span class="detail-label">Fecha Registro:</span>
+          <span class="detail-value">{{ selectedIncidencia?.fechaRegistro ? (selectedIncidencia?.fechaRegistro |
+            date:'dd/MM/yyyy HH:mm') : selectedIncidencia?.fecha }}</span>
+        </div>
+        <div class="clr-col-12 clr-col-md-6 detail-item">
+          <span class="detail-label">Dirección Domicilio:</span>
+          <span class="detail-value">{{ selectedIncidencia?.direccion ||
+            selectedIncidencia?.domicilio?.direccion?.descripDireccion || 'No indicada' }}</span>
+        </div>
+        <div class="clr-col-12 clr-col-md-3 detail-item">
+          <span class="detail-label">Teléfono:</span>
+          <span class="detail-value">{{ selectedIncidencia?.telefono || selectedIncidencia?.vecino?.telefono || 'No
+            indicado' }}</span>
+        </div>
+        <div class="clr-col-12 clr-col-md-3 detail-item">
+          <span class="detail-label">Correo:</span>
+          <span class="detail-value">{{ selectedIncidencia?.correo || selectedIncidencia?.vecino?.correo || 'No
+            indicado' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CAMPOS DE INCIDENCIA TIPO QUEJA            -->
+    <!-- ========================================== -->
+    <ng-container *ngIf="isTipoQueja(selectedIncidencia?.tipo)">
+      <div class="detail-section">
+        <h4 class="section-heading">
+          <cds-icon shape="exclamation-circle"></cds-icon> Información Específica de la Queja
+        </h4>
+        <div class="clr-row detail-grid">
+          <div class="clr-col-12 clr-col-md-4 detail-item">
+            <span class="detail-label">Dependencia:</span>
+            <span class="detail-value font-semibold">{{ selectedIncidencia?.dependencia?.valor ||
+              selectedIncidencia?.dependencia || 'No especificada' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-4 detail-item">
+            <span class="detail-label">Nombre Empleado (Quejado):</span>
+            <span class="detail-value text-danger font-semibold">{{ selectedIncidencia?.nombreEmpleado || 'No
+              especificado' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-4 detail-item">
+            <span class="detail-label">Fecha Incidencia:</span>
+            <span class="detail-value">{{ selectedIncidencia?.fechaIncidencia ? (selectedIncidencia?.fechaIncidencia |
+              date:'dd/MM/yyyy HH:mm') : 'No especificada' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">Dirección Referencial:</span>
+            <span class="detail-value">{{ selectedIncidencia?.direccionReferencial || 'No indicada' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">Dirección GPS:</span>
+            <span class="detail-value">
+              <span *ngIf="selectedIncidencia?.latitud">
+                <cds-icon shape="map-marker" size="sm"></cds-icon>
+                Lat: {{ selectedIncidencia?.latitud }}, Long: {{ selectedIncidencia?.longitud }}
+              </span>
+              <span *ngIf="!selectedIncidencia?.latitud" class="text-muted">No georreferenciada</span>
+            </span>
+          </div>
+          <div class="clr-col-12 detail-item full-width">
+            <span class="detail-label">Testimonio:</span>
+            <div class="text-narrative">{{ selectedIncidencia?.descripcion || selectedIncidencia?.asunto }}</div>
+          </div>
+        </div>
+
+        <!-- TESTIGOS DE LA QUEJA -->
+        <div class="subsection mt-3" *ngIf="selectedIncidencia?.testigos?.length">
+          <h5 class="subsection-heading">
+            <cds-icon shape="users"></cds-icon> Testigos Registrados
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-compact">
+              <thead>
+                <tr>
+                  <th>Nombre del Testigo</th>
+                  <th>Teléfono</th>
+                  <th>Correo Electrónico</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let testigo of selectedIncidencia.testigos">
+                  <td><strong>{{ testigo.nombre }}</strong></td>
+                  <td>{{ testigo.telefono || 'No registrado' }}</td>
+                  <td>{{ testigo.correo || 'No registrado' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ============================================ -->
+    <!-- CAMPOS DE INCIDENCIA RECLAMO                 -->
+    <!-- ============================================ -->
+    <ng-container *ngIf="isTipoReclamo(selectedIncidencia?.tipo)">
+      <div class="detail-section">
+        <h4 class="section-heading">
+          <cds-icon shape="help"></cds-icon> Información Específica del Reclamo
+        </h4>
+        <div class="clr-row detail-grid">
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">Tipo Servicio:</span>
+            <span class="detail-value font-semibold">{{ selectedIncidencia?.tipoServicio ||
+              selectedIncidencia?.dependencia?.valor || 'No especificado' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">Dirección GPS:</span>
+            <span class="detail-value">
+              <span *ngIf="selectedIncidencia?.latitud">
+                <cds-icon shape="map-marker" size="sm"></cds-icon>
+                Lat: {{ selectedIncidencia?.latitud }}, Long: {{ selectedIncidencia?.longitud }}
+              </span>
+              <span *ngIf="!selectedIncidencia?.latitud" class="text-muted">No georreferenciada</span>
+            </span>
+          </div>
+          <div class="clr-col-12 detail-item full-width">
+            <span class="detail-label">Descripción del Reclamo:</span>
+            <div class="text-narrative">{{ selectedIncidencia?.descripcion || selectedIncidencia?.asunto }}</div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ============================================= -->
+    <!-- CAMPOS DE INCIDENCIA DENUNCIA                -->
+    <!-- ============================================= -->
+    <ng-container *ngIf="isTipoDenuncia(selectedIncidencia?.tipo)">
+      <div class="detail-section">
+        <h4 class="section-heading">
+          <cds-icon shape="shield"></cds-icon> Información Específica de la Denuncia
+        </h4>
+        <div class="clr-row detail-grid">
+          <div class="clr-col-12 clr-col-md-4 detail-item">
+            <span class="detail-label">Tipo Denuncia:</span>
+            <span class="detail-value font-semibold text-danger">{{ selectedIncidencia?.tipoDenuncia ||
+              selectedIncidencia?.dependencia?.valor || 'No especificada' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-4 detail-item">
+            <span class="detail-label">Fecha de Hechos:</span>
+            <span class="detail-value">{{ selectedIncidencia?.fechaIncidencia ? (selectedIncidencia?.fechaIncidencia |
+              date:'dd/MM/yyyy HH:mm') : 'No especificada' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-4 detail-item">
+            <span class="detail-label">Dirección GPS:</span>
+            <span class="detail-value">
+              <span *ngIf="selectedIncidencia?.latitud">
+                <cds-icon shape="map-marker" size="sm"></cds-icon>
+                Lat: {{ selectedIncidencia?.latitud }}, Long: {{ selectedIncidencia?.longitud }}
+              </span>
+              <span *ngIf="!selectedIncidencia?.latitud" class="text-muted">No georreferenciada</span>
+            </span>
+          </div>
+          <div class="clr-col-12 detail-item full-width">
+            <span class="detail-label">Relato de la Denuncia:</span>
+            <div class="text-narrative">{{ selectedIncidencia?.descripcion || selectedIncidencia?.asunto }}</div>
+          </div>
+        </div>
+
+        <!-- PERSONAS O ENTIDADES DENUNCIADAS -->
+        <div class="subsection mt-3" *ngIf="selectedIncidencia?.denunciados?.length">
+          <h5 class="subsection-heading">
+            <cds-icon shape="user"></cds-icon> Personas o Funcionarios Denunciados
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-compact">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>CUI / NIT</th>
+                  <th>Carnet / Placa</th>
+                  <th>Puesto</th>
+                  <th>Contacto</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let den of selectedIncidencia.denunciados">
+                  <td><strong>{{ den.nombre }}</strong></td>
+                  <td>{{ den.nitCui || 'N/A' }}</td>
+                  <td>{{ den.carnet || den.noPlaca || 'N/A' }}</td>
+                  <td>{{ den.puesto || 'N/A' }}</td>
+                  <td>{{ den.telefono || den.correo || 'N/A' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- =============================================== -->
+    <!-- CAMPOS DE INCIDENCIA SUGERENCIA                -->
+    <!-- =============================================== -->
+    <ng-container *ngIf="isTipoSugerencia(selectedIncidencia?.tipo)">
+      <div class="detail-section">
+        <h4 class="section-heading">
+          <cds-icon shape="talk-bubbles"></cds-icon> Información Específica de la Sugerencia
+        </h4>
+        <div class="clr-row detail-grid">
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">Área:</span>
+            <span class="detail-value font-semibold">{{ selectedIncidencia?.area ||
+              selectedIncidencia?.dependencia?.valor || 'No especificada' }}</span>
+          </div>
+          <div class="clr-col-12 clr-col-md-6 detail-item">
+            <span class="detail-label">Fecha Registro:</span>
+            <span class="detail-value">{{ selectedIncidencia?.fechaRegistro ? (selectedIncidencia?.fechaRegistro |
+              date:'dd/MM/yyyy HH:mm') : selectedIncidencia?.fecha }}</span>
+          </div>
+          <div class="clr-col-12 detail-item full-width">
+            <span class="detail-label">Descripción Actual:</span>
+            <div class="text-narrative">{{ selectedIncidencia?.descripcion || selectedIncidencia?.asunto }}</div>
+          </div>
+          <div class="clr-col-12 detail-item full-width mt-2">
+            <span class="detail-label text-success">Propuesta de Mejora:</span>
+            <div class="text-narrative proposal-box">{{ selectedIncidencia?.propuestaMejora || 'No indicada' }}</div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- SECCIÓN UNIVERSAL DE EVIDENCIAS ADJUNTAS (ACCESIBLE PARA CUALQUIER TIPO DE INCIDENCIA) -->
+    <div class="detail-section mt-3">
+      <h4 class="section-heading">
+        <cds-icon shape="paperclip"></cds-icon> Evidencias Adjuntas de la Incidencia
+      </h4>
+
+      <div *ngIf="cargandoEvidencias" class="loading-evidencias">
+        <span class="spinner spinner-inline"></span> Cargando archivos de evidencia...
+      </div>
+
+      <div *ngIf="!cargandoEvidencias && evidenciasCargadas.length === 0" class="text-muted-box">
+        No se adjuntaron evidencias multimedia para esta incidencia.
+      </div>
+
+      <div *ngIf="!cargandoEvidencias && evidenciasCargadas.length > 0" class="evidencias-gallery">
+        <div *ngFor="let archivo of evidenciasCargadas" class="evidencia-card-box">
+          <div *ngIf="archivo.url" class="evidencia-preview" (click)="abrirPreview(archivo)" title="Ver vista previa en grande">
+            <img [src]="archivo.url" [alt]="archivo.nombre" />
+            <div class="preview-overlay">
+              <cds-icon shape="eye" size="md"></cds-icon>
+              <span>Ver en grande</span>
+            </div>
+          </div>
+          <div *ngIf="!archivo.url" class="evidencia-file-icon" (click)="abrirPreview(archivo)" title="Ver documento PDF">
+            <cds-icon [attr.shape]="archivo.nombre?.toLowerCase()?.endsWith('.pdf') ? 'file-group' : 'document'" size="xl"></cds-icon>
+            <div class="preview-overlay">
+              <cds-icon shape="eye" size="md"></cds-icon>
+              <span>Ver documento</span>
+            </div>
+          </div>
+          <div class="evidencia-info">
+            <div class="evidencia-nombre" [title]="archivo.nombre">{{ archivo.nombre }}</div>
+            <div class="evidencia-meta text-muted" *ngIf="archivo.formato || archivo.fechaRegistro">
+              <span *ngIf="archivo.formato" class="badge badge-light-blue">{{ archivo.formato }}</span>
+              <span *ngIf="archivo.fechaRegistro" class="font-xs ml-1">{{ archivo.fechaRegistro | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="evidencia-actions-bar">
+              <button type="button" class="btn-evidencia-preview" (click)="abrirPreview(archivo)" title="Vista previa en pantalla grande">
+                <cds-icon shape="eye" size="sm"></cds-icon>
+                <span>Vista Previa</span>
+              </button>
+              <button type="button" class="btn-evidencia-download" (click)="descargarEvidencia(archivo)" title="Descargar archivo al equipo">
+                <cds-icon shape="download" size="sm"></cds-icon>
+                <span>Descargar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE INSPECCIÓN DE CAMPO SI YA FUE SOLICITADA O ESTÁ EN RECOLECCIÓN (APLICA A CUALQUIER TIPO DE INCIDENCIA) -->
+    <div class="detail-section field-section mt-3"
+      *ngIf="selectedIncidencia?.solicitudCampo || selectedIncidencia?.estado?.includes('Campo') || selectedIncidencia?.estado?.includes('Recolección')">
+      <h4 class="section-heading text-info">
+        <cds-icon shape="map-marker"></cds-icon> Inspección y Recolección de Campo
+      </h4>
+      <div class="field-request-card">
+        <div class="field-request-header">
+          <span class="badge" [ngClass]="getEstadoBadgeClass(selectedIncidencia?.estado)">{{ selectedIncidencia?.estado
+            }}</span>
+          <span class="text-muted font-sm" *ngIf="selectedIncidencia?.solicitudCampo?.fechaSolicitud">
+            Solicitado el: {{ selectedIncidencia?.solicitudCampo?.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}
+          </span>
+        </div>
+        <div class="field-request-body mt-2">
+          <p><strong>Tipo de Inspección:</strong> {{ selectedIncidencia?.solicitudCampo?.tipoInspeccion || 'Inspección
+            técnica ocular' }}</p>
+          <p><strong>Prioridad:</strong> <span class="label"
+              [ngClass]="selectedIncidencia?.solicitudCampo?.prioridad === 'Urgente' ? 'label-danger' : 'label-info'">{{
+              selectedIncidencia?.solicitudCampo?.prioridad || 'Normal' }}</span></p>
+          <p class="mb-0"><strong>Instrucciones para el Agente:</strong> {{
+            selectedIncidencia?.solicitudCampo?.instrucciones || 'Verificación en el domicilio y toma de evidencias
+            fotográficas.' }}</p>
+        </div>
+        <!-- Si está en campo, permitir registrar finalización de recolección -->
+        <div class="field-actions mt-3" *ngIf="selectedIncidencia?.estado?.includes('Campo')">
+          <button type="button" class="btn btn-sm btn-outline-info" (click)="ejecutarFinalizarRecoleccion()"
+            [disabled]="procesandoAccion()">
+            <cds-icon shape="check-circle"></cds-icon>
+            Registrar Entrega de Evidencias (Finalizar Recolección)
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PIE DEL DIÁLOGO: ACCIONES DEL ANALISTA -->
+  <div class="modal-footer modal-footer-custom">
+    <!-- Botón Rechazar Incidencia con Feedback al Vecino -->
+    <button type="button" class="btn btn-outline-danger" (click)="solicitarRechazarIncidencia()"
+      id="btn-rechazar-incidencia" title="Rechazar la solicitud y proveer justificación al vecino">
+      <cds-icon shape="times"></cds-icon>
+      Rechazar Incidencia
+    </button>
+
+    <!-- Botón Aceptar Incidencia -->
+    <button type="button" class="btn btn-success" (click)="solicitarAceptarIncidencia()" id="btn-aceptar-incidencia">
+      <cds-icon shape="check"></cds-icon>
+      Aceptar Incidencia
+    </button>
+
+    <!-- Botón Cerrar Diálogo -->
+    <button type="button" class="btn btn-outline" (click)="cerrarDetalle()">
+      Cerrar
+    </button>
+  </div>
+</clr-modal>
+
+<!-- ========================================================================= -->
+<!-- DIÁLOGO DE CONFIRMACIÓN: ACEPTAR INCIDENCIA                               -->
+<!-- ========================================================================= -->
+<clr-modal [(clrModalOpen)]="confirmAceptarOpen" [clrModalSize]="'md'" [clrModalClosable]="false"
+  class="modal-confirmacion modal-confirm-aceptar">
+  <h3 class="modal-title modal-title-success">
+    <cds-icon shape="check-circle" size="lg"></cds-icon>
+    ¿Confirmar Aceptación de Incidencia?
+  </h3>
+  <div class="modal-body">
+    <div class="confirm-message">
+      <p>
+        ¿Está seguro que desea aceptar y dictaminar favorablemente la incidencia
+        <strong>#{{ selectedIncidencia?.id }}</strong>?
+      </p>
+      <div class="confirm-notice notice-success">
+        <cds-icon shape="info-circle"></cds-icon>
+        <span>
+          Al confirmar, el sistema cambiará el estado de la solicitud a
+          <strong>"Incidencia Aceptada"</strong> y se removerá de su bandeja de pendientes.
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cancelarConfirmacion()" [disabled]="procesandoAccion()"
+      id="btn-cancelar-aceptar">
+      No
+    </button>
+
+    <button type="button" class="btn btn-success" (click)="ejecutarAceptar()" [clrLoading]="procesandoAccion()"
+      id="btn-confirmar-aceptar">
+      Si
+    </button>
+  </div>
+</clr-modal>
+
+<!-- ========================================================================= -->
+<!-- DIÁLOGO DE RECHAZO CON RETROALIMENTACIÓN PARA EL VECINO                   -->
+<!-- ========================================================================= -->
+<clr-modal [(clrModalOpen)]="confirmRechazarOpen" [clrModalSize]="'lg'" [clrModalClosable]="false"
+  class="modal-confirmacion modal-confirm-rechazar">
+  <h3 class="modal-title modal-title-danger">
+    <cds-icon shape="times-circle" size="lg"></cds-icon>
+    Rechazar Incidencia y Retroalimentar al Vecino
+  </h3>
+  <div class="modal-body">
+    <!-- Aviso de notificación hacia el vecino -->
+    <div class="alert alert-warning mb-3">
+      <div class="alert-items">
+        <div class="alert-item static">
+          <div class="alert-icon-wrapper">
+            <cds-icon shape="user" class="alert-icon"></cds-icon>
+          </div>
+          <span class="alert-text">
+            <strong>Notificación al Vecino:</strong> Al confirmar el rechazo, esta retroalimentación será enviada
+            directamente al portal del vecino para que conozca las razones técnicas de la resolución y cuente con los
+            elementos necesarios para subsanar o apelar su solicitud.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="incident-summary-box mb-3">
+      <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-4">
+          <strong>Código:</strong> #{{ selectedIncidencia?.id }}
+        </div>
+        <div class="clr-col-12 clr-col-sm-4">
+          <strong>Vecino:</strong> {{ selectedIncidencia?.nombreVecino || selectedIncidencia?.vecino?.nombreCompleto }}
+        </div>
+        <div class="clr-col-12 clr-col-sm-4">
+          <strong>Tipo:</strong> {{ selectedIncidencia?.tipo }}
+        </div>
+      </div>
+    </div>
+
+    <form class="clr-form clr-form-vertical">
+      <!-- TÍTULO DEL RECHAZO (Obligatorio, máx 75 car.) -->
+      <div class="clr-form-control" [class.clr-error]="formRechazoInvalido && !feedbackTitulo.trim()">
+        <label for="feedback-titulo" class="clr-control-label">
+          Título o Motivo del Rechazo <span class="required-star">*</span>
+        </label>
+        <div class="clr-control-container">
+          <div class="clr-input-wrapper">
+            <input type="text" id="feedback-titulo" name="feedbackTitulo"
+              placeholder="Ej: Falta de pruebas concluyentes / Improcedente por jurisdicción"
+              [(ngModel)]="feedbackTitulo" maxlength="75" class="clr-input w-100" />
+          </div>
+          <div class="char-counter text-muted font-sm">{{ feedbackTitulo.length }} / 75 caracteres</div>
+          <span class="clr-subtext text-danger" *ngIf="formRechazoInvalido && !feedbackTitulo.trim()">
+            El título o motivo es obligatorio (máx. 75 caracteres).
+          </span>
+        </div>
+      </div>
+
+      <!-- DESCRIPCIÓN DETALLADA (Obligatorio, máx 255 car.) -->
+      <div class="clr-form-control mt-2" [class.clr-error]="formRechazoInvalido && !feedbackDescripcion.trim()">
+        <label for="feedback-desc" class="clr-control-label">
+          Descripción y Justificación para el Vecino <span class="required-star">*</span>
+        </label>
+        <div class="clr-control-container">
+          <div class="clr-textarea-wrapper">
+            <textarea id="feedback-desc" name="feedbackDescripcion" rows="3"
+              placeholder="Explique al ciudadano de forma clara y fundamentada la razón del rechazo..."
+              [(ngModel)]="feedbackDescripcion" maxlength="255" class="clr-textarea w-100"></textarea>
+          </div>
+          <div class="char-counter text-muted font-sm">{{ feedbackDescripcion.length }} / 255 caracteres</div>
+          <span class="clr-subtext text-danger" *ngIf="formRechazoInvalido && !feedbackDescripcion.trim()">
+            La justificación para el vecino es obligatoria (máx. 255 caracteres).
+          </span>
+        </div>
+      </div>
+
+      <!-- RECOMENDACIÓN OPCIONAL (máx 255 car.) -->
+      <div class="clr-form-control mt-2">
+        <label for="feedback-recom" class="clr-control-label">
+          Recomendación de Subsanación o Apelación <span class="text-muted">(Opcional)</span>
+        </label>
+        <div class="clr-control-container">
+          <div class="clr-textarea-wrapper">
+            <textarea id="feedback-recom" name="feedbackRecomendacion" rows="2"
+              placeholder="Ej: Puede ingresar una nueva gestión aportando el recibo de pago o apelar dentro de 5 días hábiles..."
+              [(ngModel)]="feedbackRecomendacion" maxlength="255" class="clr-textarea w-100"></textarea>
+          </div>
+          <div class="char-counter text-muted font-sm">{{ feedbackRecomendacion.length }} / 255 caracteres</div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cancelarConfirmacion()" [disabled]="procesandoAccion()">
+      Cancelar
+    </button>
+    <button type="button" class="btn btn-danger" (click)="ejecutarRechazar()" [clrLoading]="procesandoAccion()"
+      id="btn-confirmar-rechazar">
+      <cds-icon shape="times"></cds-icon>
+      Confirmar Rechazo y Notificar
+    </button>
+  </div>
+</clr-modal>
+
+<!-- ========================================================================= -->
+<!-- MODAL: SOLICITAR MÁS EVIDENCIAS CON AGENTE DE CAMPO                       -->
+<!-- ========================================================================= -->
+<clr-modal [(clrModalOpen)]="modalCampoOpen" [clrModalSize]="'lg'" [clrModalClosable]="false" class="modal-campo">
+  <h3 class="modal-title modal-title-info">
+    <cds-icon shape="map-marker" size="lg"></cds-icon>
+    Solicitar Más Evidencias con Agente de Campo
+  </h3>
+  <div class="modal-body">
+    <div class="alert alert-info mb-3">
+      <div class="alert-items">
+        <div class="alert-item static">
+          <div class="alert-icon-wrapper">
+            <cds-icon shape="info-circle" class="alert-icon"></cds-icon>
+          </div>
+          <span class="alert-text">
+            Esta acción generará una orden de recolección para los Agentes de Campo municipales. La incidencia cambiará
+            al estado <strong>"Asignada a Campo"</strong> para realizar la inspección en el sitio.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="incident-summary-box mb-3">
+      <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-4">
+          <strong>Incidencia:</strong> #{{ selectedIncidencia?.id }} ({{ selectedIncidencia?.tipo }})
+        </div>
+        <div class="clr-col-12 clr-col-sm-4">
+          <strong>Contador:</strong> {{ selectedIncidencia?.contador || 'N/A' }}
+        </div>
+        <div class="clr-col-12 clr-col-sm-4">
+          <strong>Ubicación:</strong> {{ selectedIncidencia?.direccion }}
+        </div>
+      </div>
+    </div>
+
+    <form class="clr-form clr-form-vertical">
+      <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6">
+          <div class="clr-form-control">
+            <label for="campo-tipo" class="clr-control-label">Tipo de Inspección Requerida</label>
+            <div class="clr-control-container">
+              <div class="clr-select-wrapper w-100">
+                <select id="campo-tipo" [(ngModel)]="campoTipoInspeccion" name="campoTipoInspeccion"
+                  class="clr-select w-100">
+                  <option value="Inspección Ocular y Toma de Fotografías">Inspección Ocular y Toma de Fotografías
+                  </option>
+                  <option value="Verificación Técnica de Contador de Agua">Verificación Técnica de Contador de Agua
+                  </option>
+                  <option value="Entrevista con Vecinos y Testigos">Entrevista con Vecinos y Testigos</option>
+                  <option value="Toma de Medidas y Georreferenciación">Toma de Medidas y Georreferenciación</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="clr-col-12 clr-col-sm-6">
+          <div class="clr-form-control">
+            <label for="campo-prioridad" class="clr-control-label">Prioridad de la Recolección</label>
+            <div class="clr-control-container">
+              <div class="clr-select-wrapper w-100">
+                <select id="campo-prioridad" [(ngModel)]="campoPrioridad" name="campoPrioridad"
+                  class="clr-select w-100">
+                  <option value="Normal">Normal (plazo ordinario)</option>
+                  <option value="Alta">Alta (prioridad semanal)</option>
+                  <option value="Urgente">Urgente (atención inmediata en 24h)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INSTRUCCIONES DETALLADAS -->
+      <div class="clr-form-control mt-2" [class.clr-error]="formCampoInvalido && !campoInstrucciones.trim()">
+        <label for="campo-instrucciones" class="clr-control-label">
+          Instrucciones para el Agente de Campo <span class="required-star">*</span>
+        </label>
+        <div class="clr-control-container">
+          <div class="clr-textarea-wrapper">
+            <textarea id="campo-instrucciones" name="campoInstrucciones" rows="3"
+              placeholder="Describa puntualmente las pruebas o inspección que el agente debe ejecutar en el sitio..."
+              [(ngModel)]="campoInstrucciones" class="clr-textarea w-100"></textarea>
+          </div>
+          <span class="clr-subtext text-danger" *ngIf="formCampoInvalido && !campoInstrucciones.trim()">
+            Las instrucciones para el agente son obligatorias.
+          </span>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cerrarModalCampo()" [disabled]="procesandoAccion()">
+      Cancelar
+    </button>
+    <button type="button" class="btn btn-info" (click)="ejecutarSolicitudCampo()" [clrLoading]="procesandoAccion()"
+      id="btn-confirmar-campo">
+      <cds-icon shape="paperclip"></cds-icon>
+      Enviar Solicitud a Campo
+    </button>
+  </div>
+</clr-modal>
+
+<!-- MODAL UNIVERSAL DE VISTA PREVIA PARA IMÁGENES Y DOCUMENTOS PDF -->
+<app-modal-preview-archivo
+  [(open)]="previewModalOpen"
+  [archivo]="archivoEnPreview"
+  [incidenciaId]="selectedIncidencia?.id"
+  (descargar)="descargarEvidencia($event)"
+></app-modal-preview-archivo>

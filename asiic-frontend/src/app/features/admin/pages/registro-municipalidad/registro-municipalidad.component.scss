@@ -1,0 +1,67 @@
+@use '../../../../../styles/colors' as *;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.admin-form-container {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  padding: 2rem;
+
+  .admin-form-header {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 1rem;
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: $color-primary-dark;
+      margin: 0 0 0.35rem;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin: 0;
+    }
+  }
+
+  .form-actions {
+    margin-top: 2.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-form-container {
+    padding: 1.25rem 1rem;
+    border-radius: 8px;
+
+    .admin-form-header {
+      margin-bottom: 1.25rem;
+
+      h2 {
+        font-size: 1.3rem;
+      }
+    }
+
+    .form-actions {
+      flex-direction: column;
+      gap: 0.75rem;
+
+      .btn {
+        width: 100%;
+        margin: 0;
+      }
+    }
+  }
+}

@@ -75,3 +75,27 @@
     max-width: none;
   }
 }
+
+@media (max-width: 576px) {
+  .rv-aside {
+    padding: 1.5rem 1.25rem;
+    gap: 1.25rem;
+
+    &__brand img {
+      height: 36px;
+      width: 36px;
+    }
+
+    &__body {
+      h1 {
+        font-size: 1.35rem;
+      }
+
+      p {
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+      }
+    }
+  }
+}
+

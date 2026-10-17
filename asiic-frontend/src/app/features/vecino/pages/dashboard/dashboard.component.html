@@ -195,6 +195,9 @@
                 <a [routerLink]="['/vecino/incidencias/editar', t.id]" class="btn btn-sm btn-link" title="Editar Borrador">
                   <cds-icon shape="pencil"></cds-icon> Editar
                 </a>
+                <button type="button" class="btn btn-sm btn-link text-success" title="Enviar Incidencia" (click)="enviarBorradorDirecto(t)">
+                  <cds-icon shape="paper-plane"></cds-icon> Enviar
+                </button>
               </ng-container>
               <ng-container *ngIf="t.estado?.toUpperCase() !== 'BORRADOR'">
                 <button type="button" class="btn btn-sm btn-link" title="Ver Resumen" (click)="abrirResumen(t)">
@@ -345,20 +348,26 @@
           <ng-container *ngFor="let archivo of resumenSeleccionado.archivosAdjuntos">
 
             <!-- Si es imagen y tiene URL generada -->
-            <div *ngIf="archivo.url" class="evidencia-card" style="border: 1px solid #ccc; padding: 4px; border-radius: 4px; text-align: center;">
-              <img [src]="archivo.url" [alt]="archivo.nombre" style="max-width: 100%; height: auto; max-height: 150px; object-fit: contain;" />
-              <div style="font-size: 0.75rem; margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" [title]="archivo.nombre">
+            <div *ngIf="archivo.url" class="evidencia-card" style="border: 1px solid #cbd5e1; padding: 4px; border-radius: 6px; text-align: center; cursor: pointer; transition: transform 0.2s; background: #fff;" (click)="abrirPreview(archivo)" title="Haga clic para ver en grande">
+              <img [src]="archivo.url" [alt]="archivo.nombre" style="max-width: 100%; height: auto; max-height: 140px; object-fit: contain; border-radius: 4px;" />
+              <div style="font-size: 0.75rem; margin-top: 0.35rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1e293b;" [title]="archivo.nombre">
                 {{ archivo.nombre }}
+              </div>
+              <div style="color: #0284c7; font-size: 0.7rem; margin-top: 2px;">
+                <cds-icon shape="eye" size="sm"></cds-icon> Ver en grande
               </div>
             </div>
 
-            <!-- Si no es imagen o falló la URL, mostrar como lista/tarjeta -->
-            <div *ngIf="!archivo.url" class="evidencia-card" style="border: 1px solid #ccc; padding: 10px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f9f9f9;">
-              <cds-icon shape="file" size="lg" style="color: #0079b8; margin-bottom: 0.5rem;"></cds-icon>
-              <div style="font-size: 0.75rem; text-align: center; word-break: break-all;" [title]="archivo.nombre">
+            <!-- Si no es imagen o falló la URL (ej. PDF) -->
+            <div *ngIf="!archivo.url" class="evidencia-card" style="border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; cursor: pointer;" (click)="abrirPreview(archivo)" title="Haga clic para ver documento">
+              <cds-icon [attr.shape]="archivo.nombre?.toLowerCase()?.endsWith('.pdf') ? 'file-group' : 'document'" size="lg" style="color: #dc2626; margin-bottom: 0.4rem;"></cds-icon>
+              <div style="font-size: 0.75rem; font-weight: 600; text-align: center; word-break: break-all; color: #1e293b;" [title]="archivo.nombre">
                 {{ archivo.nombre }}
               </div>
-              <span style="color: #666; font-size: 0.65rem; margin-top: 0.25rem;">({{ archivo.formato }})</span>
+              <span style="color: #64748b; font-size: 0.65rem; margin-top: 0.25rem;">({{ archivo.formato || 'PDF' }})</span>
+              <div style="color: #0284c7; font-size: 0.7rem; margin-top: 4px;">
+                <cds-icon shape="eye" size="sm"></cds-icon> Vista previa
+              </div>
             </div>
 
           </ng-container>
@@ -373,3 +382,10 @@
     </button>
   </div>
 </clr-modal>
+
+<!-- MODAL DE VISTA PREVIA PARA VECINO -->
+<app-modal-preview-archivo
+  [(open)]="previewModalOpen"
+  [archivo]="archivoEnPreview"
+  [incidenciaId]="resumenSeleccionado?.id"
+></app-modal-preview-archivo>

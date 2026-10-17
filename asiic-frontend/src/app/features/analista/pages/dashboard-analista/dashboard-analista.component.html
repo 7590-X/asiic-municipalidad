@@ -1,0 +1,330 @@
+<div class="analista-dashboard-container">
+
+  <!-- BANNER DE BIENVENIDA -->
+  <div class="welcome-hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <cds-icon shape="user" size="sm"></cds-icon>
+        <span>Panel del Analista de Solicitudes</span>
+      </div>
+      <h1 class="hero-title">
+        Bienvenido, {{ currentUser()?.name || 'Analista Municipal' }}
+      </h1>
+      <p class="hero-desc">
+        Visualiza, evalúa y dictamina las incidencias asignadas bajo tu competencia municipal para gestionar su ciclo de vida oficial.
+      </p>
+      <div class="hero-actions">
+        <a routerLink="/analista/incidencias-asignadas" class="btn btn-primary btn-hero">
+          <cds-icon shape="clipboard"></cds-icon>
+          Ir a Incidencias Asignadas
+          <span class="badge badge-light ml-1" *ngIf="totalAsignadas() > 0">{{ totalAsignadas() }}</span>
+        </a>
+      </div>
+    </div>
+    <div class="hero-illustration">
+      <div class="stat-bubble">
+        <div class="bubble-number">{{ totalAsignadas() }}</div>
+        <div class="bubble-text">Pendientes de Dictamen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TARJETAS DE MÉTRICAS CLAVE -->
+  <div class="clr-row metrics-grid">
+    <div class="clr-col-12 clr-col-sm-6 clr-col-lg">
+      <div class="card metric-card card-blue">
+        <div class="card-block">
+          <div class="metric-icon-box icon-blue">
+            <cds-icon shape="folder-open" size="lg"></cds-icon>
+          </div>
+          <div class="metric-details">
+            <div class="metric-value">{{ totalAsignadas() }}</div>
+            <div class="metric-title">Total Asignadas</div>
+            <div class="metric-sub">En tu bandeja de analista</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-lg">
+      <div class="card metric-card card-amber">
+        <div class="card-block">
+          <div class="metric-icon-box icon-amber">
+            <cds-icon shape="clock" size="lg"></cds-icon>
+          </div>
+          <div class="metric-details">
+            <div class="metric-value">{{ totalAsignadaInicial() }}</div>
+            <div class="metric-title">Incidencias Asignadas</div>
+            <div class="metric-sub">Revisión y dictamen inicial</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-lg">
+      <div class="card metric-card card-sky">
+        <div class="card-block">
+          <div class="metric-icon-box icon-sky">
+            <cds-icon shape="map-marker" size="lg"></cds-icon>
+          </div>
+          <div class="metric-details">
+            <div class="metric-value">{{ totalCampo() }}</div>
+            <div class="metric-title">En Campo</div>
+            <div class="metric-sub">Inspección de evidencias</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-lg">
+      <div class="card metric-card card-green">
+        <div class="card-block">
+          <div class="metric-icon-box icon-green">
+            <cds-icon shape="check-circle" size="lg"></cds-icon>
+          </div>
+          <div class="metric-details">
+            <div class="metric-value">{{ totalRecoleccion() }}</div>
+            <div class="metric-title">Recolección Fin.</div>
+            <div class="metric-sub">Inspección completada</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="clr-col-12 clr-col-sm-6 clr-col-lg">
+      <div class="card metric-card card-purple">
+        <div class="card-block">
+          <div class="metric-icon-box icon-purple">
+            <cds-icon shape="replay" size="lg"></cds-icon>
+          </div>
+          <div class="metric-details">
+            <div class="metric-value">{{ totalApelaciones() }}</div>
+            <div class="metric-title">Apelaciones Asig.</div>
+            <div class="metric-sub">Casos apelados por vecinos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="clr-row dashboard-columns">
+    <!-- COLUMNA PRINCIPAL: INCIDENCIAS RECIENTES -->
+    <div class="clr-col-12 clr-col-lg-8">
+      <div class="card content-card">
+        <div class="card-header card-header-flex">
+          <div class="card-header-title">
+            <cds-icon shape="list" size="md"></cds-icon>
+            <span>Incidencias Asignadas Recientes</span>
+          </div>
+          <a routerLink="/analista/incidencias-asignadas" class="btn btn-sm btn-link">
+            Ver todas ({{ totalAsignadas() }}) <cds-icon shape="arrow" direction="right"></cds-icon>
+          </a>
+        </div>
+        <div class="card-block p-0">
+          <div *ngIf="loading()" class="loading-box">
+            <span class="spinner"></span>
+            <p>Cargando incidencias asignadas...</p>
+          </div>
+
+          <div *ngIf="!loading() && incidencias().length === 0" class="empty-box">
+            <cds-icon shape="check" size="xl" class="text-success"></cds-icon>
+            <h4>¡Todo al día!</h4>
+            <p>No tienes incidencias pendientes de dictamen en este momento.</p>
+          </div>
+
+          <div *ngIf="!loading() && incidencias().length > 0">
+            <!-- VISTA MÓVIL: TARJETAS COMPACTAS (< 768px) -->
+            <div class="mobile-recent-cards d-md-none">
+              <div *ngFor="let inc of incidenciasRecientes()" class="mobile-recent-card">
+                <div class="m-card-top">
+                  <div class="m-card-code-type">
+                    <span class="m-card-code">#{{ inc.id }}</span>
+                    <span class="label" [ngClass]="getTipoBadgeClass(inc.tipo)">{{ inc.tipo }}</span>
+                  </div>
+                  <span class="badge" [ngClass]="getEstadoBadgeClass(inc.estado)">{{ inc.estado }}</span>
+                </div>
+                <div class="m-card-subject">{{ inc.asunto || inc.descripcion }}</div>
+                <div class="m-card-bottom">
+                  <span class="m-card-date">
+                    <cds-icon shape="calendar" size="sm"></cds-icon>
+                    {{ inc.fechaRegistro ? (inc.fechaRegistro | date:'dd/MM/yyyy') : inc.fecha }}
+                  </span>
+                  <a routerLink="/analista/incidencias-asignadas" class="btn btn-sm btn-outline-primary m-card-btn">
+                    Ver <cds-icon shape="arrow" direction="right"></cds-icon>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- VISTA ESCRITORIO / TABLET: TABLA CON SCROLL SEGURO (>= 768px) -->
+            <div class="table-responsive d-none d-md-block">
+              <table class="table table-noborder table-hover m-0">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Tipo</th>
+                    <th>Asunto</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th class="text-right">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let inc of incidenciasRecientes()">
+                    <td><strong class="text-primary">#{{ inc.id }}</strong></td>
+                    <td>
+                      <span class="label" [ngClass]="getTipoBadgeClass(inc.tipo)">
+                        {{ inc.tipo }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="truncate-cell" [title]="inc.asunto || inc.descripcion">
+                        {{ inc.asunto || inc.descripcion }}
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge" [ngClass]="getEstadoBadgeClass(inc.estado)">
+                        {{ inc.estado }}
+                      </span>
+                    </td>
+                    <td class="text-muted font-sm">
+                      {{ inc.fechaRegistro ? (inc.fechaRegistro | date:'dd/MM/yyyy') : inc.fecha }}
+                    </td>
+                    <td class="text-right">
+                      <a routerLink="/analista/incidencias-asignadas" class="btn btn-sm btn-outline-primary btn-icon-only" title="Ir a dictamen">
+                        <cds-icon shape="eye"></cds-icon>
+                      </a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- GUÍA DEL CICLO DE VIDA PARA EL ANALISTA -->
+      <div class="card workflow-card mt-3">
+        <div class="card-header">
+          <div class="card-header-title">
+            <cds-icon shape="process" size="md"></cds-icon>
+            <span>Ciclo de Vida y Dictamen de Incidencias</span>
+          </div>
+        </div>
+        <div class="card-block">
+          <div class="workflow-steps">
+            <div class="wf-step">
+              <div class="wf-circle">1</div>
+              <div class="wf-title">Recepción</div>
+              <div class="wf-desc">Incidencias asignadas automáticamente según tu municipio.</div>
+            </div>
+            <div class="wf-arrow"><cds-icon shape="arrow" direction="right"></cds-icon></div>
+            <div class="wf-step">
+              <div class="wf-circle">2</div>
+              <div class="wf-title">Auditoría</div>
+              <div class="wf-desc">Auditoría de testigos, relato, evidencias y datos de contador.</div>
+            </div>
+            <div class="wf-arrow"><cds-icon shape="arrow" direction="right"></cds-icon></div>
+            <div class="wf-step">
+              <div class="wf-circle">3</div>
+              <div class="wf-title">Inspección de Campo</div>
+              <div class="wf-desc">Solicitar recolección de pruebas a un agente municipal si faltan evidencias.</div>
+            </div>
+            <div class="wf-arrow"><cds-icon shape="arrow" direction="right"></cds-icon></div>
+            <div class="wf-step">
+              <div class="wf-circle highlight">4</div>
+              <div class="wf-title">Dictamen</div>
+              <div class="wf-desc">
+                <strong>Aceptar Incidencia</strong> o <strong>Rechazar con Retroalimentación</strong> para el vecino.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA LATERAL: DISTRIBUCIÓN Y ACCESOS -->
+    <div class="clr-col-12 clr-col-lg-4">
+      <!-- DISTRIBUCIÓN POR TIPO -->
+      <div class="card content-card">
+        <div class="card-header">
+          <div class="card-header-title">
+            <cds-icon shape="pie-chart" size="md"></cds-icon>
+            <span>Distribución por Tipo</span>
+          </div>
+        </div>
+        <div class="card-block">
+          <div class="distribution-list">
+            <!-- Quejas -->
+            <div class="dist-item">
+              <div class="dist-header">
+                <span class="label label-warning">Quejas</span>
+                <span class="dist-count">{{ totalQuejas() }}</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill fill-warning" [style.width.%]="totalAsignadas() > 0 ? (totalQuejas() / totalAsignadas()) * 100 : 0"></div>
+              </div>
+            </div>
+
+            <!-- Reclamos -->
+            <div class="dist-item">
+              <div class="dist-header">
+                <span class="label label-warning">Reclamos</span>
+                <span class="dist-count">{{ totalReclamos() }}</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill fill-warning" [style.width.%]="totalAsignadas() > 0 ? (totalReclamos() / totalAsignadas()) * 100 : 0"></div>
+              </div>
+            </div>
+
+            <!-- Denuncias -->
+            <div class="dist-item">
+              <div class="dist-header">
+                <span class="label label-danger">Denuncias</span>
+                <span class="dist-count">{{ totalDenuncias() }}</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill fill-danger" [style.width.%]="totalAsignadas() > 0 ? (totalDenuncias() / totalAsignadas()) * 100 : 0"></div>
+              </div>
+            </div>
+
+            <!-- Sugerencias -->
+            <div class="dist-item">
+              <div class="dist-header">
+                <span class="label label-info">Sugerencias</span>
+                <span class="dist-count">{{ totalSugerencias() }}</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill fill-info" [style.width.%]="totalAsignadas() > 0 ? (totalSugerencias() / totalAsignadas()) * 100 : 0"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCESO RÁPIDO -->
+      <div class="card quick-actions-card mt-3">
+        <div class="card-header">
+          <div class="card-header-title">
+            <cds-icon shape="bolt" size="md"></cds-icon>
+            <span>Acciones Rápidas</span>
+          </div>
+        </div>
+        <div class="card-block">
+          <a routerLink="/analista/incidencias-asignadas" class="quick-link-btn">
+            <div class="quick-link-icon bg-blue">
+              <cds-icon shape="clipboard"></cds-icon>
+            </div>
+            <div class="quick-link-text">
+              <div class="quick-link-title">Bandeja de Incidencias</div>
+              <div class="quick-link-desc">Dictaminar y revisar solicitudes</div>
+            </div>
+            <cds-icon shape="arrow" direction="right" class="quick-link-arrow"></cds-icon>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
