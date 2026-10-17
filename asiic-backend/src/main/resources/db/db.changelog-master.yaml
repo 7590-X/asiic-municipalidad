@@ -63,3 +63,5 @@ databaseChangeLog:
       file: db/changelog/261015-2-as-usuario-catelo.sql
   - include:
       file: db/changelog/261015-3-sp_asignar_agente-mod.sql
+  - include:
+      file: db/changelog/261016-1-sp-asignar-agente-filtro-sugerencias.sql

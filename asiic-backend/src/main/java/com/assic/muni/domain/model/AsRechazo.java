@@ -28,7 +28,6 @@ public class AsRechazo {
     @Column(name = "re_incidencia", nullable = false)
     private Integer reIncidencia;
 
-    @NotNull
     @ManyToOne
     @JoinColumn(name = "re_incidencia", insertable = false, updatable = false)
     private AsIncidencia asIncidencia;

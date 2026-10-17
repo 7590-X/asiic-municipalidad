@@ -8,7 +8,7 @@ public enum KCRole {
 
     SYS_ANALISTA("sys_analista"),
 
-    SYS_AGENTE("sys_agente_campo"),
+    SYS_AGENTE("sys_agente"),
 
     SYS_ADMIN("sys_admin");
 

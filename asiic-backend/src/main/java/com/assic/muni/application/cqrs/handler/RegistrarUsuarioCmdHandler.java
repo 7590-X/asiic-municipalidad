@@ -23,95 +23,97 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RegistrarUsuarioCmdHandler implements CQRSCmdHandler<String, RegistrarUsuarioCmd> {
 
-    private static final String CARACTERES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    private static final SecureRandom RANDOM = new SecureRandom();
+        private static final String CARACTERES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        private static final SecureRandom RANDOM = new SecureRandom();
 
-    private final AsUsuarioRepository usuarioRepository;
-    private final AsMuniUsuarioRepository muniUsuarioRepository;
-    private final AsPersonaRepository personaRepository;
-    private final IdentityProviderPort identityProviderPort;
-    private final ApplicationEventPublisher eventPublisher;
-    private final AsCatalogoRepository catalogoRepository;
-    private final AsCorreoRepository correoRepository;
-    private final ObjectMapper objectMapper;
+        private final AsUsuarioRepository usuarioRepository;
+        private final AsMuniUsuarioRepository muniUsuarioRepository;
+        private final AsPersonaRepository personaRepository;
+        private final IdentityProviderPort identityProviderPort;
+        private final ApplicationEventPublisher eventPublisher;
+        private final AsCatalogoRepository catalogoRepository;
+        private final AsCorreoRepository correoRepository;
+        private final ObjectMapper objectMapper;
 
-    @Override
-    @Transactional
-    public String handle(RegistrarUsuarioCmd cmd) {
-        // Validar correo disponible
-        boolean existsCorreo = usuarioRepository.existsByUsCorreo_CoCorreo(cmd.correo());
-        if (existsCorreo) {
-            throw new ServiceException(HttpStatus.BAD_REQUEST, "El correo ya fue registrado para otro usuario");
+        @Override
+        @Transactional
+        public String handle(RegistrarUsuarioCmd cmd) {
+                // Validar correo disponible
+                boolean existsCorreo = usuarioRepository.existsByUsCorreo_CoCorreo(cmd.correo());
+                if (existsCorreo) {
+                        throw new ServiceException(HttpStatus.BAD_REQUEST,
+                                        "El correo ya fue registrado para otro usuario");
+                }
+
+                // Crear nueva cuenta en KC
+                final String username = generarCodigoAleatorio(10);
+                String userId = identityProviderPort.createNewIdentityUser(new KCUsuario(
+                                username, cmd.correo(), cmd.nombres(), cmd.apellidos(), false, true));
+
+                try {
+                        // Asignar tipo de persona individual
+                        Short tipoPersona = catalogoRepository.findIdByCaSeudo("PEIN")
+                                        .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
+                                                        "No se pudo verificar la identidad del vecino"));
+                        AsPersona persona = personaRepository.save(AsPersona.builder()
+                                        .peNombre(cmd.nombres())
+                                        .peApellido(cmd.apellidos())
+                                        .peTipPersona(tipoPersona)
+                                        .build());
+
+                        // Obtener datos para crear usuario
+                        AsCatalogo tipoUsuario = catalogoRepository.findByCaSeudo("UINT") // Usuario Interno
+                                        .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST,
+                                                        "No se pudo verificar el grupo del usuario"));
+
+                        AsCorreo correo = correoRepository.saveAndFlush(AsCorreo.builder()
+                                        .coCorreo(cmd.correo())
+                                        .build());
+
+                        // Asignar roles
+                        List<RoleRepresentation> roles = identityProviderPort.asignarRoles(userId, cmd.roles());
+
+                        // Obtener IDs de roles en catálogo
+                        List<Short> rolesId = catalogoRepository.findIdByCaPkExternaIn(cmd.roles());
+
+                        JsonNode jsonRoles = objectMapper.valueToTree(roles);
+
+                        usuarioRepository.saveAndFlush(AsUsuario.builder()
+                                        .usId(userId)
+                                        .usEstado("A")
+                                        .usCorreo(correo)
+                                        .usTipo(tipoUsuario)
+                                        .usPersona(persona)
+                                        .usUsrRegistro(userId)
+                                        .usIpRegistro("N/A")
+                                        .usCredencial(username)
+                                        .usJsonRoles(jsonRoles)
+                                        .build());
+
+                        rolesId.forEach(r -> {
+                                muniUsuarioRepository.saveAll(cmd.municipalidades().stream()
+                                                .map(m -> AsMuniUsuario.builder()
+                                                                .id(new AsMuniUsuarioId(m, userId, r))
+                                                                .build())
+                                                .toList());
+                        });
+
+                } catch (RuntimeException e) {
+                        identityProviderPort.deleteIdentityUser(userId);
+                        throw e;
+                }
+
+                eventPublisher.publishEvent(new CuentaCreadaEvent(
+                                userId, cmd.correo(), (cmd.nombres() + " " + cmd.apellidos())));
+
+                return userId;
         }
 
-        // Crear nueva cuenta en KC
-        final String username = generarCodigoAleatorio(10);
-        String userId = identityProviderPort.createNewIdentityUser(new KCUsuario(
-                username, cmd.correo(), cmd.nombres(), cmd.apellidos(), false, true
-        ));
-
-        try {
-            // Asignar tipo de persona individual
-            Short tipoPersona = catalogoRepository.findIdByCaSeudo("PEIN")
-                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar la identidad del vecino"));
-            AsPersona persona = personaRepository.save(AsPersona.builder()
-                    .peNombre(cmd.nombres())
-                    .peApellido(cmd.apellidos())
-                    .peTipPersona(tipoPersona)
-                    .build());
-
-            // Obtener datos para crear usuario
-            AsCatalogo tipoUsuario = catalogoRepository.findByCaSeudo("UINT") // Usuario Interno
-                    .orElseThrow(() -> new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar el grupo del usuario"));
-
-            AsCorreo correo = correoRepository.saveAndFlush(AsCorreo.builder()
-                    .coCorreo(cmd.correo())
-                    .build());
-
-            // Asignar roles
-            List<RoleRepresentation> roles = identityProviderPort.asignarRoles(userId, cmd.roles());
-
-            // Obtener IDs de roles en catálogo
-            List<Short> rolesId = catalogoRepository.findIdByCaPkExternaIn(cmd.roles());
-
-            JsonNode jsonRoles = objectMapper.valueToTree(roles);
-
-            usuarioRepository.saveAndFlush(AsUsuario.builder()
-                    .usId(userId)
-                    .usEstado("I")
-                    .usCorreo(correo)
-                    .usTipo(tipoUsuario)
-                    .usPersona(persona)
-                    .usUsrRegistro(userId)
-                    .usIpRegistro("N/A")
-                    .usCredencial(username)
-                    .usJsonRoles(jsonRoles)
-                    .build());
-
-            rolesId.forEach(r -> {
-                muniUsuarioRepository.saveAll(cmd.municipalidades().stream()
-                        .map(m -> AsMuniUsuario.builder()
-                                .id(new AsMuniUsuarioId(m, userId, r))
-                                .build()).toList());
-            });
-
-        } catch (RuntimeException e) {
-            identityProviderPort.deleteIdentityUser(userId);
-            throw e;
+        private String generarCodigoAleatorio(int longitud) {
+                StringBuilder sb = new StringBuilder(longitud);
+                for (int i = 0; i < longitud; i++) {
+                        sb.append(CARACTERES.charAt(RANDOM.nextInt(CARACTERES.length())));
+                }
+                return sb.toString().toUpperCase();
         }
-
-        eventPublisher.publishEvent(new CuentaCreadaEvent(
-                userId, cmd.correo(), (cmd.nombres() + " " + cmd.apellidos())
-        ));
-
-        return userId;
-    }
-
-    private String generarCodigoAleatorio(int longitud) {
-        StringBuilder sb = new StringBuilder(longitud);
-        for (int i = 0; i < longitud; i++) {
-            sb.append(CARACTERES.charAt(RANDOM.nextInt(CARACTERES.length())));
-        }
-        return sb.toString().toUpperCase();
-    }
 }
