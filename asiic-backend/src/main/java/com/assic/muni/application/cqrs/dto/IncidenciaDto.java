@@ -1,5 +1,6 @@
 package com.assic.muni.application.cqrs.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +28,7 @@ public class IncidenciaDto {
     private String latitud;
     private String longitud;
     private String estado;
-    private List<TestigoDto> testigos;
+    private JsonNode testigos;
     private Instant fechaRegistro;
     private String usuarioRegistro;
     private Instant fechaModifico;
