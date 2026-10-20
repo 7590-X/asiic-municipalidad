@@ -1,13 +1,14 @@
 package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
-import com.assic.muni.application.cqrs.cmd.ResumenCmd;
+import com.assic.muni.application.cqrs.dto.ResumenDto;
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
 import com.assic.muni.application.cqrs.dto.ArchivoDto;
 import com.assic.muni.application.cqrs.dto.IncidenciaDto;
 import com.assic.muni.application.cqrs.dto.IncidenciaFeedback;
 import com.assic.muni.application.cqrs.handler.ArchivosQueryHandler;
 import com.assic.muni.application.cqrs.handler.IncidenciaPipelineHandler;
+import com.assic.muni.application.cqrs.handler.ResumenQueryHandler;
 import com.assic.muni.domain.enums.IncidenciaEvent;
 import com.assic.muni.domain.enums.IncidenciaState;
 import com.assic.muni.infrastructure.config.SwaggerConfig;
@@ -46,6 +47,7 @@ public class IncidenciasEventController {
 
     private final IncidenciaPipelineHandler incidenciaPipelineHandler;
     private final ArchivosQueryHandler archivosQueryHandler;
+    private final ResumenQueryHandler resumenQueryHandler;
 
     @PostMapping("/{id}/event/enviar-incidencia")
     @Operation(summary = "EV1-0 - Enviar Incidencia")
@@ -93,9 +95,14 @@ public class IncidenciasEventController {
 
     @PostMapping("/{id}/event/finalizar-recoleccion")
     @Operation(summary = "EV1-2 - Finalizar Recolección")
-    public ResponseEntity<ApiResponseDto> eventTerminarRecoleccion(@PathVariable Integer id, @Valid @RequestBody ResumenCmd resumen) {
+    public ResponseEntity<ApiResponseDto> eventTerminarRecoleccion(@PathVariable Integer id, @Valid @RequestBody ResumenDto resumen) {
         incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.FINALIZAR_RECOLECCION, resumen);
         return ResponseEntity.ok(getMessageBody("Recolección finalizada correctamente"));
+    }
+
+    @GetMapping("/{id}/resumenes")
+    public ResponseEntity<List<ResumenDto>> obtenerResumenDeCampo(@PathVariable Integer id) {
+        return ResponseEntity.ok(resumenQueryHandler.obtenerResumenIncidencia(id));
     }
 
     @PostMapping("/{id}/event/confirmar-incidencia")
