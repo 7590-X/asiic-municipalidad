@@ -221,6 +221,20 @@ export class RegistroIncidenciaComponent implements OnInit {
         if (this.isApelacion || (esRechazada && this.router.url.includes('/apelar/'))) {
           this.isApelacion = true;
           this.isReadOnly = false;
+          this.tipoYPrivacidadForm.enable();
+          this.detalleIncidenciaForm.enable();
+
+          const tipoFijado = tipoStr;
+          const privFijada = privacidadStr;
+          this.tipoYPrivacidadForm.valueChanges.subscribe(val => {
+            if (val.tipoIncidencia !== tipoFijado || val.privacidad !== privFijada) {
+              this.tipoYPrivacidadForm.patchValue(
+                { tipoIncidencia: tipoFijado, privacidad: privFijada },
+                { emitEvent: false }
+              );
+            }
+          });
+
           this.incidenciasService.getArchivosIncidencia(id).subscribe({
             next: (archivos) => this.archivosExistentes = archivos,
             error: (err) => console.error('Error cargando archivos', err)
@@ -228,6 +242,8 @@ export class RegistroIncidenciaComponent implements OnInit {
           this.cargarFeedbackRechazo(id);
         } else if (esBorrador) {
           this.isReadOnly = false;
+          this.tipoYPrivacidadForm.enable();
+          this.detalleIncidenciaForm.enable();
           this.incidenciasService.getArchivosIncidencia(id).subscribe({
             next: (archivos) => this.archivosExistentes = archivos,
             error: (err) => console.error('Error cargando archivos', err)
