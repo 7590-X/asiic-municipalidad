@@ -52,11 +52,11 @@ public class SftpFileStorageAdapter implements FileStoragePort {
             String calculatedHash = calculateSha256(file);
             log.debug("[STORE-FILE] SHA-256 generado para '{}': {}", originalFilename, calculatedHash);
 
-            // Comprobar deduplicación
+            // Comprobar duplicación
             Optional<AsArchivo> existingFile = asArchivoRepository.findByArHash(calculatedHash);
             if (existingFile.isPresent()) {
                 AsArchivo persisted = existingFile.get();
-                log.info("[STORE-FILE] Deduplicación exitosa: El archivo '{}' ya existe con ID {} (Hash: {}). Reutilizando registro en {} ms",
+                log.info("[STORE-FILE] Duplicación detectada exitosamente: El archivo '{}' ya existe con ID {} (Hash: {}). Reutilizando registro en {} ms",
                         originalFilename, persisted.getId(), calculatedHash, (System.currentTimeMillis() - startTime));
                 return persisted;
             }
