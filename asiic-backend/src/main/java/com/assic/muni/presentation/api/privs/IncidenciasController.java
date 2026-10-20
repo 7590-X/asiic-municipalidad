@@ -8,6 +8,7 @@ import com.assic.muni.application.cqrs.dto.IncidenciaFeedback;
 import com.assic.muni.application.cqrs.handler.ArchivosQueryHandler;
 import com.assic.muni.application.cqrs.handler.IncidenciaQueryHandler;
 import com.assic.muni.application.cqrs.handler.UpsertIncidenciaCmdHandler;
+import com.assic.muni.application.cqrs.handler.UpsertIncidenciaEvidenciaCmdHandler;
 import com.assic.muni.infrastructure.config.SwaggerConfig;
 import com.assic.muni.presentation.api.util.UriBuilder;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.net.URI;
 import java.time.ZonedDateTime;
@@ -41,6 +43,7 @@ public class IncidenciasController {
 
     protected static final String URI = "/api/v1/asiic/incidencias";
     private final UpsertIncidenciaCmdHandler upsertIncidenciaCmdHandler;
+    private final UpsertIncidenciaEvidenciaCmdHandler upsertIncidenciaEvidenciaCmdHandler;
     private final IncidenciaQueryHandler incidenciaQueryHandler;
     private final ArchivosQueryHandler archivosQueryHandler;
 
@@ -61,11 +64,27 @@ public class IncidenciasController {
                     content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
             )
             @RequestPart(value = "insidencia_bin", required = false) List<MultipartFile> evidencias) {
-        int resourceId = upsertIncidenciaCmdHandler.handle(payload, evidencias);
+        int resourceId = upsertIncidenciaCmdHandler.handle(payload);
+
         URI resourceUri = UriBuilder.build(resourceId);
         return ResponseEntity.created(resourceUri)
                 .body(new ApiResponseDto(HttpStatus.CREATED.value(), null, ZonedDateTime.now(),
-                        "Insidencia registrada exitosamente", null));
+                        "Incidence registrada exitosamente", null));
+    }
+
+    @PostMapping(path = "/me/{id}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @SecurityRequirement(name = SwaggerConfig.SCHEME_NAME)
+    @Operation(summary = "Cargar evidencias para una incidencia")
+    public ResponseEntity<ApiResponseDto> cargarEvidencias(
+            @PathVariable("id") Integer id,
+            @Parameter(
+                    description = "Lista de archivos adjuntos (imágenes, documentos, etc.)",
+                    content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            )
+            @RequestBody List<MultipartFile> evidencias) {
+        upsertIncidenciaEvidenciaCmdHandler.handle(id, evidencias);
+        return ResponseEntity.ok(new ApiResponseDto(HttpStatus.OK.value(), null, ZonedDateTime.now(),
+                "Evidencias cargadas exitosamente", null));
     }
 
     @GetMapping("/me/{id}")

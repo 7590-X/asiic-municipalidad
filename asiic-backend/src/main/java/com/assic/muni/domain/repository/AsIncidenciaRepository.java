@@ -136,6 +136,16 @@ public interface AsIncidenciaRepository extends JpaRepository<AsIncidencia, Inte
     boolean existsByIdAndInVecinoAndInEstadoIn(int id, int vecinoId, List<IncidenciaState> estados);
 
     /**
+     * Validar si la incidencia pertenece a un vecino por su UUID de usuario
+     *
+     * @param id         Código de incidencia
+     * @param vecinoUUID Código de vecino UUID
+     * @return true = pertenece, false = no pertenece
+     */
+    @Query("select exists(select 1 from AsIncidencia i where i.id = :id and i.inUsrRegistro = :vecinoUUID)")
+    boolean existsByIdAndInUsrRegistro(int id, String vecinoUUID);
+
+    /**
      * Validar si existe una incidencia por su id y tipo de incidencia
      *
      * @param id   ID de incidencia
@@ -143,6 +153,9 @@ public interface AsIncidenciaRepository extends JpaRepository<AsIncidencia, Inte
      * @return true = existe, false = no existe
      */
     boolean existsByIdAndInTipoIncidencia(int id, short tipo);
+
+    @Query("select exists(select 1 from AsIncidencia i where i.id = :id and i.inEstado in :estados)")
+    boolean existsByIdAndInEstadoIn(@Param("id") int id, @Param("estados") List<IncidenciaState> estados);
 
     /**
      * Validar si la incidencia está asignada a un agente de campo

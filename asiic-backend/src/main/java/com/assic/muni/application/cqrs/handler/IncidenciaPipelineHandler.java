@@ -62,7 +62,7 @@ public class IncidenciaPipelineHandler {
             throw new ServiceException(HttpStatus.BAD_REQUEST,
                     "El id de la incidencia no coincide con el id del payload");
         }
-        upsertIncidenciaCmdHandler.handle(payload, evidencias);
+        upsertIncidenciaCmdHandler.handle(payload);
         pipelineChangeState(payload.getIncidenciaId(), IncidenciaEvent.APELAR_INCIDENCIA);
     }
 }
