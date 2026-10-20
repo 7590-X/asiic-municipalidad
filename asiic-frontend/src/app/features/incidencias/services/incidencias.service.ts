@@ -184,6 +184,10 @@ export class IncidenciasService {
         return res.map(item => this.normalizarIncidencia(item));
       }),
       catchError(err => {
+        if (err?.status === 404) {
+          // El backend responde 404 cuando no hay incidencias asignadas al usuario
+          return of([]);
+        }
         console.warn('Aviso: Petición a /asiic/incidencias/asignadas/analista:', err?.status, err?.message);
         return of([]);
       })

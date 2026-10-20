@@ -102,27 +102,6 @@
   align-items: center;
   gap: 0.4rem;
 
-  .notification-trigger {
-    position: relative;
-    padding: 0 0.75rem;
-    color: $color-white;
-
-    cds-icon {
-      --color: #{$color-white};
-      width: 1.2rem;
-      height: 1.2rem;
-    }
-
-    .notification-badge {
-      position: absolute;
-      top: 6px;
-      right: 4px;
-      font-size: 0.62rem;
-      padding: 0.1rem 0.35rem;
-      border-radius: 8px;
-    }
-  }
-
   .user-profile-trigger {
     display: flex;
     align-items: center;
@@ -259,10 +238,6 @@
 
   .header-actions {
     gap: 0.2rem;
-
-    .notification-trigger {
-      padding: 0 0.35rem;
-    }
 
     .user-profile-trigger {
       padding: 0.1rem;

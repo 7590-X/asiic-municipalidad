@@ -42,18 +42,6 @@
 
 
   <div class="header-actions">
-    <!-- Centro de Notificaciones -->
-    <a
-      *ngIf="!isAdmin()"
-      href="javascript:void(0)"
-      class="nav-link nav-icon notification-trigger"
-      aria-label="Notificaciones del portal"
-      title="3 notificaciones nuevas"
-    >
-      <cds-icon shape="bell"></cds-icon>
-      <span class="badge badge-warning notification-badge">3</span>
-    </a>
-
     <!-- Dropdown de Usuario Clarity -->
     <clr-dropdown [clrCloseMenuOnItemClick]="false">
       <button

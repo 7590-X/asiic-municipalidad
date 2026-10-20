@@ -105,11 +105,16 @@ export class DashboardComponent implements OnInit {
       t.estado !== EIncidenciaEstado.RECHAZADA
     ).length;
 
+    const resueltas = todos.filter(t =>
+      t.estado === EIncidenciaEstado.FINALIZADA ||
+      t.estado === EIncidenciaEstado.SOLUCIONADA
+    ).length;
+
     return {
       solicitudesActivas: activas,
       solicitudesTotal: todos.length,
       quejasEnProceso: quejasEnProceso,
-      notificacionesNuevas: 0,
+      solicitudesResueltas: resueltas,
       estadoSolvencia: 'Solvente',
     };
   });
