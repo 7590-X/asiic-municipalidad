@@ -9,6 +9,7 @@ import { IncidenciasService } from '../../../incidencias/services/incidencias.se
 import { MetricCardComponent } from '../../../../shared/components/metric-card/metric-card.component';
 import { QuickActionCardComponent } from '../../../../shared/components/quick-action-card/quick-action-card.component';
 import { ModalPreviewArchivoComponent } from '../../../../shared/components/modal-preview-archivo/modal-preview-archivo.component';
+import { ModalCargaArchivosComponent } from '../../../../shared/components/modal-carga-archivos/modal-carga-archivos.component';
 
 export enum EIncidenciaEstado {
   BORRADOR = 'Borrador',
@@ -40,7 +41,7 @@ export interface TramiteReciente {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, ClarityModule, MetricCardComponent, QuickActionCardComponent, ModalPreviewArchivoComponent],
+  imports: [CommonModule, RouterLink, ClarityModule, MetricCardComponent, QuickActionCardComponent, ModalPreviewArchivoComponent, ModalCargaArchivosComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
@@ -52,6 +53,15 @@ export class DashboardComponent implements OnInit {
   // Modal de Vista Previa
   previewModalOpen = false;
   archivoEnPreview: any = null;
+
+  // Modal de Carga de Archivos
+  modalCargaOpen = false;
+  incidenciaCargaId: number | string | null = null;
+
+  abrirCargaArchivos(id: number | string): void {
+    this.incidenciaCargaId = id;
+    this.modalCargaOpen = true;
+  }
 
   abrirPreview(archivo: any): void {
     this.archivoEnPreview = archivo;
@@ -172,39 +182,31 @@ export class DashboardComponent implements OnInit {
 
   abrirResumen(gestion: any): void {
     this.loading.set(true);
-    forkJoin({
+    const esRechazada = (gestion.estado || '').toUpperCase().includes('RECHAZAD');
+
+    const requests: any = {
       incidencia: this.incidenciasService.getIncidenciaById(gestion.id),
-      archivos: this.incidenciasService.getArchivosIncidencia(gestion.id)
-    }).subscribe({
-      next: (data) => {
+      archivos: this.incidenciasService.getArchivosIncidencia(gestion.id),
+      feedback: esRechazada ? this.incidenciasService.getFeedbackRechazo(gestion.id) : of([])
+    };
+
+    forkJoin(requests).subscribe({
+      next: (data: any) => {
         const incidencia = data.incidencia;
-        const archivos = data.archivos || [];
+        // Carga bajo demanda: solo metadatos para optimizar la consulta y el tiempo de respuesta
+        const archivos = (data.archivos || []).map((a: any) => ({
+          ...a,
+          blob: null,
+          url: null
+        }));
 
-        if (archivos.length > 0) {
-          const peticiones = archivos.map((archivo: any) =>
-            this.incidenciasService.descargarArchivoIncidencia(gestion.id, archivo.id).pipe(
-              map(blob => {
-                const isImage = archivo.formato?.toLowerCase().match(/(jpg|jpeg|png|gif|webp)$/);
-                return {
-                  ...archivo,
-                  blob,
-                  url: isImage ? URL.createObjectURL(blob) : null
-                };
-              }),
-              catchError(() => of({ ...archivo, blob: null, url: null }))
-            )
-          );
-
-          forkJoin(peticiones).subscribe(archivosConUrl => {
-            this.resumenSeleccionado = { ...incidencia, archivosAdjuntos: archivosConUrl };
-            this.resumenModalOpen = true;
-            this.loading.set(false);
-          });
-        } else {
-          this.resumenSeleccionado = { ...incidencia, archivosAdjuntos: [] };
-          this.resumenModalOpen = true;
-          this.loading.set(false);
-        }
+        this.resumenSeleccionado = {
+          ...incidencia,
+          archivosAdjuntos: archivos,
+          motivosRechazo: data.feedback || []
+        };
+        this.resumenModalOpen = true;
+        this.loading.set(false);
       },
       error: (err) => {
         console.error('Error cargando detalles del resumen', err);
@@ -212,6 +214,18 @@ export class DashboardComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  esImagenArchivo(archivo: any): boolean {
+    const ext = (archivo?.nombre || '').toLowerCase();
+    const fmt = (archivo?.formato || '').toLowerCase();
+    return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(ext) || fmt.includes('image') || fmt.includes('jpg') || fmt.includes('png');
+  }
+
+  esPdfArchivo(archivo: any): boolean {
+    const ext = (archivo?.nombre || '').toLowerCase();
+    const fmt = (archivo?.formato || '').toLowerCase();
+    return ext.endsWith('.pdf') || fmt.includes('pdf');
   }
 
   imprimirResumen(): void {

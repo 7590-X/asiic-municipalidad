@@ -1,10 +1,11 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ClarityModule } from '@clr/angular';
+import { QuillEditorComponent } from 'ngx-quill';
 import { AuthService } from '../../../../core/services/auth.service';
-import { IncidenciasService } from '../../../incidencias/services/incidencias.service';
+import { IncidenciasService, ResumenCmd } from '../../../incidencias/services/incidencias.service';
 import { ModalPreviewArchivoComponent } from '../../../../shared/components/modal-preview-archivo/modal-preview-archivo.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -12,13 +13,22 @@ import { catchError, map } from 'rxjs/operators';
 @Component({
   selector: 'app-dashboard-agente',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ClarityModule, ModalPreviewArchivoComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ClarityModule,
+    QuillEditorComponent,
+    ModalPreviewArchivoComponent
+  ],
   templateUrl: './dashboard-agente.component.html',
   styleUrls: ['./dashboard-agente.component.scss']
 })
 export class DashboardAgenteComponent implements OnInit {
   private authService = inject(AuthService);
   private incidenciasService = inject(IncidenciasService);
+  private fb = inject(FormBuilder);
 
   loading = signal<boolean>(true);
   procesandoAccion = signal<boolean>(false);
@@ -107,7 +117,16 @@ export class DashboardAgenteComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.initResumenForm();
     this.cargarDatos();
+  }
+
+  initResumenForm(): void {
+    this.resumenForm = this.fb.group({
+      body: ['', [Validators.required, Validators.minLength(10)]],
+      latitudGps: [''],
+      longitudGps: ['']
+    });
   }
 
   cargarDatos(): void {
@@ -141,39 +160,13 @@ export class DashboardAgenteComponent implements OnInit {
     this.cargandoEvidencias = true;
     this.incidenciasService.getArchivosIncidenciaAnalista(incidenciaId).subscribe({
       next: (archivos) => {
-        if (!archivos || archivos.length === 0) {
-          this.evidenciasCargadas = [];
-          this.cargandoEvidencias = false;
-          return;
-        }
-
-        const peticiones = archivos.map((archivo: any) =>
-          this.incidenciasService.descargarArchivoIncidencia(incidenciaId, archivo.id).pipe(
-            map(blob => {
-              if (blob && blob.size > 0) {
-                const isImage = (archivo.formato || archivo.nombre || '').toLowerCase().match(/(jpg|jpeg|png|gif|webp)$/);
-                return {
-                  ...archivo,
-                  blob,
-                  url: isImage ? URL.createObjectURL(blob) : null
-                };
-              }
-              return { ...archivo, blob: null, url: null };
-            }),
-            catchError(() => of({ ...archivo, blob: null, url: null }))
-          )
-        );
-
-        forkJoin(peticiones).subscribe({
-          next: (archivosConUrl) => {
-            this.evidenciasCargadas = archivosConUrl;
-            this.cargandoEvidencias = false;
-          },
-          error: () => {
-            this.evidenciasCargadas = archivos.map(a => ({ ...a, url: null }));
-            this.cargandoEvidencias = false;
-          }
-        });
+        // Carga ligera: solo metadatos. El binario se descarga bajo demanda al previsualizar o descargar.
+        this.evidenciasCargadas = (archivos || []).map((archivo: any) => ({
+          ...archivo,
+          blob: null,
+          url: null
+        }));
+        this.cargandoEvidencias = false;
       },
       error: () => {
         this.evidenciasCargadas = [];
@@ -220,18 +213,77 @@ export class DashboardAgenteComponent implements OnInit {
     }
   }
 
+  resumenForm!: FormGroup;
+  obteniendoGps = signal<boolean>(false);
+
+  quillModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'header': [1, 2, 3, false] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['blockquote'],
+      ['clean']
+    ]
+  };
+
   solicitarFinalizarRecoleccion(inc: any): void {
     this.incidenciaAFinalizar = inc;
+    const lat = inc.latitud || inc.latitudGps || '';
+    const lng = inc.longitud || inc.longitudGps || '';
+    this.resumenForm.reset({
+      body: '',
+      latitudGps: lat,
+      longitudGps: lng
+    });
     this.confirmFinalizarOpen = true;
+  }
+
+  capturarGpsActual(): void {
+    if (!navigator.geolocation) {
+      alert('La geolocalización no está soportada por su navegador.');
+      return;
+    }
+    this.obteniendoGps.set(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude.toFixed(6);
+        const lng = position.coords.longitude.toFixed(6);
+        this.resumenForm.patchValue({
+          latitudGps: lat,
+          longitudGps: lng
+        });
+        this.obteniendoGps.set(false);
+      },
+      (error) => {
+        console.warn('Error capturando GPS:', error);
+        alert('No se pudo obtener la ubicación GPS automática. Ingrese las coordenadas manualmente si lo desea.');
+        this.obteniendoGps.set(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   }
 
   ejecutarFinalizarRecoleccion(): void {
     if (!this.incidenciaAFinalizar) return;
 
+    if (this.resumenForm.invalid) {
+      this.resumenForm.markAllAsTouched();
+      alert('Por favor redacte el informe técnico de campo en el editor antes de finalizar la recolección.');
+      return;
+    }
+
     const id = this.incidenciaAFinalizar.id;
+    const formVal = this.resumenForm.getRawValue();
+
+    const payload: ResumenCmd = {
+      body: formVal.body ? formVal.body.trim() : '',
+      latitudGps: formVal.latitudGps ? String(formVal.latitudGps).trim() : undefined,
+      longitudGps: formVal.longitudGps ? String(formVal.longitudGps).trim() : undefined
+    };
+
     this.procesandoAccion.set(true);
 
-    this.incidenciasService.finalizarRecoleccionCampo(id).subscribe({
+    this.incidenciasService.finalizarRecoleccionCampo(id, payload).subscribe({
       next: () => {
         // Actualizar reactivamente
         this.incidencias.update(list =>
@@ -245,16 +297,20 @@ export class DashboardAgenteComponent implements OnInit {
         this.procesandoAccion.set(false);
         this.confirmFinalizarOpen = false;
         this.incidenciaAFinalizar = null;
+        this.resumenForm.reset();
         this.mostrarAlerta(
-          `Inspección en sitio finalizada para la incidencia #${id}. El caso avanzó a "Recolección Finalizada".`,
+          `Inspección en sitio y reporte técnico finalizados para la incidencia #${id}. El caso avanzó a "Recolección Finalizada".`,
           'success'
         );
       },
       error: (err) => {
         console.error('Error al finalizar recolección', err);
         this.procesandoAccion.set(false);
-        this.confirmFinalizarOpen = false;
-        this.mostrarAlerta(`Error al registrar la finalización de la inspección #${id}.`, 'danger');
+        let msg = `Error al registrar la finalización de la inspección #${id}.`;
+        if (err?.error?.message) {
+          msg = err.error.message;
+        }
+        this.mostrarAlerta(msg, 'danger');
       }
     });
   }
@@ -267,6 +323,18 @@ export class DashboardAgenteComponent implements OnInit {
   getMapsUrl(lat: any, lng: any): string {
     if (!lat || !lng) return '';
     return `https://www.google.com/maps?q=${lat},${lng}`;
+  }
+
+  esImagenArchivo(archivo: any): boolean {
+    const ext = (archivo?.nombre || '').toLowerCase();
+    const fmt = (archivo?.formato || '').toLowerCase();
+    return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(ext) || fmt.includes('image') || fmt.includes('jpg') || fmt.includes('png');
+  }
+
+  esPdfArchivo(archivo: any): boolean {
+    const ext = (archivo?.nombre || '').toLowerCase();
+    const fmt = (archivo?.formato || '').toLowerCase();
+    return ext.endsWith('.pdf') || fmt.includes('pdf');
   }
 
   getTipoBadgeClass(tipo: string): string {

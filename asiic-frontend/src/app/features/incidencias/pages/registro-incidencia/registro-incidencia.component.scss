@@ -94,8 +94,23 @@
 /* ---------- Panel derecho ---------- */
 .rv-main {
   flex: 1;
-  padding: 2.5rem 2.5rem 2.75rem;
+  padding: 2.5rem 2.5rem 4rem;
   overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.actions-group-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+  margin-top: 1.75rem;
+  padding-bottom: 2rem;
+
+  .btn {
+    white-space: nowrap;
+    margin: 0;
+  }
 }
 
 .rv-loading {

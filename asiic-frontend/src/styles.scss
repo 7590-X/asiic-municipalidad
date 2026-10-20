@@ -1,26 +1,41 @@
 @use 'styles/forms';
+@import 'quill/dist/quill.snow.css';
 
-html, body { margin: 0; }
-body { font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif; }
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif;
+}
 
 /* Estilos para impresión de resúmenes (Modal) */
 @media print {
   @page {
     margin: 1cm;
   }
+
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+
   body * {
     visibility: hidden;
   }
 
   /* Reset de la posición del modal nativo de Clarity para impresión */
-  .clr-modal-backdrop, .modal-header, .modal-footer, .close {
+  .clr-modal-backdrop,
+  .modal-header,
+  .modal-footer,
+  .close {
     display: none !important;
   }
-  .modal-dialog, .clr-modal {
+
+  .modal-dialog,
+  .clr-modal {
     position: static !important;
     transform: none !important;
     margin: 0 !important;
@@ -28,9 +43,11 @@ body { font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif; }
     box-shadow: none !important;
   }
 
-  #print-section, #print-section * {
+  #print-section,
+  #print-section * {
     visibility: visible;
   }
+
   #print-section {
     position: absolute;
     left: 0;
@@ -64,11 +81,24 @@ body { font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif; }
     gap: 0.5rem;
     margin-bottom: 0.5rem;
 
-    h4 { margin: 0; color: #003554; font-weight: 600; font-size: 1rem; }
+    h4 {
+      margin: 0;
+      color: #003554;
+      font-weight: 600;
+      font-size: 1rem;
+    }
   }
 
-  h2 { margin: 0 0 0.25rem 0; font-size: 1.25rem; color: #333; }
-  p { margin: 0; font-size: 0.85rem; }
+  h2 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.25rem;
+    color: #333;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+  }
 }
 
 .resumen-content {
@@ -162,6 +192,7 @@ clr-datagrid,
 
 /* Modales Responsivos Globales: Prevenir desbordamientos en pantallas pequeñas */
 @media (max-width: 768px) {
+
   .modal-dialog,
   .clr-modal {
     max-width: 95vw !important;
@@ -192,4 +223,3 @@ clr-datagrid,
     }
   }
 }
-

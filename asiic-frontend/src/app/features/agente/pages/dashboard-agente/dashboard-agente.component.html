@@ -312,28 +312,61 @@
 
         <div *ngIf="!cargandoEvidencias && evidenciasCargadas.length > 0" class="evidencias-gallery">
           <div *ngFor="let archivo of evidenciasCargadas" class="evidencia-card-box">
-            <div *ngIf="archivo.url" class="evidencia-preview" (click)="abrirPreview(archivo)" title="Ver vista previa en grande">
+            <!-- Si la imagen ya tiene URL (ej: descargada tras abrir vista previa) -->
+            <div *ngIf="archivo.url" class="evidencia-preview" (click)="abrirPreview(archivo)" title="Ver imagen en tamaño completo">
               <img [src]="archivo.url" [alt]="archivo.nombre" />
               <div class="preview-overlay">
                 <cds-icon shape="eye" size="md"></cds-icon>
-                <span>Ver en grande</span>
+                <span>Ver imagen</span>
               </div>
             </div>
-            <div *ngIf="!archivo.url" class="evidencia-file-icon" (click)="abrirPreview(archivo)" title="Ver documento PDF">
-              <cds-icon [attr.shape]="archivo.nombre?.toLowerCase()?.endsWith('.pdf') ? 'file-group' : 'document'" size="xl"></cds-icon>
+
+            <!-- Si es Imagen pero aún no se ha descargado el binario (Carga ligera bajo demanda) -->
+            <div *ngIf="!archivo.url && esImagenArchivo(archivo)" class="evidencia-file-icon evidencia-type-image" (click)="abrirPreview(archivo)" title="Haga clic para previsualizar imagen (carga bajo demanda)">
+              <div class="icon-bubble image-bubble">
+                <cds-icon shape="image" size="lg"></cds-icon>
+              </div>
+              <span class="file-type-caption">Fotografía / Imagen</span>
               <div class="preview-overlay">
                 <cds-icon shape="eye" size="md"></cds-icon>
-                <span>Ver documento</span>
+                <span>Vista Previa</span>
               </div>
             </div>
+
+            <!-- Si es PDF y aún no se ha descargado el binario -->
+            <div *ngIf="!archivo.url && esPdfArchivo(archivo)" class="evidencia-file-icon evidencia-type-pdf" (click)="abrirPreview(archivo)" title="Haga clic para previsualizar documento PDF">
+              <div class="icon-bubble pdf-bubble">
+                <cds-icon shape="file-group" size="lg"></cds-icon>
+              </div>
+              <span class="file-type-caption">Documento PDF</span>
+              <div class="preview-overlay">
+                <cds-icon shape="eye" size="md"></cds-icon>
+                <span>Ver Documento</span>
+              </div>
+            </div>
+
+            <!-- Si es otro formato -->
+            <div *ngIf="!archivo.url && !esImagenArchivo(archivo) && !esPdfArchivo(archivo)" class="evidencia-file-icon evidencia-type-other" (click)="abrirPreview(archivo)" title="Haga clic para ver archivo">
+              <div class="icon-bubble other-bubble">
+                <cds-icon shape="file" size="lg"></cds-icon>
+              </div>
+              <span class="file-type-caption">Archivo Adjunto</span>
+              <div class="preview-overlay">
+                <cds-icon shape="eye" size="md"></cds-icon>
+                <span>Ver Archivo</span>
+              </div>
+            </div>
+
             <div class="evidencia-info">
               <div class="evidencia-nombre" [title]="archivo.nombre">{{ archivo.nombre }}</div>
               <div class="evidencia-meta text-muted" *ngIf="archivo.formato || archivo.fechaRegistro">
-                <span *ngIf="archivo.formato" class="badge badge-light-blue">{{ archivo.formato }}</span>
+                <span *ngIf="archivo.formato" class="badge" [ngClass]="esPdfArchivo(archivo) ? 'badge-danger' : (esImagenArchivo(archivo) ? 'badge-info' : 'badge-light-blue')">
+                  {{ archivo.formato }}
+                </span>
                 <span *ngIf="archivo.fechaRegistro" class="font-xs ml-1">{{ archivo.fechaRegistro | date:'dd/MM/yyyy' }}</span>
               </div>
               <div class="evidencia-actions-bar">
-                <button type="button" class="btn-evidencia-preview" (click)="abrirPreview(archivo)" title="Vista previa interactiva">
+                <button type="button" class="btn-evidencia-preview" (click)="abrirPreview(archivo)" title="Vista previa interactiva (carga bajo demanda)">
                   <cds-icon shape="eye" size="sm"></cds-icon>
                   <span>Vista Previa</span>
                 </button>
@@ -365,26 +398,116 @@
     </div>
   </clr-modal>
 
-  <!-- MODAL DE CONFIRMACIÓN: FINALIZAR RECOLECCIÓN EN SITIO -->
+  <!-- MODAL: FINALIZAR RECOLECCIÓN EN SITIO CON INFORME TÉCNICO QUILL Y GPS -->
   <clr-modal
     [(clrModalOpen)]="confirmFinalizarOpen"
-    [clrModalSize]="'md'"
+    [clrModalSize]="'xl'"
     [clrModalClosable]="!procesandoAccion()"
     [clrModalStaticBackdrop]="true"
   >
     <h3 class="modal-title modal-title-confirm">
-      <cds-icon shape="check-circle" class="text-success"></cds-icon>
-      Confirmar Finalización de Inspección
+      <cds-icon shape="form" class="text-primary"></cds-icon>
+      Informe Técnico de Inspección en Campo — Incidencia #{{ incidenciaAFinalizar?.id }}
     </h3>
 
-    <div class="modal-body">
-      <p>
-        ¿Confirmas que se completó la inspección ocular y recolección de evidencias para la incidencia
-        <strong>#{{ incidenciaAFinalizar?.id }}</strong> en el domicilio con contador <strong>{{ incidenciaAFinalizar?.contador }}</strong>?
-      </p>
-      <p class="text-muted font-sm">
-        Esta acción notificará al sistema que la recolección fue completada y cambiará el estado a <strong>"Recolección Finalizada"</strong> para que el analista municipal emita su resolución final.
-      </p>
+    <div class="modal-body modal-resumen-body">
+      <!-- Ficha de Referencia de la Incidencia -->
+      <div class="incidencia-resumen-banner mb-3">
+        <div class="resumen-badge-row">
+          <span class="badge" [ngClass]="getTipoBadgeClass(incidenciaAFinalizar?.tipo)">{{ incidenciaAFinalizar?.tipo || 'Incidencia' }}</span>
+          <span class="resumen-contador"><strong>Contador:</strong> {{ incidenciaAFinalizar?.contador || 'S/N' }}</span>
+        </div>
+        <div class="resumen-details-text mt-1">
+          <strong>Dirección:</strong> {{ incidenciaAFinalizar?.direccion || 'No especificada' }}
+        </div>
+        <div class="resumen-details-text text-muted font-sm">
+          <strong>Vecino reportante:</strong> {{ incidenciaAFinalizar?.nombreVecino || 'No especificado' }} ({{ incidenciaAFinalizar?.telefono || 'Sin teléfono' }})
+        </div>
+      </div>
+
+      <form [formGroup]="resumenForm" (ngSubmit)="ejecutarFinalizarRecoleccion()" class="clr-form clr-form-vertical">
+        <!-- Editor Enriquecido Quill con Barra de Formato (Negrita, Títulos, Listas, Citas) -->
+        <div class="clr-form-control mb-3">
+          <label class="clr-control-label fw-bold mb-1">
+            <cds-icon shape="file-settings"></cds-icon>
+            Hallazgos y Dictamen Técnico de Inspección en Sitio
+            <span class="text-danger">*</span>
+          </label>
+          <div class="quill-editor-wrapper" [class.is-invalid]="resumenForm.get('body')?.touched && resumenForm.get('body')?.invalid">
+            <quill-editor
+              formControlName="body"
+              [modules]="quillModules"
+              format="html"
+              placeholder="Describa de forma detallada los hallazgos observados en campo, estado de la red o acometida, mediciones, pruebas realizadas y conclusiones técnicas..."
+            ></quill-editor>
+          </div>
+          <div *ngIf="resumenForm.get('body')?.touched && resumenForm.get('body')?.invalid" class="clr-subtext text-danger mt-1">
+            <cds-icon shape="exclamation-circle"></cds-icon>
+            El informe técnico es obligatorio y debe contener al menos 10 caracteres explicativos del trabajo en sitio.
+          </div>
+          <div class="clr-subtext text-muted mt-1 font-xs">
+            Utilice la barra de herramientas para estructurar su reporte con títulos, negritas, listas ordenadas o notas destacadas.
+          </div>
+        </div>
+
+        <!-- Coordenadas GPS del levantamiento -->
+        <div class="gps-capture-card mt-3">
+          <div class="gps-card-header">
+            <div class="gps-header-title">
+              <cds-icon shape="map-marker" class="text-info"></cds-icon>
+              <span>Geolocalización GPS del Levantamiento en Campo</span>
+            </div>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary btn-gps-auto"
+              (click)="capturarGpsActual()"
+              [disabled]="obteniendoGps() || procesandoAccion()"
+            >
+              <span *ngIf="obteniendoGps()" class="spinner spinner-inline"></span>
+              <cds-icon *ngIf="!obteniendoGps()" shape="crosshairs"></cds-icon>
+              {{ obteniendoGps() ? 'Obteniendo GPS...' : 'Auto-detectar Mi Ubicación GPS' }}
+            </button>
+          </div>
+
+          <div class="clr-row clr-justify-content-between mt-2">
+            <div class="clr-col-12 clr-col-md-6">
+              <div class="clr-form-control m-0">
+                <label class="clr-control-label font-xs">Latitud GPS</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input
+                      type="text"
+                      formControlName="latitudGps"
+                      class="clr-input w-100"
+                      placeholder="Ej: 14.634915"
+                      maxlength="20"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="clr-col-12 clr-col-md-6">
+              <div class="clr-form-control m-0">
+                <label class="clr-control-label font-xs">Longitud GPS</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input
+                      type="text"
+                      formControlName="longitudGps"
+                      class="clr-input w-100"
+                      placeholder="Ej: -90.506882"
+                      maxlength="20"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="font-xs text-muted mt-2 mb-0">
+            Las coordenadas se adjuntan al expediente digital para respaldar la veracidad geográfica de la visita técnica municipal.
+          </p>
+        </div>
+      </form>
     </div>
 
     <div class="modal-footer">
@@ -400,10 +523,11 @@
         type="button"
         class="btn btn-success"
         (click)="ejecutarFinalizarRecoleccion()"
-        [disabled]="procesandoAccion()"
+        [disabled]="resumenForm.invalid || procesandoAccion()"
       >
         <span *ngIf="procesandoAccion()" class="spinner spinner-inline"></span>
-        Sí, Finalizar Recolección
+        <cds-icon *ngIf="!procesandoAccion()" shape="check-circle"></cds-icon>
+        Guardar Informe y Finalizar Recolección
       </button>
     </div>
   </clr-modal>

@@ -6,10 +6,10 @@ import { IncidenciasService } from '../../services/incidencias.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 
-// Subcomponentes
+// Subcomponentes y Modales
 import { TipoPrivacidadComponent } from '../../components/tipo-privacidad/tipo-privacidad.component';
 import { DetalleIncidenciaComponent } from '../../components/detalle-incidencia/detalle-incidencia.component';
-import { EvidenciasComponent } from '../../components/evidencias/evidencias.component';
+import { ModalCargaArchivosComponent } from '../../../../shared/components/modal-carga-archivos/modal-carga-archivos.component';
 
 @Component({
   selector: 'app-registro-incidencia',
@@ -21,7 +21,7 @@ import { EvidenciasComponent } from '../../components/evidencias/evidencias.comp
     RouterLink,
     TipoPrivacidadComponent,
     DetalleIncidenciaComponent,
-    EvidenciasComponent
+    ModalCargaArchivosComponent
   ],
   templateUrl: './registro-incidencia.component.html',
   styleUrls: ['./registro-incidencia.component.scss']
@@ -35,6 +35,15 @@ export class RegistroIncidenciaComponent implements OnInit {
   incidenciaId: string | null = null;
   isReadOnly: boolean = false;
   isLoading: boolean = false;
+  isApelacion: boolean = false;
+  motivosRechazoFeedback: any[] = [];
+  cargandoFeedback: boolean = false;
+  contadorOriginal: string = '';
+  incidenciaEstado: string = '';
+
+  // Control de modal de carga de archivos desacoplada
+  modalCargaArchivosOpen = false;
+  archivosStaged: File[] = [];
 
   private fb = inject(FormBuilder);
   private incidenciasService = inject(IncidenciasService);
@@ -46,6 +55,16 @@ export class RegistroIncidenciaComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
+
+    this.route.data.subscribe(data => {
+      if (data['modo'] === 'apelar') {
+        this.isApelacion = true;
+      }
+    });
+
+    if (this.router.url.includes('/apelar/')) {
+      this.isApelacion = true;
+    }
 
     this.route.queryParams.subscribe(params => {
       if (params['tipo']) {
@@ -65,75 +84,159 @@ export class RegistroIncidenciaComponent implements OnInit {
     this.isLoading = true;
     this.incidenciasService.getIncidenciaById(id).subscribe({
       next: (res) => {
-        const tipoStr = res.tipoIncidencia?.nombre?.toUpperCase() || '';
+        if (!res) {
+          alert('No se pudo encontrar la información de la incidencia.');
+          this.isLoading = false;
+          return;
+        }
+
+        this.incidenciaEstado = res.estado || '';
+        let tipoStr = (res.tipoIncidencia?.nombre || res.tipo || '').toUpperCase().trim();
+        if (!tipoStr && res.tipoIncidencia?.id) {
+          switch (Number(res.tipoIncidencia.id)) {
+            case 1: tipoStr = 'QUEJA'; break;
+            case 2: tipoStr = 'RECLAMO'; break;
+            case 3: tipoStr = 'DENUNCIA'; break;
+            case 4: tipoStr = 'SUGERENCIA'; break;
+          }
+        }
+        if (tipoStr.includes('QUEJA')) tipoStr = 'QUEJA';
+        else if (tipoStr.includes('RECLAM')) tipoStr = 'RECLAMO';
+        else if (tipoStr.includes('DENUNC')) tipoStr = 'DENUNCIA';
+        else if (tipoStr.includes('SUGER')) tipoStr = 'SUGERENCIA';
+
+        const formatFechaLocal = (isoStr: any): string => {
+          if (!isoStr) return '';
+          try {
+            const d = new Date(isoStr);
+            if (isNaN(d.getTime())) return '';
+            const pad = (n: number) => n < 10 ? '0' + n : n;
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          } catch {
+            return typeof isoStr === 'string' && isoStr.length >= 16 ? isoStr.substring(0, 16) : '';
+          }
+        };
 
         const reversePrivacidadMap: any = {
           'PUB': 'PUBLICO',
           'PRIV': 'CONFIDENCIAL'
         };
-        const privacidadStr = res.privacidad?.seudo ? reversePrivacidadMap[res.privacidad.seudo] : 'PUBLICO';
+        const privacidadStr = res.privacidad?.seudo ? (reversePrivacidadMap[res.privacidad.seudo] || 'PUBLICO') : 'PUBLICO';
 
         this.tipoYPrivacidadForm.patchValue({
           tipoIncidencia: tipoStr,
           privacidad: privacidadStr
         });
 
+        // Extraer contador original (vital para validaciones del backend)
+        const contadorVal = res.domicilio?.contador || res.contador || '';
+        this.contadorOriginal = contadorVal;
+        this.detalleIncidenciaForm.patchValue({ noContador: contadorVal });
+
+        // Extraer coordenadas si existen en res o domicilio
+        const lat = res.latitud || res.domicilio?.latitud || '';
+        const lng = res.longitud || res.domicilio?.longitud || '';
+        const gpsVal = (lat && lng) ? `${lat},${lng}` : '';
+
+        // Extraer dirección referencial o del domicilio
+        const direccionVal = res.direccionReferencial || res.domicilio?.direccion?.descripDireccion || '';
+
         if (tipoStr === 'QUEJA') {
           this.detalleIncidenciaForm.patchValue({
             dependenciaId: res.dependencia?.id || '',
             empleadoId: res.nombreEmpleado || '',
-            fechaIncidencia: res.fechaIncidencia ? res.fechaIncidencia.substring(0, 16) : '',
-            lugar: res.direccionReferencial || '',
+            fechaIncidencia: formatFechaLocal(res.fechaIncidencia),
+            lugar: direccionVal,
+            noContador: contadorVal,
+            ubicacionGps: gpsVal,
             descripcion: res.descripcion || ''
           });
 
-          if (res.testigos && Array.isArray(res.testigos)) {
+          if (res.testigos) {
+            let listTestigos: any[] = [];
+            if (Array.isArray(res.testigos)) {
+              listTestigos = res.testigos;
+            } else if (typeof res.testigos === 'string') {
+              try { listTestigos = JSON.parse(res.testigos); } catch {}
+            }
             const testigosFormArray = this.detalleIncidenciaForm.get('testigos') as FormArray;
             testigosFormArray.clear();
-            res.testigos.forEach((t: any) => {
+            listTestigos.forEach((t: any) => {
               testigosFormArray.push(this.fb.group({
-                testigoNombre: [t.nombre || ''],
-                testigoTelefono: [t.telefono || ''],
-                testigoCorreo: [t.correo || '']
+                testigoNombre: [t.nombre || t.testigoNombre || ''],
+                testigoTelefono: [t.telefono || t.testigoTelefono || ''],
+                testigoCorreo: [t.correo || t.testigoCorreo || '']
               }));
             });
           }
         } else if (tipoStr === 'RECLAMO') {
           this.detalleIncidenciaForm.patchValue({
-            tipoServicioId: res.tipoServicio?.id || '',
-            ubicacionGps: (res.latitud && res.longitud) ? `${res.latitud},${res.longitud}` : '',
-            direccion: res.direccionReferencial || '',
-            noContador: res.domicilio?.contador || '',
+            tipoServicioId: res.tipoServicio?.id || res.dependencia?.id || '',
+            ubicacionGps: gpsVal,
+            direccion: direccionVal,
+            noContador: contadorVal,
             descripcion: res.descripcion || ''
           });
         } else if (tipoStr === 'DENUNCIA') {
-          // El backend mapea 'inJsons' como testigos en el DTO de respuesta, por ende los denunciados vienen ahí
-          const denunciadosNombres = res.testigos && res.testigos.length > 0 ? res.testigos.map((t: any) => t.nombre).join(', ') : '';
+          let denunciadosNombres = '';
+          const denunciadosArr = (res.denunciados && res.denunciados.length > 0) ? res.denunciados : (res.testigos || []);
+          if (Array.isArray(denunciadosArr)) {
+            denunciadosNombres = denunciadosArr.map((t: any) => t.nombre || t).filter(Boolean).join(', ');
+          } else if (typeof denunciadosArr === 'string') {
+            try {
+              const parsed = JSON.parse(denunciadosArr);
+              if (Array.isArray(parsed)) {
+                denunciadosNombres = parsed.map((t: any) => t.nombre || t).filter(Boolean).join(', ');
+              } else {
+                denunciadosNombres = denunciadosArr;
+              }
+            } catch {
+              denunciadosNombres = denunciadosArr;
+            }
+          }
+
           this.detalleIncidenciaForm.patchValue({
-            tipoDenunciaId: res.tipoDenuncia?.id || '',
+            tipoDenunciaId: res.tipoDenuncia?.id || res.dependencia?.id || '',
             denunciados: denunciadosNombres,
-            fechaHoraHechos: res.fechaIncidencia ? res.fechaIncidencia.substring(0, 16) : '',
-            ubicacionGps: (res.latitud && res.longitud) ? `${res.latitud},${res.longitud}` : '',
+            fechaHoraHechos: formatFechaLocal(res.fechaIncidencia),
+            ubicacionGps: gpsVal,
+            direccion: direccionVal,
+            noContador: contadorVal,
             relato: res.descripcion || ''
           });
         } else if (tipoStr === 'SUGERENCIA') {
           this.detalleIncidenciaForm.patchValue({
-            areaId: res.area?.id || '',
+            areaId: res.area?.id || res.dependencia?.id || '',
+            noContador: contadorVal,
             descripcionActual: res.descripcion || '',
             propuestaMejora: res.propuestaMejora || ''
           });
         }
 
-        if (res.estado?.toUpperCase() !== 'BORRADOR') {
-          this.isReadOnly = true;
-          // No deshabilitamos el form entero porque el clrStepper requiere status=VALID para avanzar.
-          // this.incidenciaForm.disable();
-          this.clearFormValidators(this.incidenciaForm);
-        } else {
+        const estadoUpper = (res.estado || '').toUpperCase();
+        const esBorrador = estadoUpper === 'BORRADOR';
+        const esRechazada = estadoUpper.includes('RECHAZAD');
+
+        // Modo Apelación o Edición de Borrador: permite modificar y subir más pruebas
+        if (this.isApelacion || (esRechazada && this.router.url.includes('/apelar/'))) {
+          this.isApelacion = true;
+          this.isReadOnly = false;
           this.incidenciasService.getArchivosIncidencia(id).subscribe({
-            next: (archivos) => {
-              this.archivosExistentes = archivos;
-            },
+            next: (archivos) => this.archivosExistentes = archivos,
+            error: (err) => console.error('Error cargando archivos', err)
+          });
+          this.cargarFeedbackRechazo(id);
+        } else if (esBorrador) {
+          this.isReadOnly = false;
+          this.incidenciasService.getArchivosIncidencia(id).subscribe({
+            next: (archivos) => this.archivosExistentes = archivos,
+            error: (err) => console.error('Error cargando archivos', err)
+          });
+        } else {
+          this.isReadOnly = true;
+          this.clearFormValidators(this.incidenciaForm);
+          this.incidenciasService.getArchivosIncidencia(id).subscribe({
+            next: (archivos) => this.archivosExistentes = archivos,
             error: (err) => console.error('Error cargando archivos', err)
           });
         }
@@ -143,6 +246,21 @@ export class RegistroIncidenciaComponent implements OnInit {
         console.error('Error fetching incidencia', err);
         alert('No se pudo cargar la incidencia.');
         this.isLoading = false;
+      }
+    });
+  }
+
+  cargarFeedbackRechazo(id: string | number): void {
+    this.cargandoFeedback = true;
+    this.incidenciasService.getFeedbackRechazo(id).subscribe({
+      next: (feedbacks) => {
+        this.motivosRechazoFeedback = feedbacks || [];
+        this.cargandoFeedback = false;
+      },
+      error: (err) => {
+        console.warn('Aviso cargando feedback de rechazo:', err);
+        this.motivosRechazoFeedback = [];
+        this.cargandoFeedback = false;
       }
     });
   }
@@ -202,50 +320,34 @@ export class RegistroIncidenciaComponent implements OnInit {
   }
 
   get evidenciasValidas(): boolean {
-    if (this.tipoSeleccionado === 'RECLAMO' || this.tipoSeleccionado === 'DENUNCIA') {
-      return this.files.length > 0 || this.archivosExistentes.length > 0;
-    }
     return true;
   }
 
-  onFilesChanged(files: File[]): void {
-    this.files = files;
+  onArchivosActualizados(archivos: any[]): void {
+    this.archivosExistentes = archivos || [];
   }
 
-  onEliminarArchivoExistente(archivoId: number): void {
-    if (this.incidenciaId) {
-      if (confirm('¿Está seguro de eliminar esta evidencia?')) {
-        this.incidenciasService.eliminarArchivoIncidencia(this.incidenciaId, archivoId).subscribe({
-          next: () => {
-            alert('Evidencia eliminada correctamente.');
-            this.archivosExistentes = this.archivosExistentes.filter(a => a.id !== archivoId);
-          },
-          error: (err) => {
-            console.error('Error eliminando archivo', err);
-            alert('Ocurrió un error al eliminar la evidencia.');
-          }
-        });
-      }
-    }
+  onArchivosSeleccionados(files: File[]): void {
+    this.archivosStaged = files || [];
   }
 
-  enviarBorrador(): void {
-    this.submit(true);
+  abrirModalCargaArchivos(): void {
+    this.modalCargaArchivosOpen = true;
+  }
+
+  enviarBorrador(abrirModalAlGuardar = false): void {
+    this.submit(true, abrirModalAlGuardar);
   }
 
   enviarIncidencia(): void {
-    if (this.incidenciaForm.invalid || !this.evidenciasValidas) {
+    if (this.incidenciaForm.invalid) {
       this.incidenciaForm.markAllAsTouched();
-      // Si faltan evidencias en reclamo o denuncia
-      if (!this.evidenciasValidas) {
-        alert('Debe adjuntar evidencias para Reclamos y Denuncias.');
-      }
       return;
     }
-    this.submit(false);
+    this.submit(false, false);
   }
 
-  private submit(esBorrador: boolean): void {
+  private submit(esBorrador: boolean, abrirModalAlGuardar = false): void {
     this.isSubmitting = true;
     const formValue = this.incidenciaForm.getRawValue();
 
@@ -259,7 +361,9 @@ export class RegistroIncidenciaComponent implements OnInit {
 
     const privacidadMap: any = {
       'PUBLICO': 'PUB',
-      'PRIVADO': 'PRIV'
+      'PRIVADO': 'PRIV',
+      'CONFIDENCIAL': 'PRIV',
+      'ANONIMO': 'PRIV'
     };
     const privacidadVal = privacidadMap[formValue.tipoYPrivacidad.privacidad] || 'PUB';
 
@@ -269,8 +373,8 @@ export class RegistroIncidenciaComponent implements OnInit {
       incidenciaId: this.incidenciaId ? Number(this.incidenciaId) : null,
       tipoIncidencia: tipoIncidenciaId,
       privacidad: privacidadVal,
-      contador: detalle.noContador || '',
-      esBorrador: esBorrador
+      contador: detalle.noContador || this.contadorOriginal || '',
+      esBorrador: this.isApelacion ? false : esBorrador
     };
 
     if (formValue.tipoYPrivacidad.tipoIncidencia === 'QUEJA') {
@@ -281,9 +385,9 @@ export class RegistroIncidenciaComponent implements OnInit {
         direccionReferencial: detalle.lugar || '',
         descripcion: detalle.descripcion || '',
         testigo: (detalle.testigos && detalle.testigos.length > 0) ? detalle.testigos.map((t: any) => ({
-          nombre: t.testigoNombre,
-          telefono: t.testigoTelefono || '',
-          correo: t.testigoCorreo || ''
+          nombre: t.testigoNombre ? t.testigoNombre.trim() : '',
+          telefono: t.testigoTelefono ? t.testigoTelefono.trim() : '',
+          correo: t.testigoCorreo ? t.testigoCorreo.trim() : ''
         })).filter((t: any) => t.nombre) : [],
         latitudGps: '',
         longitudGps: ''
@@ -335,13 +439,58 @@ export class RegistroIncidenciaComponent implements OnInit {
 
     console.log('Payload a enviar:', JSON.stringify(payload, null, 2));
 
+    // Si es modo apelación, llamar al endpoint de apelación
+    if (this.isApelacion && this.incidenciaId) {
+      this.incidenciasService.apelarIncidencia(this.incidenciaId, payload).subscribe({
+        next: () => {
+          alert(`Apelación presentada con éxito para la incidencia #${this.incidenciaId}. El caso fue devuelto a revisión municipal.`);
+          this.router.navigate([this.dashboardUrl()]);
+          this.isSubmitting = false;
+        },
+        error: (err) => {
+          console.error('Error enviando apelación', err);
+          let errorMsg = 'Ocurrió un error al enviar la apelación.';
+          if (err.error && err.error.message) {
+            errorMsg = err.error.message;
+            if (err.error.errors && Array.isArray(err.error.errors)) {
+              errorMsg += '\n' + err.error.errors.join('\n');
+            }
+          }
+          alert(errorMsg);
+          this.isSubmitting = false;
+        }
+      });
+      return;
+    }
+
     const request$ = this.incidenciaId
-      ? this.incidenciasService.actualizarIncidencia(this.incidenciaId, payload, this.files)
-      : this.incidenciasService.crearIncidencia(payload, this.files);
+      ? this.incidenciasService.actualizarIncidencia(this.incidenciaId, payload)
+      : this.incidenciasService.crearIncidencia(payload);
 
     request$.subscribe({
       next: (res) => {
         const idGenerado = res?.id || this.incidenciaId;
+        if (idGenerado) {
+          this.incidenciaId = idGenerado.toString();
+        }
+
+        // Si el usuario preparó archivos en el modal antes de guardar, subirlos ahora con el ID generado
+        if (idGenerado && this.archivosStaged.length > 0) {
+          this.incidenciasService.uploadEvidencias(idGenerado, this.archivosStaged).subscribe({
+            next: () => {
+              this.archivosStaged = [];
+            },
+            error: (errUp) => {
+              console.warn('Aviso subiendo archivos preparados:', errUp);
+            }
+          });
+        }
+
+        if (abrirModalAlGuardar) {
+          this.isSubmitting = false;
+          this.modalCargaArchivosOpen = true;
+          return;
+        }
 
         if (!esBorrador && idGenerado) {
           // Ejecuta el cambio de estado de BORRADOR a ENVIADA usando el PATH de evento del backend:
