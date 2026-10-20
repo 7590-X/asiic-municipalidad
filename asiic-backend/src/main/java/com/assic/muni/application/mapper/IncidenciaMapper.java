@@ -79,7 +79,7 @@ public final class IncidenciaMapper {
     private static AsIncidencia mapearCamposComunes(short privacidad, int vecinoId, IncidenciaPayloadCmd payload,
                                                     AsIncidencia toUpsert) {
         AsIncidencia incidencia;
-        if(toUpsert != null){
+        if (toUpsert != null) {
             incidencia = toUpsert;
         } else {
             incidencia = new AsIncidencia();
@@ -114,15 +114,21 @@ public final class IncidenciaMapper {
         VecinoDto vecino = VecinoMapper.fronEntityToDto(entity.getInVecinoObj());
         DomicilioDto domicilio = DomicilioMapper.frontEntityToDto(entity.getInContadorObj());
 
-        List<TestigoDto> testigos = Collections.emptyList();
-        if (entity.getInJsons() != null && !entity.getInJsons().isNull() && !entity.getInJsons().isEmpty()) {
-            try {
-                testigos = objectMapper.convertValue(entity.getInJsons(), new TypeReference<>() {
-                });
-            } catch (Exception ignored) {
-                log.error("[JSON_MAPPER] No se pudo convertir testigos", ignored);
-            }
-        }
+//        List<Object> json = Collections.emptyList();
+//        if (entity.getInJsons() != null && !entity.getInJsons().isNull() && !entity.getInJsons().isEmpty()) {
+//            try {
+//                if(entity.getId() == 1){
+//                    json = objectMapper.convertValue(entity.getInJsons(), new TypeReference<>() {
+//
+//                    });
+//                }
+//                json = objectMapper.convertValue(entity.getInJsons(), new TypeReference<>() {
+//
+//                });
+//            } catch (Exception ignored) {
+//                log.error("[JSON_MAPPER] No se pudo convertir testigos", ignored);
+//            }
+//        }
         return IncidenciaDto.builder()
                 .id(entity.getId())
                 .tipoIncidencia(tipoIncidencia)
@@ -138,7 +144,7 @@ public final class IncidenciaMapper {
                 .latitud(entity.getInLatitud())
                 .longitud(entity.getInLongitud())
                 .estado(entity.getInEstado().getDescripcion())
-                .testigos(testigos)
+                .testigos(entity.getInJsons())
                 .fechaRegistro(entity.getInFecRegistro())
                 .fechaModifico(entity.getInFecModifico())
                 .build();

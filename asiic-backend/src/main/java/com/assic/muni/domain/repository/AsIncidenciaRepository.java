@@ -13,80 +13,89 @@ import java.util.Optional;
 
 public interface AsIncidenciaRepository extends JpaRepository<AsIncidencia, Integer> {
 
-        Optional<AsIncidencia> findByIdAndInVecino(int incidenciaId, int vecinoId);
+    Optional<AsIncidencia> findByIdAndInVecino(int incidenciaId, int vecinoId);
 
-        @Query("""
-                            SELECT i FROM AsIncidencia i
-                            LEFT JOIN FETCH i.inTipoIncidenciaObj
-                            LEFT JOIN FETCH i.inPrivacidadObj
-                            LEFT JOIN FETCH i.inUnidadObj
-                            LEFT JOIN FETCH i.inVecinoObj v
-                            LEFT JOIN FETCH v.vePersona
-                            LEFT JOIN FETCH v.veCorreo
-                            LEFT JOIN FETCH v.veTelefono
-                            LEFT JOIN FETCH i.inContadorObj c
-                            LEFT JOIN FETCH c.doDireccion
-                            WHERE i.id = :id AND i.inVecino = :vecinoId
-                        """)
-        Optional<AsIncidencia> findIncidenciaDetalleByIdAndVecino(@Param("id") int id, @Param("vecinoId") int vecinoId);
+    @Query("""
+                SELECT i FROM AsIncidencia i
+                LEFT JOIN FETCH i.inTipoIncidenciaObj
+                LEFT JOIN FETCH i.inPrivacidadObj
+                LEFT JOIN FETCH i.inUnidadObj
+                LEFT JOIN FETCH i.inVecinoObj v
+                LEFT JOIN FETCH v.vePersona
+                LEFT JOIN FETCH v.veCorreo
+                LEFT JOIN FETCH v.veTelefono
+                LEFT JOIN FETCH i.inContadorObj c
+                LEFT JOIN FETCH c.doDireccion
+                WHERE i.id = :id AND i.inVecino = :vecinoId
+            """)
+    Optional<AsIncidencia> findIncidenciaDetalleByIdAndVecino(@Param("id") int id, @Param("vecinoId") int vecinoId);
 
-        @Query("""
-                            SELECT i FROM AsIncidencia i
-                            LEFT JOIN FETCH i.inTipoIncidenciaObj
-                            LEFT JOIN FETCH i.inPrivacidadObj
-                            LEFT JOIN FETCH i.inUnidadObj
-                            LEFT JOIN FETCH i.inVecinoObj v
-                            LEFT JOIN FETCH v.vePersona
-                            LEFT JOIN FETCH v.veCorreo
-                            LEFT JOIN FETCH v.veTelefono
-                            LEFT JOIN FETCH i.inContadorObj c
-                            LEFT JOIN FETCH c.doDireccion
-                            WHERE i.inVecino = :vecinoId
-                        """)
-        List<AsIncidencia> findIncidenciasDetalleByVecino(@Param("vecinoId") int vecinoId);
+    @Query("""
+                SELECT i FROM AsIncidencia i
+                LEFT JOIN FETCH i.inTipoIncidenciaObj
+                LEFT JOIN FETCH i.inPrivacidadObj
+                LEFT JOIN FETCH i.inUnidadObj
+                LEFT JOIN FETCH i.inVecinoObj v
+                LEFT JOIN FETCH v.vePersona
+                LEFT JOIN FETCH v.veCorreo
+                LEFT JOIN FETCH v.veTelefono
+                LEFT JOIN FETCH i.inContadorObj c
+                LEFT JOIN FETCH c.doDireccion
+                WHERE i.inVecino = :vecinoId
+            """)
+    List<AsIncidencia> findIncidenciasDetalleByVecino(@Param("vecinoId") int vecinoId);
 
-        @Query("""
-                            SELECT i FROM AsIncidencia i
-                            LEFT JOIN FETCH i.inTipoIncidenciaObj
-                            LEFT JOIN FETCH i.inPrivacidadObj
-                            LEFT JOIN FETCH i.inUnidadObj
-                            LEFT JOIN FETCH i.inVecinoObj v
-                            LEFT JOIN FETCH v.vePersona
-                            LEFT JOIN FETCH v.veCorreo
-                            LEFT JOIN FETCH v.veTelefono
-                            LEFT JOIN FETCH i.inContadorObj c
-                            LEFT JOIN FETCH c.doDireccion
-                            WHERE i.id = :id AND i.inTipoIncidencia = 1
-                        """)
-        Optional<AsIncidencia> findQuejaDetalleById(@Param("id") int id);
+    @Query("""
+                SELECT i FROM AsIncidencia i
+                LEFT JOIN FETCH i.inTipoIncidenciaObj
+                LEFT JOIN FETCH i.inPrivacidadObj
+                LEFT JOIN FETCH i.inUnidadObj
+                LEFT JOIN FETCH i.inVecinoObj v
+                LEFT JOIN FETCH v.vePersona
+                LEFT JOIN FETCH v.veCorreo
+                LEFT JOIN FETCH v.veTelefono
+                LEFT JOIN FETCH i.inContadorObj c
+                LEFT JOIN FETCH c.doDireccion
+                WHERE i.id = :id AND i.inTipoIncidencia = 1
+            """)
+    Optional<AsIncidencia> findQuejaDetalleById(@Param("id") int id);
 
-        boolean existsByIdAndInEstado(@Param("id") int id, @Param("estado") IncidenciaState estado);
+    boolean existsByIdAndInEstado(@Param("id") int id, @Param("estado") IncidenciaState estado);
 
-        @Query("select i.inEstado from AsIncidencia i where i.id = :id")
-        Optional<IncidenciaState> findStateById(@Param("id") int id);
+    @Query("select i.inEstado from AsIncidencia i where i.id = :id")
+    Optional<IncidenciaState> findStateById(@Param("id") int id);
 
-        @Query("""
-                            SELECT i FROM AsIncidencia i
-                            WHERE (i.inAnalistaId = :usuarioId OR i.inAgente = :usuarioId)
-                              AND i.inEstado IN :estados
-                        """)
-        List<AsIncidencia> findByUsuarioAsignadoAndInEstadoIn(
-                        @Param("usuarioId") String usuarioId,
-                        @Param("estados") List<IncidenciaState> estados);
+    @Query("""
+                SELECT i FROM AsIncidencia i
+                WHERE (i.inAnalistaId = :usuarioId OR i.inAgente = :usuarioId)
+                  AND i.inEstado IN :estados
+            """)
+    List<AsIncidencia> findByUsuarioAsignadoAndInEstadoIn(
+            @Param("usuarioId") String usuarioId,
+            @Param("estados") List<IncidenciaState> estados);
 
-        @Query("select coalesce(i.inRechazos,0) < :max from AsIncidencia i where i.id = :id")
-        boolean validarCantidadRechazosHabiles(@Param("max") short maxRechazos, @Param("id") int id);
+    @Query("select coalesce(i.inRechazos,0) < :max from AsIncidencia i where i.id = :id")
+    boolean validarCantidadRechazosHabiles(@Param("max") short maxRechazos, @Param("id") int id);
 
-        @Modifying
-        @Query("update AsIncidencia i set  i.inRechazos = coalesce(i.inRechazos,0) + 1 where i.id = :id")
-        int actualizarCantidadRechazos(@Param("id") int id);
+    @Modifying
+    @Query("update AsIncidencia i set  i.inRechazos = coalesce(i.inRechazos,0) + 1 where i.id = :id")
+    int actualizarCantidadRechazos(@Param("id") int id);
 
-        @Query("select coalesce(i.inRechazos,0)  from AsIncidencia i where i.id = :id")
-        Optional<Short> findInRechazosById(int id);
+    @Query("select coalesce(i.inRechazos,0)  from AsIncidencia i where i.id = :id")
+    Optional<Short> findInRechazosById(int id);
 
-        @Query("select exists(select 1 from AsIncidencia i where i.id = :id and (i.inAnalistaId = :analistaId or i.inAgente = :analistaId))")
-        boolean existsByIdAndInAnalista(@Param("id") int id, @Param("analistaId") String analistaId);
+    @Query("select exists(select 1 from AsIncidencia i where i.id = :id and (i.inAnalistaId = :analistaId or i.inAgente = :analistaId))")
+    boolean existsByIdAndInAnalista(@Param("id") int id, @Param("analistaId") String analistaId);
 
-        @Query("select exists(select 1 from AsIncidencia i where i.id = :id and i.inVecino = :vecinoId and i.inEstado in :estados)")
-        boolean existsByIdAndInVecinoAndInEstadoIn(int id, int vecinoId, List<IncidenciaState> estados);
+    @Query("select exists(select 1 from AsIncidencia i where i.id = :id and i.inVecino = :vecinoId and i.inEstado in :estados)")
+    boolean existsByIdAndInVecinoAndInEstadoIn(int id, int vecinoId, List<IncidenciaState> estados);
+
+    /**
+     * Validar si existe una incidencia por su id y tipo de incidencia
+     *
+     * @param id   ID de incidencia
+     * @param tipo Tipo de incidencia
+     * @return true = existe, false = no existe
+     */
+    boolean existsByIdAndInTipoIncidencia(int id, short tipo);
 }
