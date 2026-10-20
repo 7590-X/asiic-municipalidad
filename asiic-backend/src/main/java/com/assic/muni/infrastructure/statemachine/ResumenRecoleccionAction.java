@@ -1,6 +1,6 @@
 package com.assic.muni.infrastructure.statemachine;
 
-import com.assic.muni.application.cqrs.cmd.ResumenCmd;
+import com.assic.muni.application.cqrs.dto.ResumenDto;
 import com.assic.muni.application.exception.ServiceException;
 import com.assic.muni.domain.enums.IncidenciaEvent;
 import com.assic.muni.domain.enums.IncidenciaState;
@@ -34,7 +34,7 @@ public class ResumenRecoleccionAction implements Action<IncidenciaState, Inciden
 
         log.info("Ejecutando resumen para incidencia {}, agente de campo {}", id, userId);
 
-        final ResumenCmd resumen = context.getMessageHeaders().get(StateMachineConst.H_BODY.name(), ResumenCmd.class);
+        final ResumenDto resumen = context.getMessageHeaders().get(StateMachineConst.H_BODY.name(), ResumenDto.class);
 
         final boolean pertenece = incidenciaRepository.existsByIdAndInAgente(id, userId);
         if (!pertenece) {
