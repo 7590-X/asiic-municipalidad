@@ -10,12 +10,14 @@ import com.assic.muni.domain.model.AsIncidenciaArchivoId;
 import com.assic.muni.domain.repository.AsIncidenciaArchivoRepository;
 import com.assic.muni.domain.repository.AsIncidenciaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UpsertIncidenciaEvidenciaCmdHandler {
@@ -34,20 +36,27 @@ public class UpsertIncidenciaEvidenciaCmdHandler {
         }
         // Validar estado de incidencias para cargar archivos
         final boolean esValido = incidenciaRepository.existsByIdAndInEstadoIn(incidenciaId, ESTADOS_VALIDOS);
-        if(!esValido){
+        if (!esValido) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, "La incidencia no se encuentra en un estado válido para la carga de evidencias");
         }
 
+        boolean existe;
         if (evidencias != null && !evidencias.isEmpty()) {
             for (MultipartFile mf : evidencias) {
                 AsArchivo archivo = fileStoragePort.storeFile(mf);
-
-                incidenciaArchivoRepository.save(
-                        AsIncidenciaArchivo.builder()
-                                .id(new AsIncidenciaArchivoId(archivo.getId(), incidenciaId))
-                                .aiEstado("A")
-                                .build()
-                );
+                // Validar existencia relación
+                existe = incidenciaArchivoRepository.existsById_AiArchivoAndId_AiIncidencia(archivo.getId(), incidenciaId);
+                if (!existe) {
+                    incidenciaArchivoRepository.save(
+                            AsIncidenciaArchivo.builder()
+                                    .id(new AsIncidenciaArchivoId(archivo.getId(), incidenciaId))
+                                    .aiEstado("A")
+                                    .build()
+                    );
+                    log.info("Archivo {} cargado correctamente para la incidencia {}", archivo.getId(), incidenciaId);
+                } else {
+                    log.info("Archivo {} ya existe para la incidencia {}", archivo.getId(), incidenciaId);
+                }
             }
         }
     }
