@@ -11,6 +11,7 @@ import { ClarityModule } from '@clr/angular';
 })
 export class TipoPrivacidadComponent {
   @Input({ required: true }) stepForm!: FormGroup;
+  @Input() isFrozen: boolean = false;
 
   get tipoSeleccionado(): string {
     return this.stepForm.get('tipoIncidencia')?.value;

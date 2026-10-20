@@ -97,7 +97,7 @@
           <clr-step-description>Clasificación del reporte</clr-step-description>
           <clr-step-content *clrIfExpanded>
             <fieldset [disabled]="isReadOnly" style="border:none; padding:0; margin:0;">
-              <app-tipo-privacidad [stepForm]="tipoYPrivacidadForm"></app-tipo-privacidad>
+              <app-tipo-privacidad [stepForm]="tipoYPrivacidadForm" [isFrozen]="isApelacion"></app-tipo-privacidad>
             </fieldset>
             <button clrStepButton="next" type="button" class="btn btn-primary mt-4">Siguiente</button>
           </clr-step-content>

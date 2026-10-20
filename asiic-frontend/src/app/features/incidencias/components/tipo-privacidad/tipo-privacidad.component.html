@@ -1,8 +1,8 @@
-<div [formGroup]="stepForm" class="rv-grid">
-  
-  <clr-select-container class="rv-full">
+<div [formGroup]="stepForm" class="rv-grid" [style.pointer-events]="isFrozen ? 'none' : 'auto'" [style.user-select]="isFrozen ? 'none' : 'auto'">
+
+  <clr-select-container class="rv-full" [style.opacity]="isFrozen ? '0.85' : '1'">
     <label>Tipo de Incidencia</label>
-    <select clrSelect name="tipoIncidencia" formControlName="tipoIncidencia">
+    <select clrSelect name="tipoIncidencia" formControlName="tipoIncidencia" [tabIndex]="isFrozen ? -1 : 0">
       <option value="">Seleccione...</option>
       <option value="QUEJA">Queja (Inconformidad con el servicio)</option>
       <option value="RECLAMO">Reclamo (Exigencia o corrección)</option>
@@ -12,18 +12,18 @@
     <clr-control-error>Este campo es obligatorio</clr-control-error>
   </clr-select-container>
 
-  <clr-radio-container clrInline class="rv-full mt-3">
+  <clr-radio-container clrInline class="rv-full mt-3" [style.opacity]="isFrozen ? '0.85' : '1'">
     <label>Privacidad</label>
     <clr-radio-wrapper>
-      <input type="radio" clrRadio value="PUBLICO" name="privacidad" formControlName="privacidad" />
+      <input type="radio" clrRadio value="PUBLICO" name="privacidad" formControlName="privacidad" [tabIndex]="isFrozen ? -1 : 0" />
       <label>Público</label>
     </clr-radio-wrapper>
     <clr-radio-wrapper>
-      <input type="radio" clrRadio value="CONFIDENCIAL" name="privacidad" formControlName="privacidad" />
+      <input type="radio" clrRadio value="CONFIDENCIAL" name="privacidad" formControlName="privacidad" [tabIndex]="isFrozen ? -1 : 0" />
       <label>Confidencial</label>
     </clr-radio-wrapper>
     <clr-radio-wrapper *ngIf="tipoSeleccionado === 'SUGERENCIA'">
-      <input type="radio" clrRadio value="ANONIMO" name="privacidad" formControlName="privacidad" />
+      <input type="radio" clrRadio value="ANONIMO" name="privacidad" formControlName="privacidad" [tabIndex]="isFrozen ? -1 : 0" />
       <label>Anónimo</label>
     </clr-radio-wrapper>
   </clr-radio-container>
