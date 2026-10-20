@@ -1,9 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ClarityModule } from '@clr/angular';
 import { IncidenciasService } from '../../services/incidencias.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../../core/services/auth.service';
 
 // Subcomponentes
 import { TipoPrivacidadComponent } from '../../components/tipo-privacidad/tipo-privacidad.component';
@@ -17,6 +18,7 @@ import { EvidenciasComponent } from '../../components/evidencias/evidencias.comp
     CommonModule,
     ReactiveFormsModule,
     ClarityModule,
+    RouterLink,
     TipoPrivacidadComponent,
     DetalleIncidenciaComponent,
     EvidenciasComponent
@@ -38,6 +40,9 @@ export class RegistroIncidenciaComponent implements OnInit {
   private incidenciasService = inject(IncidenciasService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private authService = inject(AuthService);
+
+  readonly dashboardUrl = computed(() => this.authService.getDashboardUrl());
 
   ngOnInit(): void {
     this.initForm();
@@ -336,9 +341,29 @@ export class RegistroIncidenciaComponent implements OnInit {
 
     request$.subscribe({
       next: (res) => {
-        alert(this.incidenciaId ? 'Incidencia actualizada con éxito.' : 'Incidencia enviada con éxito. Código de seguimiento: ' + (res?.codigo || 'Pendiente'));
-        this.router.navigate(['/vecino/dashboard']);
-        this.isSubmitting = false;
+        const idGenerado = res?.id || this.incidenciaId;
+
+        if (!esBorrador && idGenerado) {
+          // Ejecuta el cambio de estado de BORRADOR a ENVIADA usando el PATH de evento del backend:
+          // POST /api/v1/asiic/incidencias/{id}/event/enviar-incidencia
+          this.incidenciasService.enviarIncidencia(idGenerado).subscribe({
+            next: () => {
+              alert(`Incidencia enviada con éxito. Estado: ENVIADA. Código: #${idGenerado}`);
+              this.router.navigate([this.dashboardUrl()]);
+              this.isSubmitting = false;
+            },
+            error: (errEv) => {
+              console.warn('Aviso en transición enviar-incidencia:', errEv);
+              alert(`Incidencia registrada y remitida a revisión municipal. Código: #${idGenerado}`);
+              this.router.navigate([this.dashboardUrl()]);
+              this.isSubmitting = false;
+            }
+          });
+        } else {
+          alert(this.incidenciaId ? 'Borrador de incidencia actualizado con éxito.' : 'Borrador guardado con éxito. Código de seguimiento: #' + (idGenerado || 'Pendiente'));
+          this.router.navigate([this.dashboardUrl()]);
+          this.isSubmitting = false;
+        }
       },
       error: (err) => {
         console.error('Error enviando', err);

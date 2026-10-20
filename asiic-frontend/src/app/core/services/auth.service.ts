@@ -40,16 +40,22 @@ export class AuthService {
     };
 
     return this.http.post<AuthLoginResponse>(`${environment.apiBaseUrl}/auth/login`, payload).pipe(
-      tap((response) => {
-        if (response?.payload?.access_token) {
-          const token = response.payload.access_token;
+      tap((response: any) => {
+        const body = response?.payload || response;
+        const token = body?.access_token || body?.accessToken;
+
+        if (token) {
           const user = parseCurrentUser(token);
 
           if (user) {
             this.saveSession(token, credentials.recordar ?? false);
             this.currentUser.set(user);
             this.redirectToDashboard(user.roles);
+          } else {
+            console.error('[AuthService] No se pudo parsear el usuario desde el token:', token);
           }
+        } else {
+          console.error('[AuthService] No se encontró access_token en la respuesta:', response);
         }
       })
     );
@@ -102,13 +108,33 @@ export class AuthService {
    */
   getRole(): string | null {
     const roles = this.userRoles();
-    if (roles.includes('Administrador') || roles.includes('ADMINISTRADOR') || roles.includes('sys_admin')) {
+    if (this.isAgenteCampo()) {
+      return 'Agente de Campo';
+    }
+    if (this.isAnalista()) {
+      return 'Analista';
+    }
+    if (this.isAdmin()) {
       return 'Administrador';
     }
-    if (roles.includes('Vecino') || roles.includes('VECINO')) {
+    if (roles.some(r => {
+      const lower = String(r).toLowerCase();
+      return lower.includes('vecino') || lower.includes('rveco');
+    })) {
       return 'Vecino';
     }
     return roles[0] || null;
+  }
+
+  /**
+   * Helper paramétrico para determinar si es agente de campo
+   */
+  isAgenteCampo(): boolean {
+    const roles = this.userRoles();
+    return roles.some(r => {
+      const lower = String(r).toLowerCase();
+      return lower.includes('agente') || lower.includes('ragte') || lower === '17';
+    });
   }
 
   /**
@@ -116,7 +142,34 @@ export class AuthService {
    */
   isAdmin(): boolean {
     const roles = this.userRoles();
-    return roles.some(r => r.toLowerCase().includes('admin'));
+    return roles.some(r => String(r).toLowerCase().includes('admin'));
+  }
+
+  /**
+   * Helper paramétrico para determinar si es analista
+   */
+  isAnalista(): boolean {
+    const roles = this.userRoles();
+    return roles.some(r => {
+      const lower = String(r).toLowerCase();
+      return lower.includes('analista') || lower.includes('ranta') || lower === '16';
+    });
+  }
+
+  /**
+   * Helper paramétrico para determinar si es usuario interno/staff (admin, analista, agente, operador)
+   */
+  isInternalUser(): boolean {
+    const roles = this.userRoles();
+    return roles.some(r => {
+      const lower = String(r).toLowerCase();
+      return lower.includes('admin') ||
+             lower.includes('analista') ||
+             lower.includes('ranta') ||
+             lower.includes('roper') ||
+             lower.includes('agente') ||
+             lower.startsWith('sys_');
+    });
   }
 
   private saveSession(token: string, remember: boolean): void {
@@ -154,15 +207,70 @@ export class AuthService {
     localStorage.removeItem(this.REMEMBER_KEY);
   }
 
-  private redirectToDashboard(roles: string[]): void {
-    // Manejo de roles para redirección
-    const normalizedRoles = roles.map((r) => r.toLowerCase());
-    if (normalizedRoles.some(r => r.includes('admin') || r === 'ranta' || r === 'roper' || r === 'sys_admin')) {
-      this.router.navigate(['/admin/dashboard']).catch(() => this.router.navigate(['/']));
-    } else if (normalizedRoles.some(r => r.includes('vecino') || r === 'rveco')) {
-      this.router.navigate(['/vecino/dashboard']).catch(() => this.router.navigate(['/']));
-    } else {
-      this.router.navigate(['/']);
+  /**
+   * Obtiene la ruta del dashboard principal según el rol del usuario autenticado
+   */
+  getDashboardUrl(): string {
+    if (this.isAgenteCampo()) {
+      return '/agente/dashboard';
     }
+    if (this.isAnalista()) {
+      return '/analista/dashboard';
+    }
+    if (this.isAdmin()) {
+      return '/admin/dashboard';
+    }
+    return '/vecino/dashboard';
+  }
+
+  /**
+   * Redirección inteligente según el rol del usuario autenticado
+   */
+  redirectToDashboard(roles?: string[]): void {
+    if (roles && roles.length > 0) {
+      const normalizedRoles = roles.map((r) => String(r).toLowerCase());
+      console.log('[AuthService] Evaluando redirección para roles:', roles, 'Normalizados:', normalizedRoles);
+
+      const isAgente = normalizedRoles.some(r =>
+        r.includes('agente') ||
+        r.includes('ragte') ||
+        r === '17'
+      );
+      const isAnalista = normalizedRoles.some(r =>
+        r.includes('analista') ||
+        r.includes('ranta') ||
+        r === '16'
+      );
+      const isAdmin = normalizedRoles.some(r =>
+        r.includes('admin') ||
+        r.includes('radmn')
+      );
+      const isVecino = normalizedRoles.some(r =>
+        r.includes('vecino') ||
+        r.includes('rveco')
+      );
+
+      if (isAgente) {
+        console.log('[AuthService] -> Navegando a /agente/dashboard');
+        this.router.navigate(['/agente/dashboard']);
+        return;
+      } else if (isAnalista) {
+        console.log('[AuthService] -> Navegando a /analista/dashboard');
+        this.router.navigate(['/analista/dashboard']);
+        return;
+      } else if (isAdmin) {
+        console.log('[AuthService] -> Navegando a /admin/dashboard');
+        this.router.navigate(['/admin/dashboard']);
+        return;
+      } else if (isVecino) {
+        console.log('[AuthService] -> Navegando a /vecino/dashboard');
+        this.router.navigate(['/vecino/dashboard']);
+        return;
+      }
+    }
+
+    const defaultUrl = this.getDashboardUrl();
+    console.log('[AuthService] Navegando a dashboard por defecto:', defaultUrl);
+    this.router.navigate([defaultUrl]);
   }
 }

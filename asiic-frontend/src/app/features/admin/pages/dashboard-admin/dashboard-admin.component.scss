@@ -1,0 +1,78 @@
+@use '../../../../../styles/colors' as *;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.admin-dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  .admin-header {
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: $color-primary-dark;
+      margin: 0 0 0.35rem;
+    }
+    p {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin: 0;
+    }
+  }
+
+  .card {
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-header {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      background: #fafbfc;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+
+    .card-footer {
+      border-top: 1px solid #f1f5f9;
+      background: transparent;
+      padding: 0.75rem 1rem;
+    }
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard-container {
+    .admin-header h1 {
+      font-size: 1.35rem;
+    }
+
+    .card-footer {
+      .btn {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  }
+}

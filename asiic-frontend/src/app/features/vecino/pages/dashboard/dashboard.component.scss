@@ -263,3 +263,46 @@
     }
   }
 }
+
+// ==========================================
+// RESPONSIVE DESIGN ENHANCEMENTS
+// ==========================================
+@media (max-width: 768px) {
+  .welcome-banner {
+    padding: 1.25rem 1rem;
+
+    .banner-title {
+      font-size: 1.3rem;
+    }
+
+    .banner-subtitle {
+      font-size: 0.82rem;
+    }
+
+    .banner-meta {
+      flex-wrap: wrap;
+      gap: 0.4rem;
+
+      .meta-divider {
+        display: none;
+      }
+    }
+  }
+
+  .quick-actions-section {
+    .section-title {
+      font-size: 0.95rem;
+    }
+  }
+
+  .table-card {
+    .card-block {
+      padding: 0.5rem;
+    }
+  }
+
+  ::ng-deep .modal-dialog {
+    max-width: 95vw !important;
+    margin: 0.5rem auto !important;
+  }
+}

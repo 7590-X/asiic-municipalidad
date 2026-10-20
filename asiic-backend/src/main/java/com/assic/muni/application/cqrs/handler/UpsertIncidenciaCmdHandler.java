@@ -52,11 +52,7 @@ public class UpsertIncidenciaCmdHandler {
     private final AsCatalogoRepository catalogoRepository;
     private final AsVecinoDomicilioRepository vecinoDomicilioRepository;
     private final AsIncidenciaRepository incidenciaRepository;
-    private final AsIncidenciaArchivoRepository incidenciaArchivoRepository;
     private final VecinoRepository vecinoRepository;
-
-    // Puertos
-    private final FileStoragePort fileStoragePort;
 
     // Eventos
     private final ApplicationEventPublisher eventPublisher;
@@ -66,7 +62,7 @@ public class UpsertIncidenciaCmdHandler {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public Integer handle(IncidenciaPayloadCmd payload, List<MultipartFile> evidencias) {
+    public Integer handle(IncidenciaPayloadCmd payload) {
         final String subject = JwtExtractor.extrarJwtSubject();
         // Persistir incidencias
         int incidencia = switch (payload.getTipoIncidencia()) {
@@ -87,9 +83,6 @@ public class UpsertIncidenciaCmdHandler {
             default ->
                     throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo identificare el tipo de incidence");
         };
-
-        // Evento de registro de evidencias
-        almacenarEvidencias(evidencias, incidencia);
         return incidencia;
     }
 
@@ -261,28 +254,6 @@ public class UpsertIncidenciaCmdHandler {
         boolean exists = vecinoDomicilioRepository.existsRelationByContadorAndVecino(contador, vecinoId);
         if (!exists) {
             throw new ServiceException(HttpStatus.BAD_REQUEST, "No se pudo verificar la pertenencia de la residencia");
-        }
-    }
-
-    /**
-     * Almacenamiento de evidencias de incidencias
-     *
-     * @param evidencias   Archivos de incidencias
-     * @param incidenciaId Código de incidencia
-     */
-    private void almacenarEvidencias(List<MultipartFile> evidencias, int incidenciaId) {
-        if (evidencias != null && !evidencias.isEmpty()) {
-            for (MultipartFile mf : evidencias) {
-                AsArchivo archivo = fileStoragePort.storeFile(mf);
-
-                incidenciaArchivoRepository.save(
-                        AsIncidenciaArchivo.builder()
-                                .id(new AsIncidenciaArchivoId(archivo.getId(), incidenciaId))
-                                .aiEstado("A")
-                                .build()
-                );
-
-            }
         }
     }
 }

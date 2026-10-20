@@ -223,3 +223,42 @@
     padding: 2rem 1.5rem 2.25rem;
   }
 }
+
+@media (max-width: 480px) {
+  .rv-page {
+    padding: 1rem 0.6rem;
+  }
+
+  .rv-shell {
+    border-radius: 12px;
+  }
+
+  .rv-aside {
+    padding: 1.5rem 1.25rem;
+    gap: 1.25rem;
+
+    &__brand img {
+      height: 36px;
+      width: 36px;
+    }
+
+    &__body {
+      h1 {
+        font-size: 1.35rem;
+      }
+      p {
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+      }
+    }
+  }
+
+  .rv-main {
+    padding: 1.5rem 1rem 1.75rem;
+  }
+
+  .form-title {
+    font-size: 1.3rem;
+  }
+}
+

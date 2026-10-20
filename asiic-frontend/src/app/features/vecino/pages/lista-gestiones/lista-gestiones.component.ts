@@ -5,11 +5,12 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ClarityModule } from '@clr/angular';
 import { IncidenciasService } from '../../../incidencias/services/incidencias.service';
+import { ModalPreviewArchivoComponent } from '../../../../shared/components/modal-preview-archivo/modal-preview-archivo.component';
 
 @Component({
   selector: 'app-lista-gestiones',
   standalone: true,
-  imports: [CommonModule, RouterModule, ClarityModule],
+  imports: [CommonModule, RouterModule, ClarityModule, ModalPreviewArchivoComponent],
   templateUrl: './lista-gestiones.component.html',
   styleUrls: ['./lista-gestiones.component.scss']
 })
@@ -26,6 +27,15 @@ export class ListaGestionesComponent implements OnInit {
 
   resumenModalOpen = false;
   resumenSeleccionado: any = null;
+
+  // Modal de Vista Previa
+  previewModalOpen = false;
+  archivoEnPreview: any = null;
+
+  abrirPreview(archivo: any): void {
+    this.archivoEnPreview = archivo;
+    this.previewModalOpen = true;
+  }
 
   ngOnInit() {
     this.route.data.subscribe(data => {
@@ -91,9 +101,10 @@ export class ListaGestionesComponent implements OnInit {
     const st = estado.toUpperCase();
     if (st.includes('BORRADOR')) return 'badge-info';
     if (st.includes('ENVIADA')) return 'badge-primary';
-    if (st.includes('PROCESO') || st.includes('ASIGNADA') || st.includes('ACEPTADA') || st.includes('APERTURADA') || st.includes('SOLUCIONANDO')) return 'badge-warning';
+    if (st.includes('ACEPTADA')) return 'badge-success';
     if (st.includes('RECHAZADA') || st.includes('BLOQUEADA')) return 'badge-danger';
     if (st.includes('FINALIZADA') || st.includes('SOLUCIONADA') || st.includes('CONFIRMADA')) return 'badge-success';
+    if (st.includes('PROCESO') || st.includes('ASIGNADA') || st.includes('APERTURADA') || st.includes('SOLUCIONANDO')) return 'badge-warning';
     return 'badge-info';
   }
 
@@ -145,10 +156,11 @@ export class ListaGestionesComponent implements OnInit {
                 const isImage = archivo.formato?.toLowerCase().match(/(jpg|jpeg|png|gif|webp)$/);
                 return {
                   ...archivo,
+                  blob,
                   url: isImage ? URL.createObjectURL(blob) : null
                 };
               }),
-              catchError(() => of({ ...archivo, url: null }))
+              catchError(() => of({ ...archivo, blob: null, url: null }))
             )
           );
 
@@ -176,5 +188,26 @@ export class ListaGestionesComponent implements OnInit {
     setTimeout(() => {
       window.print();
     }, 100);
+  }
+
+  enviarBorradorDirecto(gestion: any): void {
+    if (!gestion?.id) return;
+    if (confirm(`¿Deseas enviar formalmente la incidencia #${gestion.id} a revisión municipal?`)) {
+      this.loading.set(true);
+      this.incidenciasService.enviarIncidencia(gestion.id).subscribe({
+        next: () => {
+          this.gestiones.update(list =>
+            list.map(g => g.id === gestion.id ? { ...g, estado: 'ENVIADA' } : g)
+          );
+          this.loading.set(false);
+          alert(`Incidencia #${gestion.id} enviada exitosamente con estado ENVIADA.`);
+        },
+        error: (err) => {
+          console.error('Error al enviar borrador', err);
+          this.loading.set(false);
+          alert(`Error al enviar la incidencia #${gestion.id}. Por favor intenta nuevamente.`);
+        }
+      });
+    }
   }
 }

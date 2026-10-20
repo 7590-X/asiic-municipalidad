@@ -29,6 +29,19 @@ import { idBadgeIcon } from '@cds/core/icon/shapes/id-badge.js';
 import { envelopeIcon } from '@cds/core/icon/shapes/envelope.js';
 import { refreshIcon } from '@cds/core/icon/shapes/refresh.js';
 import { filterIcon } from '@cds/core/icon/shapes/filter.js';
+import { eyeIcon } from '@cds/core/icon/shapes/eye.js';
+import { downloadIcon } from '@cds/core/icon/shapes/download.js';
+import { popOutIcon } from '@cds/core/icon/shapes/pop-out.js';
+import { imageIcon } from '@cds/core/icon/shapes/image.js';
+import { zoomInIcon } from '@cds/core/icon/shapes/zoom-in.js';
+import { zoomOutIcon } from '@cds/core/icon/shapes/zoom-out.js';
+import { redoIcon } from '@cds/core/icon/shapes/redo.js';
+import { fileGroupIcon } from '@cds/core/icon/shapes/file-group.js';
+import { paperclipIcon } from '@cds/core/icon/shapes/paperclip.js';
+import { gridViewIcon } from '@cds/core/icon/shapes/grid-view.js';
+import { tableIcon } from '@cds/core/icon/shapes/table.js';
+import { inboxIcon } from '@cds/core/icon/shapes/inbox.js';
+import { checkIcon } from '@cds/core/icon/shapes/check.js';
 
 export function initializeClarityIcons(): void {
   ClarityIcons.addIcons(
@@ -58,6 +71,19 @@ export function initializeClarityIcons(): void {
     idBadgeIcon,
     envelopeIcon,
     refreshIcon,
-    filterIcon
+    filterIcon,
+    eyeIcon,
+    downloadIcon,
+    popOutIcon,
+    imageIcon,
+    zoomInIcon,
+    zoomOutIcon,
+    redoIcon,
+    fileGroupIcon,
+    paperclipIcon,
+    gridViewIcon,
+    tableIcon,
+    inboxIcon,
+    checkIcon
   );
 }

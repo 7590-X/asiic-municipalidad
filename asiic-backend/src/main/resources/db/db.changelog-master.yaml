@@ -40,6 +40,8 @@ databaseChangeLog:
   - include:
       file: db/changelog/260926-2-eliminar-not-null-fecha-incidencia.sql
   - include:
+      file: db/changelog/260930-1-agregar-relacion-persona-con-muni.sql
+  - include:
       file: db/changelog/261005-1-agregar-munnicipio-mixco.sql
   - include:
       file: db/changelog/261006-tabla-relacion-munis-usuarios.sql
@@ -63,3 +65,9 @@ databaseChangeLog:
       file: db/changelog/261015-2-as-usuario-catelo.sql
   - include:
       file: db/changelog/261015-3-sp_asignar_agente-mod.sql
+  - include:
+      file: db/changelog/261016-1-sp-asignar-agente-filtro-sugerencias.sql
+  - include:
+      file: db/changelog/261019-1-nueva-tabla-resumen.sql
+  - include:
+      file: db/changelog/261019-2-nuevas-columnas-gps.sql

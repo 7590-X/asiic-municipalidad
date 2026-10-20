@@ -1,0 +1,368 @@
+::ng-deep .modal-preview-archivo {
+  z-index: 1060 !important;
+
+  .modal-dialog {
+    max-width: 1100px !important;
+    width: 95vw !important;
+    margin: 1.5rem auto !important;
+  }
+
+  .modal-content {
+    max-height: 94vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.45);
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.85rem 1.25rem;
+  }
+
+  .modal-body {
+    padding: 0;
+    background: #0f172a;
+    max-height: calc(94vh - 130px);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .modal-footer {
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    padding: 0.75rem 1.25rem;
+  }
+}
+
+::ng-deep .modal-preview-archivo ~ .modal-backdrop {
+  z-index: 1055 !important;
+  background-color: rgba(15, 23, 42, 0.75) !important;
+  backdrop-filter: blur(4px);
+}
+
+.modal-title-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-right: 2rem;
+
+  .title-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+
+    .type-icon-wrapper {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      &.icon-pdf {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+
+      &.icon-image {
+        background: #e0f2fe;
+        color: #0284c7;
+      }
+
+      &.icon-otro {
+        background: #f1f5f9;
+        color: #475569;
+      }
+    }
+
+    .file-text {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+
+      .file-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 480px;
+      }
+
+      .badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+      }
+    }
+  }
+
+  .title-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+
+    .image-toolbar-tools {
+      background: #f1f5f9;
+      border-radius: 6px;
+      padding: 2px 4px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      border: 1px solid #cbd5e1;
+
+      button {
+        color: #334155;
+        height: 28px;
+        line-height: 28px;
+        padding: 0 6px;
+        margin: 0;
+        border-radius: 4px;
+
+        &:hover:not(:disabled) {
+          background: #e2e8f0;
+          color: #0f172a;
+        }
+
+        &:disabled {
+          opacity: 0.4;
+        }
+      }
+
+      .zoom-indicator-btn {
+        font-size: 0.75rem;
+        font-weight: 700;
+        font-family: monospace;
+        min-width: 45px;
+        text-align: center;
+      }
+    }
+  }
+}
+
+.modal-body-preview {
+  display: flex;
+  flex-direction: column;
+  min-height: 480px;
+  height: 74vh;
+}
+
+// Estados de carga y error
+.preview-loading-state,
+.preview-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 3rem;
+  background: #f8fafc;
+  text-align: center;
+
+  .loading-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-top: 1.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .loading-subtext {
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+
+  .error-icon {
+    color: #ef4444;
+    margin-bottom: 1rem;
+  }
+
+  h4 {
+    color: #1e293b;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #64748b;
+    max-width: 450px;
+    margin-bottom: 1rem;
+  }
+}
+
+// CANVAS PARA IMÁGENES
+.preview-canvas-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+  position: relative;
+  overflow: auto;
+  user-select: none;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  .preview-image-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100%;
+    min-height: 100%;
+    padding: 1.5rem;
+  }
+
+  .preview-image {
+    max-width: 90%;
+    max-height: 68vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .canvas-hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(4px);
+    color: #94a3b8;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+// VISOR DE PDF
+.preview-pdf-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #334155;
+
+  .pdf-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    flex: 1;
+    background: #ffffff;
+  }
+
+  .pdf-fallback-hint {
+    background: #1e293b;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    padding: 0.4rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid #334155;
+
+    button {
+      color: #38bdf8;
+      font-weight: 600;
+      text-decoration: underline;
+
+      &:hover {
+        color: #7dd3fc;
+      }
+    }
+  }
+}
+
+// GENÉRICO (OTROS FORMATOS)
+.preview-generic-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: #f8fafc;
+  padding: 2rem;
+
+  .generic-file-card {
+    text-align: center;
+    max-width: 440px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+    .generic-icon {
+      color: #0284c7;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.75rem;
+      word-break: break-all;
+    }
+
+    p {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      font-weight: 600;
+      border-radius: 6px;
+    }
+  }
+}
+
+// PIE DE MODAL
+.modal-footer-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  .footer-meta {
+    color: #64748b;
+  }
+
+  .footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    button {
+      margin: 0 !important;
+      font-weight: 600;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+  }
+}

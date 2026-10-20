@@ -40,12 +40,13 @@ public class IncidenciaPipelineHandler {
 
     private IncidenciaState getEstadoById(int incidenciaId) {
         return incidenciaRepository.findStateById(incidenciaId)
-                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "No se pudo obtener información de la incidencia"));
+                .orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND,
+                        "No se pudo obtener información de la incidencia"));
     }
 
     public List<IncidenciaDto> obtenerIncidenciasAsignadasByEstado(IncidenciaState... estados) {
-        final String analistaId = JwtExtractor.extrarJwtSubject();
-        List<AsIncidencia> list = incidenciaRepository.findByInAnalistaIdAndInEstadoIn(analistaId, List.of(estados));
+        final String usuarioId = JwtExtractor.extrarJwtSubject();
+        List<AsIncidencia> list = incidenciaRepository.findByUsuarioAsignadoAndInEstadoIn(usuarioId, List.of(estados));
         if (list.isEmpty()) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron incidencias asignadas");
         }
@@ -55,11 +56,13 @@ public class IncidenciaPipelineHandler {
     }
 
     @Transactional
-    public void pipelineApelarIncidencia(int incidenciaId, IncidenciaPayloadCmd payload, List<MultipartFile> evidencias){
-        if(incidenciaId != payload.getIncidenciaId()){
-            throw new ServiceException(HttpStatus.BAD_REQUEST, "El id de la incidencia no coincide con el id del payload");
+    public void pipelineApelarIncidencia(int incidenciaId, IncidenciaPayloadCmd payload,
+            List<MultipartFile> evidencias) {
+        if (incidenciaId != payload.getIncidenciaId()) {
+            throw new ServiceException(HttpStatus.BAD_REQUEST,
+                    "El id de la incidencia no coincide con el id del payload");
         }
-        upsertIncidenciaCmdHandler.handle(payload, evidencias);
+        upsertIncidenciaCmdHandler.handle(payload);
         pipelineChangeState(payload.getIncidenciaId(), IncidenciaEvent.APELAR_INCIDENCIA);
     }
 }

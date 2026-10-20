@@ -1,14 +1,50 @@
-<div class="main-container portal-main-container">
+<div class="main-container portal-main-container" [class.mobile-open]="isMobile && isMobileOpen">
   <app-header (toggleSidebar)="toggleSidebar()"></app-header>
   
-  <div class="content-container">
-    <app-sidebar-nav
-      [collapsed]="isSidebarCollapsed"
-      (collapsedChange)="isSidebarCollapsed = $event"
-    ></app-sidebar-nav>
+  <div class="content-container portal-content-container">
+    <!-- Backdrop oscuro para versión móvil -->
+    <div
+      *ngIf="isMobile && isMobileOpen"
+      class="sidebar-backdrop"
+      (click)="closeMobileSidebar()"
+      aria-label="Cerrar menú lateral"
+    ></div>
+
+    <!-- Contenedor del Sidebar con comportamiento responsivo (Drawer flotante en móvil, Flex en escritorio) -->
+    <aside
+      class="sidebar-wrapper"
+      [class.sidebar-mobile]="isMobile"
+      [class.sidebar-mobile-open]="isMobile && isMobileOpen"
+      [class.sidebar-desktop-collapsed]="!isMobile && isSidebarCollapsed"
+    >
+      <!-- Cabecera del drawer móvil -->
+      <div *ngIf="isMobile" class="mobile-sidebar-header">
+        <div class="mobile-header-branding">
+          <cds-icon shape="bars"></cds-icon>
+          <span class="mobile-menu-title">MENÚ PRINCIPAL</span>
+        </div>
+        <button
+          type="button"
+          class="btn-close-mobile-nav"
+          (click)="closeMobileSidebar()"
+          aria-label="Cerrar navegación lateral"
+          title="Cerrar menú"
+        >
+          <cds-icon shape="times"></cds-icon>
+        </button>
+      </div>
+
+      <app-sidebar-nav
+        [collapsed]="!isMobile && isSidebarCollapsed"
+        [isMobile]="isMobile"
+        (collapsedChange)="onSidebarCollapseChange($event)"
+        (navItemClicked)="closeMobileSidebar()"
+      ></app-sidebar-nav>
+    </aside>
 
     <main class="content-area portal-content-area" id="main-content">
       <router-outlet></router-outlet>
     </main>
   </div>
 </div>
+
