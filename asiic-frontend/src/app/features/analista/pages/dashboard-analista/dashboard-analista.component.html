@@ -95,7 +95,7 @@
       <div class="card metric-card card-purple">
         <div class="card-block">
           <div class="metric-icon-box icon-purple">
-            <cds-icon shape="replay" size="lg"></cds-icon>
+            <cds-icon shape="history" size="lg"></cds-icon>
           </div>
           <div class="metric-details">
             <div class="metric-value">{{ totalApelaciones() }}</div>
@@ -108,104 +108,9 @@
   </div>
 
   <div class="clr-row dashboard-columns">
-    <!-- COLUMNA PRINCIPAL: INCIDENCIAS RECIENTES -->
-    <div class="clr-col-12 clr-col-lg-8">
-      <div class="card content-card">
-        <div class="card-header card-header-flex">
-          <div class="card-header-title">
-            <cds-icon shape="list" size="md"></cds-icon>
-            <span>Incidencias Asignadas Recientes</span>
-          </div>
-          <a routerLink="/analista/incidencias-asignadas" class="btn btn-sm btn-link">
-            Ver todas ({{ totalAsignadas() }}) <cds-icon shape="arrow" direction="right"></cds-icon>
-          </a>
-        </div>
-        <div class="card-block p-0">
-          <div *ngIf="loading()" class="loading-box">
-            <span class="spinner"></span>
-            <p>Cargando incidencias asignadas...</p>
-          </div>
-
-          <div *ngIf="!loading() && incidencias().length === 0" class="empty-box">
-            <cds-icon shape="check" size="xl" class="text-success"></cds-icon>
-            <h4>¡Todo al día!</h4>
-            <p>No tienes incidencias pendientes de dictamen en este momento.</p>
-          </div>
-
-          <div *ngIf="!loading() && incidencias().length > 0">
-            <!-- VISTA MÓVIL: TARJETAS COMPACTAS (< 768px) -->
-            <div class="mobile-recent-cards d-md-none">
-              <div *ngFor="let inc of incidenciasRecientes()" class="mobile-recent-card">
-                <div class="m-card-top">
-                  <div class="m-card-code-type">
-                    <span class="m-card-code">#{{ inc.id }}</span>
-                    <span class="label" [ngClass]="getTipoBadgeClass(inc.tipo)">{{ inc.tipo }}</span>
-                  </div>
-                  <span class="badge" [ngClass]="getEstadoBadgeClass(inc.estado)">{{ inc.estado }}</span>
-                </div>
-                <div class="m-card-subject">{{ inc.asunto || inc.descripcion }}</div>
-                <div class="m-card-bottom">
-                  <span class="m-card-date">
-                    <cds-icon shape="calendar" size="sm"></cds-icon>
-                    {{ inc.fechaRegistro ? (inc.fechaRegistro | date:'dd/MM/yyyy') : inc.fecha }}
-                  </span>
-                  <a routerLink="/analista/incidencias-asignadas" class="btn btn-sm btn-outline-primary m-card-btn">
-                    Ver <cds-icon shape="arrow" direction="right"></cds-icon>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- VISTA ESCRITORIO / TABLET: TABLA CON SCROLL SEGURO (>= 768px) -->
-            <div class="table-responsive d-none d-md-block">
-              <table class="table table-noborder table-hover m-0">
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Tipo</th>
-                    <th>Asunto</th>
-                    <th>Estado</th>
-                    <th>Fecha</th>
-                    <th class="text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let inc of incidenciasRecientes()">
-                    <td><strong class="text-primary">#{{ inc.id }}</strong></td>
-                    <td>
-                      <span class="label" [ngClass]="getTipoBadgeClass(inc.tipo)">
-                        {{ inc.tipo }}
-                      </span>
-                    </td>
-                    <td>
-                      <div class="truncate-cell" [title]="inc.asunto || inc.descripcion">
-                        {{ inc.asunto || inc.descripcion }}
-                      </div>
-                    </td>
-                    <td>
-                      <span class="badge" [ngClass]="getEstadoBadgeClass(inc.estado)">
-                        {{ inc.estado }}
-                      </span>
-                    </td>
-                    <td class="text-muted font-sm">
-                      {{ inc.fechaRegistro ? (inc.fechaRegistro | date:'dd/MM/yyyy') : inc.fecha }}
-                    </td>
-                    <td class="text-right">
-                      <a routerLink="/analista/incidencias-asignadas" class="btn btn-sm btn-outline-primary btn-icon-only" title="Ir a dictamen">
-                        <cds-icon shape="eye"></cds-icon>
-                      </a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      <!-- GUÍA DEL CICLO DE VIDA PARA EL ANALISTA -->
-      <div class="card workflow-card mt-3">
+    <!-- COLUMNA PRINCIPAL: GUÍA DEL CICLO DE VIDA PARA EL ANALISTA -->
+    <div class="clr-col-12 clr-col-lg-7">
+      <div class="card workflow-card">
         <div class="card-header">
           <div class="card-header-title">
             <cds-icon shape="process" size="md"></cds-icon>
@@ -245,7 +150,7 @@
     </div>
 
     <!-- COLUMNA LATERAL: DISTRIBUCIÓN Y ACCESOS -->
-    <div class="clr-col-12 clr-col-lg-4">
+    <div class="clr-col-12 clr-col-lg-5">
       <!-- DISTRIBUCIÓN POR TIPO -->
       <div class="card content-card">
         <div class="card-header">
@@ -300,28 +205,6 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- ACCESO RÁPIDO -->
-      <div class="card quick-actions-card mt-3">
-        <div class="card-header">
-          <div class="card-header-title">
-            <cds-icon shape="bolt" size="md"></cds-icon>
-            <span>Acciones Rápidas</span>
-          </div>
-        </div>
-        <div class="card-block">
-          <a routerLink="/analista/incidencias-asignadas" class="quick-link-btn">
-            <div class="quick-link-icon bg-blue">
-              <cds-icon shape="clipboard"></cds-icon>
-            </div>
-            <div class="quick-link-text">
-              <div class="quick-link-title">Bandeja de Incidencias</div>
-              <div class="quick-link-desc">Dictaminar y revisar solicitudes</div>
-            </div>
-            <cds-icon shape="arrow" direction="right" class="quick-link-arrow"></cds-icon>
-          </a>
         </div>
       </div>
     </div>

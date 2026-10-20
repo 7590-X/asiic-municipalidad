@@ -1,12 +1,18 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ClarityModule } from '@clr/angular';
-import { IncidenciasService } from '../../../incidencias/services/incidencias.service';
+import { IncidenciasService, IncidenciaFeedback } from '../../../incidencias/services/incidencias.service';
 import { ModalPreviewArchivoComponent } from '../../../../shared/components/modal-preview-archivo/modal-preview-archivo.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+
+export interface MotivoRechazoItem {
+  titulo: string;
+  descripcion: string;
+  recomendacion?: string;
+}
 
 @Component({
   selector: 'app-incidencias-asignadas',
@@ -17,6 +23,8 @@ import { catchError, map } from 'rxjs/operators';
 })
 export class IncidenciasAsignadasComponent implements OnInit {
   private incidenciasService = inject(IncidenciasService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   // Lista reactiva de incidencias asignadas
   incidencias = signal<any[]>([]);
@@ -42,12 +50,54 @@ export class IncidenciasAsignadasComponent implements OnInit {
   // Dialogo de Confirmación Aceptar (AN1-3)
   confirmAceptarOpen = false;
 
-  // Dialogo de Confirmación Rechazar con Feedback para el Vecino (AN1-4 / FA4)
+  // Dialogo de Confirmación Rechazar con Listado de Feedback para el Vecino (AN1-4 / FA4)
   confirmRechazarOpen = false;
   feedbackTitulo = '';
   feedbackDescripcion = '';
   feedbackRecomendacion = '';
+  listaMotivosRechazo: MotivoRechazoItem[] = [];
+  editandoIndice: number | null = null;
   formRechazoInvalido = false;
+  errorListaVacia = false;
+
+  // Catálogo de plantillas rápidas de motivos frecuentes
+  plantillasRechazo = [
+    {
+      label: 'Falta de evidencias',
+      icon: 'file',
+      titulo: 'Falta de pruebas o evidencias concluyentes',
+      descripcion: 'La solicitud no presenta fotografías, documentos o elementos de convicción suficientes que permitan constatar los hechos expuestos.',
+      recomendacion: 'Puede ingresar una nueva gestión adjuntando fotografías claras, documentos o recibos que respalden su solicitud.'
+    },
+    {
+      label: 'Fuera de jurisdicción',
+      icon: 'folder',
+      titulo: 'Improcedente por falta de competencia territorial',
+      descripcion: 'La dirección o inmueble indicado se encuentra fuera del área de jurisdicción y cobertura técnica de esta municipalidad.',
+      recomendacion: 'Le sugerimos canalizar su solicitud ante la municipalidad u organismo gubernamental correspondiente a su sector.'
+    },
+    {
+      label: 'Datos incompletos',
+      icon: 'user',
+      titulo: 'Información incompleta o no localizable',
+      descripcion: 'Los datos de contacto, número de contador o descripción de ubicación impiden realizar la inspección técnica correspondiente.',
+      recomendacion: 'Verifique su número de contador y referencias exactas (calle, número y zona) al registrar un nuevo reporte.'
+    },
+    {
+      label: 'Trámite duplicado',
+      icon: 'file-group',
+      titulo: 'Reporte duplicado previamente registrado',
+      descripcion: 'Existe un trámite idéntico registrado previamente en la plataforma para este mismo domicilio y hecho, el cual sigue en curso.',
+      recomendacion: 'Puede dar seguimiento al caso ya abierto desde su portal de vecino o aportar información complementaria sobre el mismo.'
+    },
+    {
+      label: 'No competencia municipal',
+      icon: 'shield',
+      titulo: 'Materia ajena a los servicios municipales',
+      descripcion: 'El asunto planteado corresponde a controversias privadas entre particulares o a entidades no municipales.',
+      recomendacion: 'Se sugiere acudir al juzgado de asuntos municipales, juzgado de paz o a la entidad competente según el caso.'
+    }
+  ];
 
   // Modal para Solicitar Más Evidencias con Agente de Campo
   modalCampoOpen = false;
@@ -133,6 +183,17 @@ export class IncidenciasAsignadasComponent implements OnInit {
       this.vistaModo.set('cards');
     }
     this.cargarIncidencias();
+
+    // Escuchar cambios en queryParam 'id' para abrir el modal directamente
+    this.route.queryParamMap.subscribe(params => {
+      const targetId = params.get('id');
+      if (targetId && this.incidencias().length > 0) {
+        const found = this.incidencias().find(i => String(i.id) === targetId);
+        if (found && (!this.selectedIncidencia || String(this.selectedIncidencia.id) !== targetId)) {
+          this.abrirDetalle(found);
+        }
+      }
+    });
   }
 
 
@@ -148,6 +209,15 @@ export class IncidenciasAsignadasComponent implements OnInit {
         });
         this.incidencias.set(filtradas);
         this.loading.set(false);
+
+        // Si se especificó ?id= en la URL (ej. desde el dashboard), abrir directamente su detalle
+        const targetId = this.route.snapshot.queryParamMap.get('id');
+        if (targetId) {
+          const found = filtradas.find(item => String(item.id) === targetId);
+          if (found) {
+            this.abrirDetalle(found);
+          }
+        }
       },
       error: (err) => {
         console.error('Error al cargar incidencias asignadas', err);
@@ -163,8 +233,17 @@ export class IncidenciasAsignadasComponent implements OnInit {
    */
   abrirDetalle(incidencia: any): void {
     this.selectedIncidencia = { ...incidencia };
+
+    // Si es tipo Denuncia y los datos vinieron en testigos por el backend, mapearlos a denunciados
+    if (this.isTipoDenuncia(incidencia.tipo) && (!this.selectedIncidencia.denunciados || this.selectedIncidencia.denunciados.length === 0)) {
+      if (this.selectedIncidencia.testigos && this.selectedIncidencia.testigos.length > 0) {
+        this.selectedIncidencia.denunciados = [...this.selectedIncidencia.testigos];
+      }
+    }
+
     this.detalleModalOpen = true;
     this.evidenciasCargadas = [];
+    this.cargarResumenesCampo(incidencia.id);
 
     // Cargar evidencias si existen
     if (incidencia.archivosAdjuntos && incidencia.archivosAdjuntos.length > 0) {
@@ -178,46 +257,50 @@ export class IncidenciasAsignadasComponent implements OnInit {
     this.detalleModalOpen = false;
     this.selectedIncidencia = null;
     this.evidenciasCargadas = [];
+    this.resumenesCampo = [];
+    this.cargandoResumenes = false;
     this.cerrarPreview();
+    if (this.route.snapshot.queryParamMap.has('id')) {
+      this.router.navigate([], { relativeTo: this.route, queryParams: { id: null }, queryParamsHandling: 'merge' });
+    }
+  }
+
+  resumenesCampo: any[] = [];
+  cargandoResumenes = false;
+
+  cargarResumenesCampo(incidenciaId: number): void {
+    this.cargandoResumenes = true;
+    this.resumenesCampo = [];
+    this.incidenciasService.getResumenesCampo(incidenciaId).subscribe({
+      next: (resumenes) => {
+        this.resumenesCampo = resumenes || [];
+        if (this.resumenesCampo.length > 0 && this.selectedIncidencia) {
+          const ultimo = this.resumenesCampo[this.resumenesCampo.length - 1];
+          this.selectedIncidencia.resumen = ultimo.body;
+          this.selectedIncidencia.latitudGps = ultimo.latitudGps;
+          this.selectedIncidencia.longitudGps = ultimo.longitudGps;
+        }
+        this.cargandoResumenes = false;
+      },
+      error: () => {
+        this.resumenesCampo = [];
+        this.cargandoResumenes = false;
+      }
+    });
   }
 
   cargarEvidencias(incidenciaId: number): void {
     this.cargandoEvidencias = true;
     this.incidenciasService.getArchivosIncidenciaAnalista(incidenciaId).subscribe({
       next: (archivos) => {
-        if (!archivos || archivos.length === 0) {
-          this.evidenciasCargadas = [];
-          this.cargandoEvidencias = false;
-          return;
-        }
-
-        const peticiones = archivos.map((archivo: any) =>
-          this.incidenciasService.descargarArchivoIncidencia(incidenciaId, archivo.id).pipe(
-            map(blob => {
-              if (blob && blob.size > 0) {
-                const isImage = (archivo.formato || archivo.nombre || '').toLowerCase().match(/(jpg|jpeg|png|gif|webp)$/);
-                return {
-                  ...archivo,
-                  blob,
-                  url: isImage ? URL.createObjectURL(blob) : null
-                };
-              }
-              return { ...archivo, blob: null, url: null };
-            }),
-            catchError(() => of({ ...archivo, blob: null, url: null }))
-          )
-        );
-
-        forkJoin(peticiones).subscribe({
-          next: (archivosConUrl) => {
-            this.evidenciasCargadas = archivosConUrl;
-            this.cargandoEvidencias = false;
-          },
-          error: () => {
-            this.evidenciasCargadas = archivos.map(a => ({ ...a, url: null }));
-            this.cargandoEvidencias = false;
-          }
-        });
+        // Carga bajo demanda: solo conservamos los metadatos de los archivos (nombre, formato, fecha, id)
+        // La descarga real de binarios por SFTP se ejecuta únicamente cuando el analista hace clic en 'Vista Previa' o 'Descargar'
+        this.evidenciasCargadas = (archivos || []).map((archivo: any) => ({
+          ...archivo,
+          blob: null,
+          url: null
+        }));
+        this.cargandoEvidencias = false;
       },
       error: () => {
         this.evidenciasCargadas = [];
@@ -241,9 +324,11 @@ export class IncidenciasAsignadasComponent implements OnInit {
       a.download = archivo.nombre || 'evidencia_incidencia';
       a.click();
     } else if (this.selectedIncidencia?.id && archivo.id) {
+      this.mostrarAlerta(`Descargando "${archivo.nombre}" desde el repositorio municipal...`, 'info');
       this.incidenciasService.descargarArchivoIncidencia(this.selectedIncidencia.id, archivo.id).subscribe({
         next: (blob) => {
           if (blob && blob.size > 0) {
+            archivo.blob = blob;
             const a = document.createElement('a');
             const objectUrl = URL.createObjectURL(blob);
             a.href = objectUrl;
@@ -251,11 +336,11 @@ export class IncidenciasAsignadasComponent implements OnInit {
             a.click();
             URL.revokeObjectURL(objectUrl);
           } else {
-            this.mostrarAlerta(`El archivo "${archivo.nombre}" está registrado en la incidencia.`, 'info');
+            this.mostrarAlerta(`El archivo "${archivo.nombre}" no contiene datos en el servidor.`, 'danger');
           }
         },
         error: () => {
-          this.mostrarAlerta(`El archivo "${archivo.nombre}" está asociado en la base de datos de evidencias.`, 'info');
+          this.mostrarAlerta(`No fue posible descargar el archivo "${archivo.nombre}".`, 'danger');
         }
       });
     }
@@ -266,27 +351,55 @@ export class IncidenciasAsignadasComponent implements OnInit {
   // ==========================================
 
   /**
-   * El usuario presiona el botón "Aceptar Incidencia" (paso 2.3.7)
+   * Determina si la incidencia se encuentra lista para dictamen del analista
+   * (Incidencia Asignada inicial, Recolección Finalizada por agente de campo, o Apelación Asignada).
+   */
+  esEstadoDictamenAnalista(incidencia?: any): boolean {
+    const inc = incidencia || this.selectedIncidencia;
+    if (!inc || !inc.estado) return false;
+    const st = (inc.estado || '').toUpperCase();
+    const esAsignada = st.includes('ASIGNADA') && !st.includes('CAMPO');
+    const esRecoleccionFin = st.includes('RECOLECC');
+    const esApelacion = st.includes('APELAC');
+    return esAsignada || esRecoleccionFin || esApelacion;
+  }
+
+  esEstadoAsignadaAnalista(incidencia?: any): boolean {
+    return this.esEstadoDictamenAnalista(incidencia);
+  }
+
+  /**
+   * El usuario presiona el botón "Aceptar Incidencia"
    * Despliega diálogo de confirmación AN1-3
    */
   solicitarAceptarIncidencia(): void {
+    if (!this.esEstadoDictamenAnalista()) {
+      this.mostrarAlerta(
+        `No es posible dictaminar la incidencia #${this.selectedIncidencia?.id}. Su estado actual es "${this.selectedIncidencia?.estado}".`,
+        'danger'
+      );
+      return;
+    }
     this.confirmAceptarOpen = true;
   }
 
   /**
-   * El usuario presiona "Si" en el diálogo AN1-3 (paso 2.3.9)
-   * 1. Cierra el diálogo de confirmación
-   * 2. Cambia el estado a "Incidencia Aceptada"
-   * 3. Cierra el diálogo de detalle
-   * 4. Elimina la solicitud de la tabla
+   * El usuario presiona "Si" en el diálogo de aceptación:
+   * Si la recolección de campo ya finalizó, envía confirmación de caso.
+   * Si está en asignación inicial o apelación, envía aceptación.
    */
   ejecutarAceptar(): void {
-    if (!this.selectedIncidencia) return;
+    if (!this.selectedIncidencia || !this.esEstadoDictamenAnalista()) return;
 
     const id = this.selectedIncidencia.id;
+    const st = (this.selectedIncidencia.estado || '').toUpperCase();
     this.procesandoAccion.set(true);
 
-    this.incidenciasService.aceptarIncidencia(id).subscribe({
+    const call$ = st.includes('RECOLECC')
+      ? this.incidenciasService.confirmarIncidencia(id)
+      : this.incidenciasService.aceptarIncidencia(id);
+
+    call$.subscribe({
       next: () => {
         // 1. Cierra el diálogo de confirmación
         this.confirmAceptarOpen = false;
@@ -294,6 +407,9 @@ export class IncidenciasAsignadasComponent implements OnInit {
         // 2. Cierra el diálogo con la información de la incidencia
         this.detalleModalOpen = false;
         this.selectedIncidencia = null;
+        if (this.route.snapshot.queryParamMap.has('id')) {
+          this.router.navigate([], { relativeTo: this.route, queryParams: { id: null }, queryParamsHandling: 'merge' });
+        }
 
         // 3. Elimina la solicitud de la tabla
         this.incidencias.update(list => list.filter(item => item.id !== id));
@@ -301,7 +417,7 @@ export class IncidenciasAsignadasComponent implements OnInit {
         this.procesandoAccion.set(false);
 
         // 4. Muestra mensaje en pantalla
-        this.mostrarAlerta(`Incidencia #${id} aceptada con éxito. El estado cambió a "Incidencia Aceptada".`, 'success');
+        this.mostrarAlerta(`Incidencia #${id} aceptada con éxito. Dictamen municipal registrado correctamente.`, 'success');
       },
       error: (err) => {
         console.error('Error al aceptar incidencia', err);
@@ -313,34 +429,146 @@ export class IncidenciasAsignadasComponent implements OnInit {
   }
 
   // ==========================================
-  // FLUJO ALTERNO FA4: Rechazo de Incidencia con Feedback (AN1-4)
+  // FLUJO ALTERNO FA4: Rechazo de Incidencia con Listado de Feedback (AN1-4)
   // ==========================================
 
   /**
-   * El usuario presiona el botón "Rechazar Incidencia" (FA4)
-   * Despliega diálogo de confirmación con formulario de retroalimentación para el vecino
+   * El analista presiona el botón "Rechazar Incidencia" (FA4)
+   * Despliega diálogo de confirmación con listado dinámico de motivos y retroalimentación para el vecino
    */
   solicitarRechazarIncidencia(incidencia?: any): void {
     if (incidencia) {
       this.selectedIncidencia = { ...incidencia };
     }
+    if (!this.esEstadoDictamenAnalista()) {
+      this.mostrarAlerta(
+        `No es posible dictaminar el rechazo para la incidencia #${this.selectedIncidencia?.id}. Su estado actual es "${this.selectedIncidencia?.estado}".`,
+        'danger'
+      );
+      return;
+    }
+    this.listaMotivosRechazo = [];
     this.feedbackTitulo = '';
     this.feedbackDescripcion = '';
     this.feedbackRecomendacion = '';
+    this.editandoIndice = null;
     this.formRechazoInvalido = false;
+    this.errorListaVacia = false;
     this.confirmRechazarOpen = true;
   }
 
   /**
+   * Aplica una plantilla de causal rápida de rechazo al formulario
+   */
+  aplicarPlantilla(plantilla: any): void {
+    this.feedbackTitulo = plantilla.titulo;
+    this.feedbackDescripcion = plantilla.descripcion;
+    this.feedbackRecomendacion = plantilla.recomendacion || '';
+    this.formRechazoInvalido = false;
+    this.errorListaVacia = false;
+  }
+
+  /**
+   * Agrega un nuevo motivo o guarda la edición del motivo seleccionado en la lista
+   */
+  agregarMotivo(): void {
+    const tit = this.feedbackTitulo.trim();
+    const desc = this.feedbackDescripcion.trim();
+    const recom = this.feedbackRecomendacion.trim();
+
+    if (!tit || !desc) {
+      this.formRechazoInvalido = true;
+      return;
+    }
+
+    if (this.editandoIndice !== null && this.editandoIndice >= 0) {
+      this.listaMotivosRechazo[this.editandoIndice] = {
+        titulo: tit,
+        descripcion: desc,
+        recomendacion: recom || undefined
+      };
+      this.editandoIndice = null;
+    } else {
+      this.listaMotivosRechazo.push({
+        titulo: tit,
+        descripcion: desc,
+        recomendacion: recom || undefined
+      });
+    }
+
+    this.feedbackTitulo = '';
+    this.feedbackDescripcion = '';
+    this.feedbackRecomendacion = '';
+    this.formRechazoInvalido = false;
+    this.errorListaVacia = false;
+  }
+
+  /**
+   * Carga un motivo existente en el formulario para modificarlo
+   */
+  editarMotivo(index: number): void {
+    if (index >= 0 && index < this.listaMotivosRechazo.length) {
+      this.editandoIndice = index;
+      const m = this.listaMotivosRechazo[index];
+      this.feedbackTitulo = m.titulo;
+      this.feedbackDescripcion = m.descripcion;
+      this.feedbackRecomendacion = m.recomendacion || '';
+      this.formRechazoInvalido = false;
+    }
+  }
+
+  /**
+   * Cancela la edición activa de un motivo
+   */
+  cancelarEdicionMotivo(): void {
+    this.editandoIndice = null;
+    this.feedbackTitulo = '';
+    this.feedbackDescripcion = '';
+    this.feedbackRecomendacion = '';
+    this.formRechazoInvalido = false;
+  }
+
+  /**
+   * Elimina un motivo de la lista de rechazo
+   */
+  eliminarMotivo(index: number): void {
+    this.listaMotivosRechazo.splice(index, 1);
+    if (this.editandoIndice === index) {
+      this.cancelarEdicionMotivo();
+    } else if (this.editandoIndice !== null && this.editandoIndice > index) {
+      this.editandoIndice--;
+    }
+  }
+
+  /**
+   * Limpia los campos del formulario de redacción
+   */
+  limpiarFormularioMotivo(): void {
+    this.feedbackTitulo = '';
+    this.feedbackDescripcion = '';
+    this.feedbackRecomendacion = '';
+    this.editandoIndice = null;
+    this.formRechazoInvalido = false;
+  }
+
+  /**
    * El analista confirma el rechazo de la incidencia:
-   * 1. Valida el feedback obligatorio (título y descripción)
-   * 2. Envía List<IncidenciaFeedback> al endpoint POST /{id}/event/rechazar-incidencia
-   * 3. Remueve la incidencia de la tabla y notifica en pantalla
+   * 1. Si hay campos redactados pendientes, se integran automáticamente
+   * 2. Valida que haya al menos 1 motivo en la lista
+   * 3. Envía List<IncidenciaFeedback> al endpoint POST /{id}/event/rechazar-incidencia
+   * 4. Remueve la incidencia de la tabla y notifica en pantalla
    */
   ejecutarRechazar(): void {
-    if (!this.selectedIncidencia) return;
+    if (!this.selectedIncidencia || !this.esEstadoAsignadaAnalista()) return;
 
-    if (!this.feedbackTitulo.trim() || !this.feedbackDescripcion.trim()) {
+    // Si el analista tiene redactado un motivo válido en el formulario, lo incorporamos
+    if (this.feedbackTitulo.trim() && this.feedbackDescripcion.trim()) {
+      this.agregarMotivo();
+    }
+
+    // Debe existir al menos un motivo en el listado
+    if (this.listaMotivosRechazo.length === 0) {
+      this.errorListaVacia = true;
       this.formRechazoInvalido = true;
       return;
     }
@@ -348,20 +576,24 @@ export class IncidenciasAsignadasComponent implements OnInit {
     const id = this.selectedIncidencia.id;
     this.procesandoAccion.set(true);
 
-    const feedbackPayload = [
-      {
-        titulo: this.feedbackTitulo.trim(),
-        descripcion: this.feedbackDescripcion.trim(),
-        recomendacion: this.feedbackRecomendacion.trim() || undefined
-      }
-    ];
+    const feedbackPayload: IncidenciaFeedback[] = this.listaMotivosRechazo.map(m => ({
+      titulo: m.titulo.trim(),
+      descripcion: m.descripcion.trim(),
+      recomendacion: m.recomendacion?.trim() || undefined
+    }));
 
     this.incidenciasService.rechazarIncidencia(id, feedbackPayload).subscribe({
       next: () => {
-        // Cierra los diálogos
+        const cant = feedbackPayload.length;
+        // Cierra los diálogos y resetea estado
         this.confirmRechazarOpen = false;
         this.detalleModalOpen = false;
         this.selectedIncidencia = null;
+        if (this.route.snapshot.queryParamMap.has('id')) {
+          this.router.navigate([], { relativeTo: this.route, queryParams: { id: null }, queryParamsHandling: 'merge' });
+        }
+        this.listaMotivosRechazo = [];
+        this.cancelarEdicionMotivo();
 
         // Elimina de la tabla la solicitud rechazada
         this.incidencias.update(list => list.filter(item => item.id !== id));
@@ -369,7 +601,7 @@ export class IncidenciasAsignadasComponent implements OnInit {
 
         // Muestra alerta indicando que la retroalimentación fue generada para el vecino
         this.mostrarAlerta(
-          `Incidencia #${id} rechazada. La retroalimentación fue registrada para el vecino y el caso cambió a "Incidencia Rechazada".`,
+          `Incidencia #${id} rechazada con éxito (${cant} motivo${cant > 1 ? 's' : ''} registrado${cant > 1 ? 's' : ''} para el vecino). Estado actualizado a "Incidencia Rechazada".`,
           'danger'
         );
       },
@@ -498,6 +730,8 @@ export class IncidenciasAsignadasComponent implements OnInit {
     this.confirmAceptarOpen = false;
     this.confirmRechazarOpen = false;
     this.modalCampoOpen = false;
+    this.cancelarEdicionMotivo();
+    this.errorListaVacia = false;
   }
 
   // ==========================================
@@ -518,6 +752,18 @@ export class IncidenciasAsignadasComponent implements OnInit {
 
   isTipoSugerencia(tipo?: string): boolean {
     return (tipo || '').toUpperCase().includes('SUGERENCIA');
+  }
+
+  esImagenArchivo(archivo: any): boolean {
+    const ext = (archivo?.nombre || '').toLowerCase();
+    const fmt = (archivo?.formato || '').toLowerCase();
+    return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(ext) || fmt.includes('image') || fmt.includes('jpg') || fmt.includes('png');
+  }
+
+  esPdfArchivo(archivo: any): boolean {
+    const ext = (archivo?.nombre || '').toLowerCase();
+    const fmt = (archivo?.formato || '').toLowerCase();
+    return ext.endsWith('.pdf') || fmt.includes('pdf');
   }
 
   getTipoBadgeClass(tipo: string): string {
@@ -548,6 +794,11 @@ export class IncidenciasAsignadasComponent implements OnInit {
     return 'badge-info';
   }
 
+  getMapsUrl(lat: any, lng: any): string {
+    if (!lat || !lng) return '';
+    return `https://www.google.com/maps?q=${lat},${lng}`;
+  }
+
   private mostrarAlerta(msg: string, tipo: 'success' | 'danger' | 'info'): void {
     this.alertMessage.set(msg);
     this.alertType.set(tipo);
@@ -556,3 +807,4 @@ export class IncidenciasAsignadasComponent implements OnInit {
     }, 7000);
   }
 }
+

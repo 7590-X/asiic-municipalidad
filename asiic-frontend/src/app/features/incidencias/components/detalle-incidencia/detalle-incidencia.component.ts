@@ -33,9 +33,9 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
   agregarTestigo() {
     this.testigosArray.push(
       new FormGroup({
-        testigoNombre: new FormControl(''),
-        testigoTelefono: new FormControl(''),
-        testigoCorreo: new FormControl('')
+        testigoNombre: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+        testigoTelefono: new FormControl('', [Validators.maxLength(20)]),
+        testigoCorreo: new FormControl('', [Validators.email, Validators.maxLength(100)])
       })
     );
   }
@@ -76,9 +76,16 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
         this.tiposServicio.set(data.serv);
         this.tiposDenuncia.set(data.den);
         this.areasSugerencia.set(data.sug);
+        const currentContador = this.stepForm.get('noContador')?.value;
+        if (currentContador && !data.contadores.some(c => c.contador === currentContador)) {
+          data.contadores.push({
+            contador: currentContador,
+            direccion: { descripDireccion: 'Domicilio vinculado a la gestión' } as any
+          } as DomicilioDto);
+        }
         this.contadores.set(data.contadores);
 
-        if (data.contadores.length === 1) {
+        if (!currentContador && data.contadores.length === 1) {
           this.stepForm.get('noContador')?.setValue(data.contadores[0].contador);
         }
 
