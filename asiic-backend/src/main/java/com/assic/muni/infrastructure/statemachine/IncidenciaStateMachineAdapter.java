@@ -1,6 +1,7 @@
 package com.assic.muni.infrastructure.statemachine;
 
 import com.assic.muni.application.port.out.IncidenciaStateMachinePort;
+import com.assic.muni.application.util.JwtExtractor;
 import com.assic.muni.domain.enums.IncidenciaEvent;
 import com.assic.muni.domain.enums.IncidenciaState;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +14,7 @@ import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import static com.assic.muni.infrastructure.statemachine.StateMachineConst.H_ID;
-import static com.assic.muni.infrastructure.statemachine.StateMachineConst.H_BODY;
+import static com.assic.muni.infrastructure.statemachine.StateMachineConst.*;
 
 @Component
 @RequiredArgsConstructor
@@ -30,6 +30,8 @@ public class IncidenciaStateMachineAdapter implements IncidenciaStateMachinePort
         if (payload != null) {
             message.setHeader(H_BODY.name(), payload);
         }
+        final String userId = JwtExtractor.extrarJwtSubject();
+        message.setHeader(H_USER.name(), userId);
 
         Message<IncidenciaEvent> msg = message.build();
         StateMachineEventResult<IncidenciaState, IncidenciaEvent> result = sm.sendEvent(Mono.just(msg)).blockLast();

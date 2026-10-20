@@ -1,6 +1,7 @@
 package com.assic.muni.presentation.api.privs;
 
 import com.assic.muni.application.cqrs.cmd.IncidenciaPayloadCmd;
+import com.assic.muni.application.cqrs.cmd.ResumenCmd;
 import com.assic.muni.application.cqrs.dto.ApiResponseDto;
 import com.assic.muni.application.cqrs.dto.ArchivoDto;
 import com.assic.muni.application.cqrs.dto.IncidenciaDto;
@@ -22,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.core.HttpHeaders;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -91,8 +93,8 @@ public class IncidenciasEventController {
 
     @PostMapping("/{id}/event/finalizar-recoleccion")
     @Operation(summary = "EV1-2 - Finalizar Recolección")
-    public ResponseEntity<ApiResponseDto> eventTerminarRecoleccion(@PathVariable Integer id) {
-        incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.FINALIZAR_RECOLECCION);
+    public ResponseEntity<ApiResponseDto> eventTerminarRecoleccion(@PathVariable Integer id, @Valid @RequestBody ResumenCmd resumen) {
+        incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.FINALIZAR_RECOLECCION, resumen);
         return ResponseEntity.ok(getMessageBody("Recolección finalizada correctamente"));
     }
 
@@ -186,6 +188,11 @@ public class IncidenciasEventController {
     })
     public ResponseEntity<Resource> obtenerArchivosDeIncidenciaPorId(@PathVariable Integer id, @PathVariable Integer archivoId) {
         ArchivoDto dto = archivosQueryHandler.descargarArchivoComoAnalista(id, archivoId);
+        return getResourceResponseEntity(dto);
+    }
+
+    @NonNull
+    static ResponseEntity<Resource> getResourceResponseEntity(ArchivoDto dto) {
         if (dto.contenido().length == 0) {
             return ResponseEntity.noContent().build();
         }

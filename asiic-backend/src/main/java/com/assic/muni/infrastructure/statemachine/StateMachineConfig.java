@@ -19,6 +19,7 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<Incidencia
 
     private final RechazarIncidenciaAction rechazarIncidenciaAction;
     private final ValidarTipoIncidenciaGuard validarTipoIncidenciaGuard;
+    private final ResumenRecoleccionAction resumenRecoleccionAction;
 
     @Override
     public void configure(StateMachineConfigurationConfigurer<IncidenciaState, IncidenciaEvent> config) throws Exception {
@@ -75,6 +76,7 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<Incidencia
                 .withExternal()
                 .source(IncidenciaState.ASIGNADA_CAMPO)
                 .event(IncidenciaEvent.FINALIZAR_RECOLECCION)
+                .action(resumenRecoleccionAction)
                 .target(IncidenciaState.RECOLECCION_FIN)
                 .and()
 

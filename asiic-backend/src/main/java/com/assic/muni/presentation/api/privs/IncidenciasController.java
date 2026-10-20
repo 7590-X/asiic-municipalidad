@@ -21,19 +21,17 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.core.HttpHeaders;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.net.URI;
 import java.time.ZonedDateTime;
+
+import static com.assic.muni.presentation.api.privs.IncidenciasEventController.getResourceResponseEntity;
 
 @RestController
 @RequestMapping(IncidenciasController.URI)
@@ -129,20 +127,7 @@ public class IncidenciasController {
     public ResponseEntity<Resource> descargarMiArchivoDeIncidencia(@PathVariable Integer incidenciaId, @PathVariable Integer archivoId) {
         ArchivoDto dto = archivosQueryHandler.descargarMiArchivo(incidenciaId, archivoId);
 
-        if (dto.contenido().length == 0) {
-            return ResponseEntity.noContent().build();
-        }
-
-        ByteArrayResource resource = new ByteArrayResource(dto.contenido());
-        ContentDisposition contentDisposition = ContentDisposition.attachment()
-                .filename(dto.nombre(), StandardCharsets.UTF_8)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(dto.contenido().length)
-                .body(resource);
+        return getResourceResponseEntity(dto);
     }
 
     @Operation(summary = "Elimina una evidencia de una incidencia")
