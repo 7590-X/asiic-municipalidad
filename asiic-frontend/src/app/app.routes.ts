@@ -86,6 +86,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/incidencias/pages/registro-incidencia/registro-incidencia.component')
             .then((m) => m.RegistroIncidenciaComponent),
+      },
+      {
+        path: 'incidencias/apelar/:id',
+        loadComponent: () =>
+          import('./features/incidencias/pages/registro-incidencia/registro-incidencia.component')
+            .then((m) => m.RegistroIncidenciaComponent),
+        data: { modo: 'apelar' }
       }
     ],
   },

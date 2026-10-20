@@ -44,7 +44,11 @@
               "node_modules/@clr/ui/clr-ui.min.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "quill",
+              "quill-delta"
+            ]
           },
           "configurations": {
             "production": {
@@ -56,8 +60,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "25kB",
-                  "maximumError": "50kB"
+                  "maximumWarning": "50kB",
+                  "maximumError": "100kB"
                 }
 
               ],

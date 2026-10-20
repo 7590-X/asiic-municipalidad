@@ -148,7 +148,7 @@
     <!-- OTROS FORMATOS (NO IMAGEN, NO PDF) -->
     <div *ngIf="!cargando && !error && tipoArchivo === 'otro'" class="preview-generic-container">
       <div class="generic-file-card">
-        <cds-icon shape="document" size="xxl" class="generic-icon"></cds-icon>
+        <cds-icon shape="file" size="xxl" class="generic-icon"></cds-icon>
         <h3>{{ archivo?.nombre }}</h3>
         <p class="text-muted">
           Este archivo tiene formato <strong>{{ getExtension(archivo?.nombre) }}</strong>. Los navegadores no soportan

@@ -66,7 +66,7 @@ public class IncidenciasEventController {
     @PostMapping("/{id}/event/rechazar-incidencia")
     @Operation(summary = "EV1-1-2 - Rechazar Incidencia")
     public ResponseEntity<ApiResponseDto> eventRechazadaIncidencia(@PathVariable Integer id,
-                                                                   @Valid @RequestBody List<IncidenciaFeedback> feedback) {
+            @Valid @RequestBody List<IncidenciaFeedback> feedback) {
         incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.RECHAZAR_INCIDENCIA, feedback);
         return ResponseEntity.ok(getMessageBody("Incidencia aceptada correctamente"));
     }
@@ -75,27 +75,17 @@ public class IncidenciasEventController {
     @Operation(summary = "EV1-1-2-1 - Apelar Incidencia")
     public ResponseEntity<ApiResponseDto> eventApelarIncidencia(
             @PathVariable Integer id,
-            @Parameter(
-                    description = "Datos estructurados de la incidencia en formato JSON",
-                    required = true,
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = IncidenciaPayloadCmd.class))
-            )
-            @RequestPart("insidencia_json")
-            IncidenciaPayloadCmd payload,
+            @Parameter(description = "Datos estructurados de la incidencia en formato JSON", required = true, content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = IncidenciaPayloadCmd.class))) @RequestPart("insidencia_json") IncidenciaPayloadCmd payload,
 
-            @Parameter(
-                    description = "Lista opcional de archivos adjuntos (imágenes, documentos, etc.)",
-                    content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-            )
-            @RequestPart(value = "insidencia_bin", required = false) List<MultipartFile> evidencias
-    ) {
+            @Parameter(description = "Lista opcional de archivos adjuntos (imágenes, documentos, etc.)", content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)) @RequestPart(value = "insidencia_bin", required = false) List<MultipartFile> evidencias) {
         incidenciaPipelineHandler.pipelineApelarIncidencia(id, payload, evidencias);
         return ResponseEntity.ok(getMessageBody("Incidencia apelada correctamente"));
     }
 
     @PostMapping("/{id}/event/finalizar-recoleccion")
     @Operation(summary = "EV1-2 - Finalizar Recolección")
-    public ResponseEntity<ApiResponseDto> eventTerminarRecoleccion(@PathVariable Integer id, @Valid @RequestBody ResumenDto resumen) {
+    public ResponseEntity<ApiResponseDto> eventTerminarRecoleccion(@PathVariable Integer id,
+            @Valid @RequestBody ResumenDto resumen) {
         incidenciaPipelineHandler.pipelineChangeState(id, IncidenciaEvent.FINALIZAR_RECOLECCION, resumen);
         return ResponseEntity.ok(getMessageBody("Recolección finalizada correctamente"));
     }
@@ -133,7 +123,6 @@ public class IncidenciasEventController {
         return ResponseEntity.ok(getMessageBody("Recolección finalizada correctamente"));
     }
 
-
     @PostMapping("/{id}/event/finalizar-incidencia")
     @Operation(summary = "EV1-7 - Finalizar Solución")
     public ResponseEntity<ApiResponseDto> eventFinalizarIncidencia(@PathVariable Integer id) {
@@ -150,9 +139,7 @@ public class IncidenciasEventController {
                         IncidenciaState.ACEPTADA,
                         IncidenciaState.ASIGNADA_CAMPO,
                         IncidenciaState.RECOLECCION_FIN,
-                        IncidenciaState.CONFIRMADA
-                )
-        );
+                        IncidenciaState.CONFIRMADA));
     }
 
     @GetMapping("/{id}/archivos")
@@ -162,38 +149,16 @@ public class IncidenciasEventController {
     }
 
     @GetMapping("/{id}/archivos/{archivoId}")
-    @Operation(
-            summary = "Descargar archivo de una incidencia por su ID como analista",
-            description = "Permite descargar el archivo binario asociado a una incidencia si la incidencia esta asignada al analista autenticado."
-    )
+    @Operation(summary = "Descargar archivo de una incidencia por su ID como analista", description = "Permite descargar el archivo binario asociado a una incidencia si la incidencia esta asignada al analista autenticado.")
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Archivo descargado exitosamente",
-                    headers = {
-                            @Header(
-                                    name = HttpHeaders.CONTENT_DISPOSITION,
-                                    description = "Metadata de descarga con el nombre del archivo (attachment; filename=\"...\")",
-                                    schema = @Schema(type = "string")
-                            )
-                    },
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
-                            schema = @Schema(type = "string", format = "binary")
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "El archivo solicitado existe pero no tiene contenido (vacío)",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Incidencia o archivo no encontrado o no pertenece al usuario",
-                    content = @Content
-            )
+            @ApiResponse(responseCode = "200", description = "Archivo descargado exitosamente", headers = {
+                    @Header(name = HttpHeaders.CONTENT_DISPOSITION, description = "Metadata de descarga con el nombre del archivo (attachment; filename=\"...\")", schema = @Schema(type = "string"))
+            }, content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE, schema = @Schema(type = "string", format = "binary"))),
+            @ApiResponse(responseCode = "204", description = "El archivo solicitado existe pero no tiene contenido (vacío)", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Incidencia o archivo no encontrado o no pertenece al usuario", content = @Content)
     })
-    public ResponseEntity<Resource> obtenerArchivosDeIncidenciaPorId(@PathVariable Integer id, @PathVariable Integer archivoId) {
+    public ResponseEntity<Resource> obtenerArchivosDeIncidenciaPorId(@PathVariable Integer id,
+            @PathVariable Integer archivoId) {
         ArchivoDto dto = archivosQueryHandler.descargarArchivoComoAnalista(id, archivoId);
         return getResourceResponseEntity(dto);
     }
@@ -215,7 +180,6 @@ public class IncidenciasEventController {
                 .contentLength(dto.contenido().length)
                 .body(resource);
     }
-
 
     private ApiResponseDto getMessageBody(String message) {
         return new ApiResponseDto(200, HttpStatus.OK.getReasonPhrase(), ZonedDateTime.now(), message, null);

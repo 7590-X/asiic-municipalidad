@@ -5,6 +5,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { initializeClarityIcons } from './core/config/icons.config';
+import { provideQuillConfig } from 'ngx-quill/config';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +15,18 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       initializeClarityIcons();
     }),
+    provideQuillConfig({
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'header': [1, 2, 3, false] }],
+          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+          ['blockquote'],
+          ['clean']
+        ]
+      },
+      placeholder: 'Redacte los hallazgos de campo, verificaciones y observaciones técnicas...'
+    })
   ],
 };
 

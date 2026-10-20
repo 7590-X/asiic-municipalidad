@@ -12,7 +12,7 @@
       <select clrSelect formControlName="noContador">
         <option value="">Seleccione un contador...</option>
         <option *ngFor="let c of contadores()" [value]="c.contador">
-          {{ c.contador }} - {{ c.direccion?.descripDireccion }}
+          {{ c.contador }} - {{ c.direccion.descripDireccion }}
         </option>
       </select>
       <clr-control-helper>Elija la locación relacionada a esta solicitud</clr-control-helper>
@@ -71,16 +71,18 @@
           </div>
           <div class="rv-grid">
             <clr-input-container class="rv-full">
-              <label>Nombre del Testigo</label>
-              <input clrInput type="text" formControlName="testigoNombre" />
+              <label>Nombre del Testigo <span class="required-star">*</span></label>
+              <input clrInput type="text" formControlName="testigoNombre" maxlength="100" placeholder="Nombre completo del testigo" />
+              <clr-control-error>El nombre del testigo es requerido (máx. 100 caracteres)</clr-control-error>
             </clr-input-container>
             <clr-input-container>
               <label>Teléfono del Testigo</label>
-              <input clrInput type="text" formControlName="testigoTelefono" />
+              <input clrInput type="text" formControlName="testigoTelefono" maxlength="20" placeholder="Ej: 5555-1234" />
             </clr-input-container>
             <clr-input-container>
               <label>Correo del Testigo</label>
-              <input clrInput type="text" formControlName="testigoCorreo" />
+              <input clrInput type="email" formControlName="testigoCorreo" maxlength="100" placeholder="correo@ejemplo.com" />
+              <clr-control-error>Ingrese un correo electrónico válido</clr-control-error>
             </clr-input-container>
           </div>
         </div>

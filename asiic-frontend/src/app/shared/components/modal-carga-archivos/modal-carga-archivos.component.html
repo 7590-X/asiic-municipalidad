@@ -1,0 +1,237 @@
+<clr-modal
+  [(clrModalOpen)]="open"
+  (clrModalOpenChange)="$event ? null : cerrar()"
+  [clrModalSize]="'lg'"
+  [clrModalClosable]="true"
+  [clrModalStaticBackdrop]="false"
+  class="modal-carga-archivos"
+>
+  <!-- CABECERA -->
+  <div class="modal-title modal-title-carga">
+    <div class="title-left">
+      <span class="header-icon-wrapper">
+        <cds-icon shape="upload-cloud" size="md"></cds-icon>
+      </span>
+      <div>
+        <h3 class="m-0 font-weight-bold" style="font-size: 1.15rem; color: #1e293b;">
+          {{ titulo }}
+        </h3>
+        <span class="text-muted font-sm" style="font-size: 0.82rem; color: #64748b;">
+          Expediente de Incidencia <strong style="color: #0284c7;">#{{ incidenciaId || 'Nueva' }}</strong>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUERPO -->
+  <div class="modal-body modal-body-carga">
+
+    <!-- ALERTAS DE ÉXITO O ERROR -->
+    <div *ngIf="exito" class="alert alert-success alert-compact" role="alert" style="margin-bottom: 1rem; border-radius: 8px;">
+      <div class="alert-items">
+        <div class="alert-item static">
+          <div class="alert-icon-wrapper">
+            <cds-icon class="alert-icon" shape="check-circle"></cds-icon>
+          </div>
+          <span class="alert-text">{{ exito }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger alert-compact" role="alert" style="margin-bottom: 1rem; border-radius: 8px;">
+      <div class="alert-items">
+        <div class="alert-item static">
+          <div class="alert-icon-wrapper">
+            <cds-icon class="alert-icon" shape="exclamation-circle"></cds-icon>
+          </div>
+          <span class="alert-text">{{ error }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONA DE CARGA DE NUEVOS ARCHIVOS (SI NO ES SOLO LECTURA) -->
+    <div class="upload-section" *ngIf="!soloLectura">
+      <div
+        class="dropzone-box"
+        appDragDrop
+        (fileDropped)="onFilesDropped($event)"
+        [class.disabled]="subiendo"
+      >
+        <div class="dropzone-inner">
+          <span class="dropzone-icon">
+            <cds-icon shape="upload-cloud" size="xl"></cds-icon>
+          </span>
+          <h4 class="dropzone-title">Arrastre sus archivos de evidencia aquí</h4>
+          <p class="dropzone-sub">
+            Formatos soportados: <strong>PNG, JPG, JPEG o PDF</strong> (Máximo 10 MB por archivo).
+          </p>
+
+          <label class="btn btn-sm btn-primary-outline dropzone-select-btn" [class.disabled]="subiendo">
+            <cds-icon shape="paperclip"></cds-icon> Seleccionar desde mi dispositivo
+            <input
+              type="file"
+              hidden
+              multiple
+              accept=".png, .jpg, .jpeg, .pdf, .webp"
+              [disabled]="subiendo"
+              (change)="onFileSelected($event)"
+            />
+          </label>
+        </div>
+      </div>
+
+      <!-- LISTA DE ARCHIVOS POR SUBIR -->
+      <div *ngIf="nuevosArchivos.length > 0" class="staged-files-container mt-3">
+        <div class="staged-header d-flex justify-content-between align-items-center mb-2">
+          <strong style="font-size: 0.88rem; color: #334155;">
+            Archivos seleccionados para subir ({{ nuevosArchivos.length }}):
+          </strong>
+          <button
+            type="button"
+            class="btn btn-sm btn-link text-danger p-0 m-0"
+            (click)="nuevosArchivos = []"
+            [disabled]="subiendo"
+          >
+            Limpiar selección
+          </button>
+        </div>
+
+        <div class="staged-list">
+          <div *ngFor="let file of nuevosArchivos; let i = index" class="staged-item">
+            <div class="staged-info">
+              <cds-icon
+                [attr.shape]="file.type.includes('pdf') ? 'file-group' : 'image'"
+                size="sm"
+                class="staged-icon"
+              ></cds-icon>
+              <span class="staged-name" [title]="file.name">{{ file.name }}</span>
+              <span class="badge badge-light-blue font-xs">{{ formatearBytes(file.size) }}</span>
+            </div>
+            <button
+              type="button"
+              class="btn btn-sm btn-icon btn-link text-danger remove-staged-btn"
+              (click)="removerNuevoArchivo(i)"
+              [disabled]="subiendo"
+              title="Quitar de la lista"
+            >
+              <cds-icon shape="times"></cds-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="staged-actions mt-3 text-right" style="text-align: right;">
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="subirArchivos()"
+            [disabled]="subiendo || nuevosArchivos.length === 0"
+          >
+            <span *ngIf="subiendo" class="spinner spinner-inline"></span>
+            <cds-icon *ngIf="!subiendo" shape="upload-cloud"></cds-icon>
+            {{ subiendo ? 'Subiendo archivos...' : 'Cargar Archivos a la Incidencia' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE ARCHIVOS EXISTENTES -->
+    <div class="existing-section mt-4">
+      <div class="section-header d-flex justify-content-between align-items-center mb-2">
+        <strong style="font-size: 0.95rem; color: #1e293b; display: flex; align-items: center; gap: 0.4rem;">
+          <cds-icon shape="folder"></cds-icon> Evidencias Adjuntas al Expediente ({{ archivosExistentes.length }})
+        </strong>
+        <button
+          type="button"
+          class="btn btn-sm btn-icon btn-link"
+          (click)="cargarArchivosExistentes()"
+          title="Actualizar lista de archivos"
+          [disabled]="cargando"
+        >
+          <cds-icon shape="refresh" [class.spin]="cargando"></cds-icon>
+        </button>
+      </div>
+
+      <!-- SPINNER CARGANDO ARCHIVOS -->
+      <div *ngIf="cargando" class="text-center p-3" style="text-align: center; padding: 2rem;">
+        <span class="spinner spinner-md"></span>
+        <p class="text-muted font-sm mt-2">Consultando evidencias registradas...</p>
+      </div>
+
+      <!-- ESTADO VACÍO -->
+      <div *ngIf="!cargando && archivosExistentes.length === 0" class="empty-files-card">
+        <cds-icon shape="file" size="xl" style="color: #94a3b8;"></cds-icon>
+        <p class="empty-title">Sin evidencias adjuntas</p>
+        <span class="empty-sub">
+          {{ soloLectura ? 'Esta incidencia no contiene archivos adjuntos.' : 'Aún no se han subido archivos a esta incidencia. Utilice el área de arriba para adjuntarlos.' }}
+        </span>
+      </div>
+
+      <!-- LISTA DE ARCHIVOS EXISTENTES -->
+      <div *ngIf="!cargando && archivosExistentes.length > 0" class="existing-files-grid">
+        <div *ngFor="let arch of archivosExistentes" class="file-card">
+          <div class="file-card-icon" [ngClass]="esPdf(arch) ? 'icon-pdf' : (esImagen(arch) ? 'icon-img' : 'icon-other')">
+            <cds-icon [attr.shape]="esPdf(arch) ? 'file-group' : (esImagen(arch) ? 'image' : 'file')" size="md"></cds-icon>
+          </div>
+
+          <div class="file-card-details">
+            <span class="file-card-name" [title]="arch.nombre">{{ arch.nombre || 'Archivo de Evidencia' }}</span>
+            <div class="file-card-meta">
+              <span class="badge" [ngClass]="esPdf(arch) ? 'badge-danger' : (esImagen(arch) ? 'badge-info' : 'badge-light-blue')">
+                {{ getExtension(arch.nombre) }}
+              </span>
+              <span *ngIf="arch.pesoBytes || arch.size" class="text-muted font-xs">
+                {{ formatearBytes(arch.pesoBytes || arch.size) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="file-card-actions">
+            <button
+              type="button"
+              class="btn btn-sm btn-icon btn-link"
+              (click)="previsualizar(arch)"
+              title="Ver Vista Previa"
+            >
+              <cds-icon shape="eye"></cds-icon>
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-icon btn-link"
+              (click)="descargar(arch)"
+              title="Descargar Archivo"
+            >
+              <cds-icon shape="download"></cds-icon>
+            </button>
+            <button
+              *ngIf="!soloLectura"
+              type="button"
+              class="btn btn-sm btn-icon btn-link text-danger"
+              (click)="eliminarArchivoExistente(arch)"
+              [disabled]="eliminandoId === arch.id"
+              title="Eliminar Archivo"
+            >
+              <span *ngIf="eliminandoId === arch.id" class="spinner spinner-inline"></span>
+              <cds-icon *ngIf="eliminandoId !== arch.id" shape="trash"></cds-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PIE DE MODAL -->
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline" (click)="cerrar()">
+      Cerrar
+    </button>
+  </div>
+</clr-modal>
+
+<!-- MODAL DE VISTA PREVIA INTEGRADO -->
+<app-modal-preview-archivo
+  [(open)]="modalPreviewOpen"
+  [archivo]="archivoSeleccionado"
+  [incidenciaId]="incidenciaId"
+  (descargar)="descargar($event)"
+></app-modal-preview-archivo>

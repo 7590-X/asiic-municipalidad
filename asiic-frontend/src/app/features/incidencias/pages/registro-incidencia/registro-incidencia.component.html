@@ -13,15 +13,20 @@
       </div>
 
       <div class="rv-aside__body">
-        <h1>Nueva Incidencia</h1>
-        <p>
+        <h1>{{ isApelacion ? 'Apelar Incidencia' : (isReadOnly ? 'Detalle de Incidencia' : (incidenciaId ? 'Editar Borrador' : 'Nueva Incidencia')) }}</h1>
+        <p *ngIf="isApelacion">
+          Modifique los datos que considere oportunos, responda a los motivos del rechazo y adjunte nuevas pruebas o evidencias para que su incidencia sea reevaluada.
+        </p>
+        <p *ngIf="!isApelacion && !isReadOnly">
           Reporte quejas, reclamos, denuncias o envíenos sus sugerencias para mejorar el municipio.
+        </p>
+        <p *ngIf="isReadOnly">
+          Consulte los detalles y el estado de la incidencia reportada.
         </p>
 
         <ol class="rv-aside__steps">
           <li><span>1</span> Tipo y Privacidad</li>
           <li><span>2</span> Detalle de Incidencia</li>
-          <li><span>3</span> Evidencias</li>
         </ol>
 
         <div style="margin-top: 2rem;">
@@ -32,12 +37,57 @@
       </div>
 
       <p class="rv-aside__foot">
-        Al finalizar, recibirá un número de gestión para su seguimiento.
+        {{ isApelacion ? 'Al presentar su apelación, la municipalidad asignará el caso para una nueva revisión.' : 'Al finalizar, recibirá un número de gestión para su seguimiento.' }}
       </p>
     </aside>
 
     <!-- Panel derecho: stepper -->
     <div class="rv-main">
+
+      <!-- Banner Informativo para Apelación -->
+      <div class="alert alert-warning" role="alert" *ngIf="isApelacion" style="margin-bottom: 1.5rem; border-radius: 8px;">
+        <div class="alert-items">
+          <div class="alert-item static">
+            <div class="alert-icon-wrapper">
+              <cds-icon class="alert-icon" shape="exclamation-triangle"></cds-icon>
+            </div>
+            <div class="alert-text">
+              <strong style="font-size: 0.95rem;">Proceso de Apelación Municipal – Incidencia #{{ incidenciaId }}</strong>
+              <p style="margin: 0.35rem 0 0.5rem 0; font-size: 0.85rem; color: #4b5563;">
+                Esta gestión fue rechazada por la municipalidad. Revise las observaciones del analista para subsanar los puntos señalados, actualice los datos pertinentes y adjunte nuevas evidencias antes de enviar su apelación.
+              </p>
+
+              <!-- Estado de Carga de Motivos -->
+              <div *ngIf="cargandoFeedback" class="mt-2 text-muted" style="font-size: 0.82rem;">
+                <span class="spinner spinner-inline"></span> Consultando motivos del dictamen emitido por el analista...
+              </div>
+
+              <!-- Motivos de rechazo comunicados por el Analista -->
+              <div *ngIf="!cargandoFeedback && motivosRechazoFeedback && motivosRechazoFeedback.length > 0" style="margin-top: 0.75rem; padding: 0.85rem 1rem; background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px;">
+                <span style="font-weight: 700; font-size: 0.88rem; color: #92400e; display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem;">
+                  <cds-icon shape="info-circle"></cds-icon> Motivos de Rechazo Emitidos por el Analista Municipal:
+                </span>
+                <div *ngFor="let fb of motivosRechazoFeedback" style="margin-bottom: 0.65rem; padding: 0.65rem 0.85rem; background: #ffffff; border-radius: 6px; border-left: 3px solid #d97706; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                  <div style="font-weight: 700; color: #78350f; font-size: 0.86rem;">
+                    {{ fb.titulo || fb.tipoFeedback?.nombre || 'Observación del Dictamen' }}
+                  </div>
+                  <div style="font-size: 0.83rem; color: #374151; margin: 0.25rem 0 0.35rem 0; line-height: 1.45;">
+                    {{ fb.descripcion || fb.comentario }}
+                  </div>
+                  <div *ngIf="fb.recomendacion" style="font-size: 0.79rem; color: #15803d; background: #f0fdf4; padding: 0.3rem 0.5rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.3rem;">
+                    <cds-icon shape="lightbulb" size="sm"></cds-icon>
+                    <strong>Recomendación para subsanar:</strong> {{ fb.recomendacion }}
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="!cargandoFeedback && (!motivosRechazoFeedback || motivosRechazoFeedback.length === 0)" class="mt-2 text-muted font-sm" style="font-style: italic;">
+                El analista no especificó observaciones complementarias en el sistema. Puede actualizar los campos necesarios y aportar pruebas para respaldar su apelación.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <form clrStepper [formGroup]="incidenciaForm" *ngIf="!isSubmitting">
 
@@ -53,8 +103,7 @@
           </clr-step-content>
         </clr-stepper-panel>
 
-
-        <!-- Paso 3: Detalle de Incidencia -->
+        <!-- Paso 2: Detalle de Incidencia y Envío -->
         <clr-stepper-panel formGroupName="detalleIncidencia">
           <clr-step-title>Detalles</clr-step-title>
           <clr-step-description>Descripción de lo sucedido</clr-step-description>
@@ -65,37 +114,58 @@
                 [tipoIncidencia]="tipoSeleccionado">
               </app-detalle-incidencia>
             </fieldset>
-            <button clrStepButton="next" type="button" class="btn btn-primary mt-4">Siguiente</button>
-          </clr-step-content>
-        </clr-stepper-panel>
 
-        <!-- Paso 4: Evidencias -->
-        <clr-stepper-panel formGroupName="evidencias">
-          <clr-step-title>Evidencias</clr-step-title>
-          <clr-step-description>Archivos adjuntos</clr-step-description>
-          <clr-step-content *clrIfExpanded>
-            <fieldset [disabled]="isReadOnly" style="border:none; padding:0; margin:0;">
-              <app-evidencias
-                [stepForm]="evidenciasForm"
-                [tipoIncidencia]="tipoSeleccionado"
-                [archivosExistentes]="archivosExistentes"
-                (filesChanged)="onFilesChanged($event)"
-                (eliminarArchivo)="onEliminarArchivoExistente($event)">
-              </app-evidencias>
-            </fieldset>
+            <!-- Acciones de Gestión y Envío (Carga de archivos desacoplada) -->
+            <div class="actions-group-footer mt-4 mb-3" *ngIf="!isReadOnly">
+              <!-- Modo Creación -->
+              <ng-container *ngIf="!incidenciaId && !isApelacion">
+                <button type="button" class="btn btn-outline" (click)="enviarBorrador(false)">
+                  Guardar Borrador
+                </button>
+                <button type="button" class="btn btn-outline-primary" (click)="abrirModalCargaArchivos()">
+                  <cds-icon shape="upload-cloud"></cds-icon> ADJUNTAR NUEVAS PRUEBAS / EVIDENCIAS
+                </button>
+                <button type="button" class="btn btn-primary" (click)="enviarIncidencia()">
+                  Enviar Incidencia
+                </button>
+              </ng-container>
 
-            <div class="d-flex mt-4" style="gap: 1rem;" *ngIf="!isReadOnly">
-              <button type="button" class="btn btn-outline" (click)="enviarBorrador()">
-                Guardar Borrador
-              </button>
-              <button type="button" class="btn btn-primary" (click)="enviarIncidencia()">
-                Enviar Incidencia
-              </button>
+              <!-- Modo Edición de Borrador -->
+              <ng-container *ngIf="incidenciaId && !isApelacion">
+                <button type="button" class="btn btn-outline" (click)="enviarBorrador(false)">
+                  Guardar Cambios
+                </button>
+                <button type="button" class="btn btn-outline-primary" (click)="abrirModalCargaArchivos()">
+                  <cds-icon shape="upload-cloud"></cds-icon> ADJUNTAR NUEVAS PRUEBAS / EVIDENCIAS
+                </button>
+                <button type="button" class="btn btn-primary" (click)="enviarIncidencia()">
+                  Enviar Incidencia
+                </button>
+              </ng-container>
+
+              <!-- Modo Apelación -->
+              <ng-container *ngIf="isApelacion">
+                <button type="button" class="btn btn-outline-warning" (click)="abrirModalCargaArchivos()">
+                  <cds-icon shape="upload-cloud"></cds-icon> ADJUNTAR NUEVAS PRUEBAS / EVIDENCIAS
+                </button>
+                <button type="button" class="btn btn-warning" (click)="enviarIncidencia()">
+                  Presentar Apelación
+                </button>
+              </ng-container>
             </div>
           </clr-step-content>
         </clr-stepper-panel>
 
       </form>
+
+      <!-- Modal independiente para Carga y Gestión de Evidencias -->
+      <app-modal-carga-archivos
+        [(open)]="modalCargaArchivosOpen"
+        [incidenciaId]="incidenciaId"
+        [soloLectura]="isReadOnly"
+        (archivosActualizados)="onArchivosActualizados($event)"
+        (archivosSeleccionados)="onArchivosSeleccionados($event)"
+      ></app-modal-carga-archivos>
 
       <!-- Pantalla de Éxito / Loading -->
       <div *ngIf="isSubmitting" class="rv-loading">

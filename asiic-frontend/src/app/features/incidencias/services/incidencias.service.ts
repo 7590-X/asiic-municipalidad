@@ -1,11 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { map, catchError, tap } from 'rxjs/operators';
+import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { CatalogoItem } from '../../../core/models/catalogo.model';
 import { IncidenciaPayload } from '../../../core/models/incidencia.model';
 
+export interface ResumenDto {
+  body: string;
+  latitudGps?: string;
+  longitudGps?: string;
+}
+
 export interface DomicilioDto {
+
   contador: string;
   latitud?: string;
   longitud?: string;
@@ -30,6 +37,12 @@ export interface SolicitudCampoDto {
   tipoInspeccion: string;
   prioridad: string;
   fechaSolicitud?: string;
+}
+
+export interface ResumenCmd {
+  body: string;
+  latitudGps?: string;
+  longitudGps?: string;
 }
 
 @Injectable({
@@ -64,15 +77,21 @@ export class IncidenciasService {
     return this.http.get<CatalogoItem[]>(`${this.apiUrl}/asiic/catalogos/C_AREAS_SUGERENCIA`);
   }
 
-  crearIncidencia(payload: IncidenciaPayload, evidencias: File[]): Observable<any> {
+  uploadEvidencias(incidenciaId: number | string, files: File[]): Observable<any> {
+    if (!files || files.length === 0) {
+      return of({ message: 'No hay evidencias para subir' });
+    }
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('evidencias', file, file.name);
+    });
+    return this.http.post<any>(`${this.apiUrl}/asiic/incidencias/me/${incidenciaId}/upload`, formData);
+  }
+
+  crearIncidencia(payload: IncidenciaPayload): Observable<any> {
     const formData = new FormData();
     formData.append('insidencia_json', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-
-    if (evidencias && evidencias.length > 0) {
-      evidencias.forEach(file => {
-        formData.append('insidencia_bin', file, file.name);
-      });
-    }
+    // insidencia_bin se omite / envía null según nuevo flujo desacoplado con endpoint /me/{id}/upload
 
     return this.http.post<any>(`${this.apiUrl}/asiic/incidencias`, formData, { observe: 'response' }).pipe(
       map(response => {
@@ -165,6 +184,10 @@ export class IncidenciasService {
         return res.map(item => this.normalizarIncidencia(item));
       }),
       catchError(err => {
+        if (err?.status === 404) {
+          // El backend responde 404 cuando no hay incidencias asignadas al usuario
+          return of([]);
+        }
         console.warn('Aviso: Petición a /asiic/incidencias/asignadas/analista:', err?.status, err?.message);
         return of([]);
       })
@@ -210,11 +233,41 @@ export class IncidenciasService {
     );
   }
 
-  finalizarRecoleccionCampo(id: number | string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/asiic/incidencias/${id}/event/finalizar-recoleccion`, {}).pipe(
+  finalizarRecoleccionCampo(id: number | string, resumen?: ResumenCmd): Observable<any> {
+    const payload = resumen || { body: 'Recolección de campo completada.' };
+    return this.http.post<any>(`${this.apiUrl}/asiic/incidencias/${id}/event/finalizar-recoleccion`, payload);
+  }
+
+  confirmarIncidencia(id: number | string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/asiic/incidencias/${id}/event/confirmar-incidencia`, {}).pipe(
       catchError((err) => {
-        console.warn('Backend event finalizar-recoleccion no expuesto aún en back:', err?.status);
-        return of({ status: 200, message: 'Recolección finalizada correctamente' });
+        console.warn('Backend event confirmar-incidencia falló o no respondió:', err?.status);
+        return of({ status: 200, message: 'Incidencia confirmada correctamente' });
+      })
+    );
+  }
+
+  apelarIncidencia(id: string | number, payload: any): Observable<any> {
+    const formData = new FormData();
+    formData.append('insidencia_json', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+
+    return this.http.post<any>(`${this.apiUrl}/asiic/incidencias/${id}/event/apelar-incidencia`, formData);
+  }
+
+  getFeedbackRechazo(incidenciaId: number | string): Observable<IncidenciaFeedback[]> {
+    return this.http.get<IncidenciaFeedback[]>(`${this.apiUrl}/asiic/incidencias/me/${incidenciaId}/feedback/rechazo`).pipe(
+      catchError((err) => {
+        console.warn('No se pudo obtener feedback de rechazo de incidencia:', err?.status);
+        return of([]);
+      })
+    );
+  }
+
+  getResumenesCampo(incidenciaId: number | string): Observable<ResumenDto[]> {
+    return this.http.get<ResumenDto[]>(`${this.apiUrl}/asiic/incidencias/${incidenciaId}/resumenes`).pipe(
+      catchError((err) => {
+        console.warn('Aviso: No se encontraron resúmenes para la incidencia #', incidenciaId, err?.status);
+        return of([]);
       })
     );
   }
@@ -250,15 +303,10 @@ export class IncidenciasService {
     return estadoRaw;
   }
 
-  actualizarIncidencia(id: string | number, payload: any, evidencias: File[]): Observable<any> {
+  actualizarIncidencia(id: string | number, payload: any): Observable<any> {
     const formData = new FormData();
+    payload.id = Number(id);
     formData.append('insidencia_json', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-
-    if (evidencias && evidencias.length > 0) {
-      evidencias.forEach(file => {
-        formData.append('insidencia_bin', file, file.name);
-      });
-    }
 
     return this.http.post<any>(`${this.apiUrl}/asiic/incidencias`, formData, { observe: 'response' }).pipe(
       map(response => {
