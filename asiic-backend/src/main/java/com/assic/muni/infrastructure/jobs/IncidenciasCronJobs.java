@@ -13,8 +13,8 @@ public class IncidenciasCronJobs {
 
     private final JdbcTemplate jdbcTemplate;
 
-    // Cada 5 minutos
-    @Scheduled(fixedDelay = 300000)
+    // Cada 1 minuto
+    @Scheduled(fixedDelay = 60000)
     void asignarAnalista() {
         try {
             log.info("Asignando analistas a incidencias");
@@ -25,8 +25,8 @@ public class IncidenciasCronJobs {
         }
     }
 
-    // Cada 5 minutos
-    @Scheduled(fixedDelay = 300000)
+    // Cada 1 minuto
+    @Scheduled(fixedDelay = 60000)
     void asignarAgenteCampo() {
         try {
             log.info("Asignando agentes de campo a incidencias");

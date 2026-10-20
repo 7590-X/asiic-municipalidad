@@ -48,7 +48,7 @@ public class IncidenciaPipelineHandler {
         final String usuarioId = JwtExtractor.extrarJwtSubject();
         List<AsIncidencia> list = incidenciaRepository.findByUsuarioAsignadoAndInEstadoIn(usuarioId, List.of(estados));
         if (list.isEmpty()) {
-            throw new ServiceException(HttpStatus.NOT_FOUND, "No se encontraron incidencias asignadas");
+            return List.of();
         }
         return list.stream()
                 .map((i) -> IncidenciaMapper.entityToIncidenciaDto(i, objectMapper))
