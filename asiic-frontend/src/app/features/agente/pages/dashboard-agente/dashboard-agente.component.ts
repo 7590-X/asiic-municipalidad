@@ -113,7 +113,7 @@ export class DashboardAgenteComponent implements OnInit {
       list = list.filter(i => (i.estado || '').toUpperCase().includes(estado));
     }
 
-    return list;
+    return list.slice().sort((a, b) => Number(a.id) - Number(b.id));
   });
 
   ngOnInit(): void {
@@ -133,7 +133,8 @@ export class DashboardAgenteComponent implements OnInit {
     this.loading.set(true);
     this.incidenciasService.getIncidenciasAsignadas().subscribe({
       next: (data) => {
-        this.incidencias.set(data || []);
+        const ordenadas = (data || []).sort((a: any, b: any) => Number(a.id) - Number(b.id));
+        this.incidencias.set(ordenadas);
         this.loading.set(false);
       },
       error: (err) => {

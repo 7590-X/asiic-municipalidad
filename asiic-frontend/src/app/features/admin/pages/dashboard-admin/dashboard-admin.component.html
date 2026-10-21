@@ -46,8 +46,8 @@
         <div class="clr-col-12 clr-col-lg-6">
           <h3>Directorio de Municipalidades</h3>
           <clr-datagrid>
-            <clr-dg-column>ID</clr-dg-column>
-            <clr-dg-column>Nombre</clr-dg-column>
+            <clr-dg-column [clrDgField]="'id'" [clrDgSortBy]="comparadorId" [clrDgSortOrder]="1">ID</clr-dg-column>
+            <clr-dg-column [clrDgField]="'nombre'">Nombre</clr-dg-column>
 
             <clr-dg-row *clrDgItems="let m of municipalidades">
               <clr-dg-cell>{{ m.id }}</clr-dg-cell>

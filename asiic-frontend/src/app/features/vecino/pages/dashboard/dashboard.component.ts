@@ -81,6 +81,11 @@ export class DashboardComponent implements OnInit {
     day: 'numeric',
   });
 
+  // Comparador numérico para ordenamiento por Código (ID)
+  readonly comparadorId = {
+    compare: (a: any, b: any) => Number(a.id) - Number(b.id)
+  };
+
   // Lista de trámites dinámica
   readonly tramites = signal<TramiteReciente[]>([]);
   readonly loading = signal<boolean>(true);
@@ -127,7 +132,8 @@ export class DashboardComponent implements OnInit {
 
     this.incidenciasService.getMisIncidencias().subscribe({
       next: (data) => {
-        this.tramites.set(data as TramiteReciente[]);
+        const ordenadas = (data || []).sort((a: any, b: any) => Number(a.id) - Number(b.id));
+        this.tramites.set(ordenadas as TramiteReciente[]);
         this.loading.set(false);
       },
       error: (err) => {

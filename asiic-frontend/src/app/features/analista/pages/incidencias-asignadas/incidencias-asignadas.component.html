@@ -226,9 +226,9 @@
       <div [style.display]="vistaModo() === 'table' ? 'block' : 'none'" class="datagrid-wrapper-safe">
         <clr-datagrid class="analista-datagrid" [clrDgLoading]="loading()">
           <!-- Columnas requeridas por el caso de uso -->
-          <clr-dg-column class="col-id" [clrDgField]="'id'">Código</clr-dg-column>
+          <clr-dg-column class="col-id" [clrDgField]="'id'" [clrDgSortBy]="comparadorId" [clrDgSortOrder]="1">Código</clr-dg-column>
           <clr-dg-column class="col-tipo" [clrDgField]="'tipo'">Tipo</clr-dg-column>
-          <clr-dg-column class="col-fecha" [clrDgField]="'fechaRegistro'" [clrDgSortOrder]="-1">Fecha Registro</clr-dg-column>
+          <clr-dg-column class="col-fecha" [clrDgField]="'fechaRegistro'">Fecha Registro</clr-dg-column>
           <clr-dg-column class="col-asunto" [clrDgField]="'asunto'">Asunto</clr-dg-column>
           <clr-dg-column class="col-estado" [clrDgField]="'estado'">Estado</clr-dg-column>
           <clr-dg-column class="col-vecino" [clrDgField]="'nombreVecino'">Nombre Vecino</clr-dg-column>

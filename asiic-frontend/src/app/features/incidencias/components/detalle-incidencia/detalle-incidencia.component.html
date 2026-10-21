@@ -35,7 +35,17 @@
 
       <clr-input-container>
         <label>Fecha de la Incidencia</label>
-        <input clrInput type="datetime-local" formControlName="fechaIncidencia" />
+        <input clrInput type="datetime-local" formControlName="fechaIncidencia" [min]="minFecha" [max]="maxFecha" />
+        <clr-control-helper>Rango permitido: desde {{ fechaMinimaLegible }} hasta hoy</clr-control-helper>
+        <clr-control-error *ngIf="stepForm.get('fechaIncidencia')?.hasError('required')">
+          La fecha de la incidencia es requerida
+        </clr-control-error>
+        <clr-control-error *ngIf="stepForm.get('fechaIncidencia')?.hasError('fechaFutura')">
+          No se permiten fechas posteriores a la fecha actual
+        </clr-control-error>
+        <clr-control-error *ngIf="stepForm.get('fechaIncidencia')?.hasError('fechaAntigua')">
+          La fecha no puede ser mayor a un mes atrás (mínimo {{ fechaMinimaLegible }})
+        </clr-control-error>
       </clr-input-container>
 
       <clr-input-container>
@@ -132,7 +142,17 @@
 
       <clr-input-container>
         <label>Fecha y Hora de los Hechos</label>
-        <input clrInput type="datetime-local" formControlName="fechaHoraHechos" />
+        <input clrInput type="datetime-local" formControlName="fechaHoraHechos" [min]="minFecha" [max]="maxFecha" />
+        <clr-control-helper>Rango permitido: desde {{ fechaMinimaLegible }} hasta hoy</clr-control-helper>
+        <clr-control-error *ngIf="stepForm.get('fechaHoraHechos')?.hasError('required')">
+          La fecha y hora de los hechos es requerida
+        </clr-control-error>
+        <clr-control-error *ngIf="stepForm.get('fechaHoraHechos')?.hasError('fechaFutura')">
+          No se permiten fechas posteriores a la fecha actual
+        </clr-control-error>
+        <clr-control-error *ngIf="stepForm.get('fechaHoraHechos')?.hasError('fechaAntigua')">
+          La fecha no puede ser mayor a un mes atrás (mínimo {{ fechaMinimaLegible }})
+        </clr-control-error>
       </clr-input-container>
 
       <clr-input-container class="rv-full">

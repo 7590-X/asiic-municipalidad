@@ -148,6 +148,11 @@ export class IncidenciasAsignadasComponent implements OnInit {
     return this.incidencias().filter(i => (i.estado || '').toUpperCase().includes('RECOLEC')).length;
   });
 
+  // Comparador numérico para ordenamiento por Código (ID)
+  readonly comparadorId = {
+    compare: (a: any, b: any) => Number(a.id) - Number(b.id)
+  };
+
   // Lista filtrada para la tabla
   incidenciasFiltradas = computed(() => {
     let list = this.incidencias();
@@ -173,7 +178,7 @@ export class IncidenciasAsignadasComponent implements OnInit {
       list = list.filter(i => (i.estado || '').toUpperCase().includes(estado));
     }
 
-    return list;
+    return list.slice().sort((a, b) => Number(a.id) - Number(b.id));
   });
 
   ngOnInit(): void {
@@ -207,7 +212,8 @@ export class IncidenciasAsignadasComponent implements OnInit {
           const st = (item.estado || '').toUpperCase();
           return permitidos.some(p => st.includes(p)) && !st.includes('ACEPTADA') && !st.includes('RECHAZADA');
         });
-        this.incidencias.set(filtradas);
+        const ordenadas = filtradas.sort((a, b) => Number(a.id) - Number(b.id));
+        this.incidencias.set(ordenadas);
         this.loading.set(false);
 
         // Si se especificó ?id= en la URL (ej. desde el dashboard), abrir directamente su detalle
