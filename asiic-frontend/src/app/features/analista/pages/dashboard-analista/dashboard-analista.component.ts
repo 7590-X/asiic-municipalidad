@@ -76,7 +76,8 @@ export class DashboardAnalistaComponent implements OnInit {
           const st = (i.estado || '').toUpperCase();
           return !st.includes('ACEPTADA') && !st.includes('RECHAZADA');
         });
-        this.incidencias.set(activas);
+        const ordenadas = activas.sort((a, b) => Number(a.id) - Number(b.id));
+        this.incidencias.set(ordenadas);
         this.loading.set(false);
       },
       error: (err) => {

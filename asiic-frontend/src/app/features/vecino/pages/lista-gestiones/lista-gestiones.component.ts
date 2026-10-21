@@ -75,16 +75,22 @@ export class ListaGestionesComponent implements OnInit {
     }
   }
 
+  // Comparador numérico para ordenamiento por Código (ID)
+  readonly comparadorId = {
+    compare: (a: any, b: any) => Number(a.id) - Number(b.id)
+  };
+
   cargarGestiones(allowedTypes?: string[]) {
     this.loading.set(true);
     this.incidenciasService.getMisIncidencias().subscribe({
       next: (data) => {
+        const ordenadas = (data || []).sort((a: any, b: any) => Number(a.id) - Number(b.id));
         if (!allowedTypes || allowedTypes.length === 0) {
-          this.gestiones.set(data);
+          this.gestiones.set(ordenadas);
         } else {
           // Normalizar el tipo para el filtro
           const allowedUpper = allowedTypes.map(t => t.toUpperCase());
-          const filtered = data.filter(g => allowedUpper.includes(g.tipo?.toUpperCase()));
+          const filtered = ordenadas.filter(g => allowedUpper.includes(g.tipo?.toUpperCase()));
           this.gestiones.set(filtered);
         }
         this.loading.set(false);

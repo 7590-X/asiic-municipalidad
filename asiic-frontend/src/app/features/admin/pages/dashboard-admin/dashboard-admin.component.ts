@@ -16,6 +16,10 @@ import { forkJoin } from 'rxjs';
 export class DashboardAdminComponent implements OnInit {
   municipalidades: any[] = [];
   usuarios: any[] = [];
+
+  readonly comparadorId = {
+    compare: (a: any, b: any) => Number(a.id) - Number(b.id)
+  };
   
   private muniService = inject(MunicipalidadService);
   private usuariosService = inject(UsuariosService);
@@ -30,7 +34,7 @@ export class DashboardAdminComponent implements OnInit {
       users: this.usuariosService.getUsuarios()
     }).subscribe({
       next: ({ munis, users }) => {
-        this.municipalidades = munis;
+        this.municipalidades = (munis || []).sort((a: any, b: any) => Number(a.id) - Number(b.id));
 
         this.usuarios = users
           // Filtramos: debe estar activo ('A') y tener al menos un rol de sistema o interno

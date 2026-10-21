@@ -124,14 +124,17 @@ export class IncidenciasService {
   getMisIncidencias(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/asiic/incidencias/me`).pipe(
       map(res => {
-        return res.map(item => ({
-          id: item.id,
-          tipo: item.tipoIncidencia?.nombre || '',
-          asunto: item.descripcion || '',
-          dependencia: item.dependencia?.valor || '',
-          fecha: item.fechaRegistro ? new Date(item.fechaRegistro).toLocaleDateString() : '',
-          estado: item.estado || 'BORRADOR'
-        }));
+        if (!res || res.length === 0) return [];
+        return res
+          .map(item => ({
+            id: Number(item.id),
+            tipo: item.tipoIncidencia?.nombre || '',
+            asunto: item.descripcion || '',
+            dependencia: item.dependencia?.valor || '',
+            fecha: item.fechaRegistro ? new Date(item.fechaRegistro).toLocaleDateString() : '',
+            estado: item.estado || 'BORRADOR'
+          }))
+          .sort((a, b) => a.id - b.id);
       })
     );
   }
@@ -181,7 +184,9 @@ export class IncidenciasService {
         if (!res || res.length === 0) {
           return [];
         }
-        return res.map(item => this.normalizarIncidencia(item));
+        return res
+          .map(item => this.normalizarIncidencia(item))
+          .sort((a, b) => Number(a.id) - Number(b.id));
       }),
       catchError(err => {
         if (err?.status === 404) {
@@ -275,7 +280,7 @@ export class IncidenciasService {
   private normalizarIncidencia(item: any): any {
     return {
       ...item,
-      id: item.id,
+      id: Number(item.id),
       tipo: item.tipoIncidencia?.nombre || item.tipo || 'Incidencia',
       asunto: item.descripcion || item.asunto || '',
       dependencia: item.dependencia?.valor || item.dependencia || '',

@@ -155,7 +155,7 @@
 
       <div class="card-block">
         <clr-datagrid [clrDgLoading]="loading()">
-          <clr-dg-column [clrDgField]="'id'">Código</clr-dg-column>
+          <clr-dg-column [clrDgField]="'id'" [clrDgSortBy]="comparadorId" [clrDgSortOrder]="1">Código</clr-dg-column>
           <clr-dg-column [clrDgField]="'tipo'">Tipo</clr-dg-column>
           <clr-dg-column [clrDgField]="'asunto'">Asunto y Descripción</clr-dg-column>
           <clr-dg-column [clrDgField]="'dependencia'">Dependencia</clr-dg-column>

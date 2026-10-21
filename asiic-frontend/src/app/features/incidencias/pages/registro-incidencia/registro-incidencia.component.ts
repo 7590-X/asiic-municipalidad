@@ -10,6 +10,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { TipoPrivacidadComponent } from '../../components/tipo-privacidad/tipo-privacidad.component';
 import { DetalleIncidenciaComponent } from '../../components/detalle-incidencia/detalle-incidencia.component';
 import { ModalCargaArchivosComponent } from '../../../../shared/components/modal-carga-archivos/modal-carga-archivos.component';
+import { fechaRangoIncidenciaValidator } from '../../../../shared/validators/fecha-rango.validator';
 
 @Component({
   selector: 'app-registro-incidencia',
@@ -303,7 +304,7 @@ export class RegistroIncidenciaComponent implements OnInit {
         // Queja
         dependenciaId: [''],
         empleadoId: [''],
-        fechaIncidencia: [''],
+        fechaIncidencia: ['', [fechaRangoIncidenciaValidator()]],
         lugar: [''],
         descripcion: [''],
         testigos: this.fb.array([]),
@@ -315,7 +316,7 @@ export class RegistroIncidenciaComponent implements OnInit {
         // Denuncia
         tipoDenunciaId: [''],
         denunciados: [''],
-        fechaHoraHechos: [''],
+        fechaHoraHechos: ['', [fechaRangoIncidenciaValidator()]],
         relato: [''],
         // Sugerencia
         areaId: [''],

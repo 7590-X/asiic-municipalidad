@@ -5,6 +5,7 @@ import { ClarityModule } from '@clr/angular';
 import { forkJoin } from 'rxjs';
 import { IncidenciasService, DomicilioDto } from '../../services/incidencias.service';
 import { CatalogoItem } from '../../../../core/models/catalogo.model';
+import { fechaRangoIncidenciaValidator } from '../../../../shared/validators/fecha-rango.validator';
 
 @Component({
   selector: 'app-detalle-incidencia',
@@ -25,6 +26,30 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
   areasSugerencia = signal<CatalogoItem[]>([]);
   contadores = signal<DomicilioDto[]>([]);
   loadingCatalogos = signal<boolean>(true);
+
+  // Límites para validación de fechas (no posterior a la actual y no mayor a un mes atrás)
+  get minFecha(): string {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    d.setHours(0, 0, 0, 0);
+    return this.formatToDateTimeLocal(d);
+  }
+
+  get maxFecha(): string {
+    const d = new Date();
+    return this.formatToDateTimeLocal(d);
+  }
+
+  get fechaMinimaLegible(): string {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return d.toLocaleDateString('es-GT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  private formatToDateTimeLocal(date: Date): string {
+    const pad = (n: number) => n < 10 ? '0' + n : n;
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
 
   get testigosArray() {
     return this.stepForm.get('testigos') as FormArray;
@@ -128,7 +153,7 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
 
     if (tipo === 'QUEJA') {
       detalle.get('dependenciaId')?.setValidators([Validators.required]);
-      detalle.get('fechaIncidencia')?.setValidators([Validators.required]);
+      detalle.get('fechaIncidencia')?.setValidators([Validators.required, fechaRangoIncidenciaValidator()]);
       detalle.get('lugar')?.setValidators([Validators.required]);
       detalle.get('descripcion')?.setValidators([Validators.required]);
     } else if (tipo === 'RECLAMO') {
@@ -138,7 +163,7 @@ export class DetalleIncidenciaComponent implements OnInit, OnChanges {
     } else if (tipo === 'DENUNCIA') {
       detalle.get('tipoDenunciaId')?.setValidators([Validators.required]);
       detalle.get('denunciados')?.setValidators([Validators.required]);
-      detalle.get('fechaHoraHechos')?.setValidators([Validators.required]);
+      detalle.get('fechaHoraHechos')?.setValidators([Validators.required, fechaRangoIncidenciaValidator()]);
       detalle.get('direccion')?.setValidators([Validators.required]);
       detalle.get('relato')?.setValidators([Validators.required]);
     } else if (tipo === 'SUGERENCIA') {

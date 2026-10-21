@@ -49,6 +49,7 @@ public interface AsIncidenciaRepository extends JpaRepository<AsIncidencia, Inte
                 LEFT JOIN FETCH i.inContadorObj c
                 LEFT JOIN FETCH c.doDireccion
                 WHERE i.inVecino = :vecinoId
+                ORDER BY i.id ASC
             """)
     List<AsIncidencia> findIncidenciasDetalleByVecino(@Param("vecinoId") int vecinoId);
 
@@ -92,7 +93,7 @@ public interface AsIncidenciaRepository extends JpaRepository<AsIncidencia, Inte
      * @param estados   Estados de incidencia
      * @return Listado de incidencias
      */
-    @Query("SELECT i FROM AsIncidencia i WHERE (i.inAnalistaId = :usuarioId OR i.inAgente = :usuarioId) AND i.inEstado IN :estados")
+    @Query("SELECT i FROM AsIncidencia i WHERE (i.inAnalistaId = :usuarioId OR i.inAgente = :usuarioId) AND i.inEstado IN :estados ORDER BY i.id ASC")
     List<AsIncidencia> findByUsuarioAsignadoAndInEstadoIn(@Param("usuarioId") String usuarioId, @Param("estados") List<IncidenciaState> estados);
 
     /**

@@ -1,5 +1,8 @@
 package com.assic.muni.application.cqrs.handler;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -90,6 +93,7 @@ public class UpsertIncidenciaCmdHandler {
         IncidenciaPayloadCmd.DetalleQuejaDto detalle = payload.getDetalleQueja();
         final short unidadId = detalle.getDependenciaId();
         JsonNode testigos = objectMapper.valueToTree(detalle.getTestigo());
+        validarRangoFecha(detalle.getFechaIncidencia(), "fecha de la incidencia");
 
         return registrarIncidencia(payload, subject,
                 CATALOGO_DEPENDENCIA, unidadId,
@@ -114,6 +118,7 @@ public class UpsertIncidenciaCmdHandler {
         IncidenciaPayloadCmd.DetalleDenunciaDto detalle = payload.getDetalleDenuncia();
         final short tipoDenuncia = detalle.getTipoDenunciaId();
         JsonNode denunciados = objectMapper.valueToTree(detalle.getDenunciados());
+        validarRangoFecha(detalle.getFechaHoraHechos(), "fecha de los hechos");
 
         return registrarIncidencia(payload, subject,
                 CATALOGO_TIPO_DENUNCIA, tipoDenuncia,
@@ -121,6 +126,20 @@ public class UpsertIncidenciaCmdHandler {
                 "La denuncia no fue encontrada para su actualización",
                 (privacidad, vecinoId, existente) -> IncidenciaMapper.fromDtoToDenuncia(
                         privacidad, vecinoId, tipoDenuncia, payload, existente, denunciados));
+    }
+
+    private void validarRangoFecha(Instant fecha, String campo) {
+        if (fecha == null) return;
+        Instant ahora = Instant.now().plus(Duration.ofMinutes(10));
+        Instant unMesAtras = Instant.now().minus(31, ChronoUnit.DAYS);
+        if (fecha.isAfter(ahora)) {
+            throw new ServiceException(HttpStatus.BAD_REQUEST,
+                    "La " + campo + " no puede ser posterior a la fecha actual");
+        }
+        if (fecha.isBefore(unMesAtras)) {
+            throw new ServiceException(HttpStatus.BAD_REQUEST,
+                    "La " + campo + " no puede ser mayor a un mes atrás");
+        }
     }
 
     private Integer registrarSolicitudSugerencia(IncidenciaPayloadCmd payload, String subject) {
